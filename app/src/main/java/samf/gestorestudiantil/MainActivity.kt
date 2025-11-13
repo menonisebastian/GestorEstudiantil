@@ -64,7 +64,7 @@ fun MyFloatingActionButton() {
 @Composable
 fun MyTopAppBar() {
     TopAppBar(
-        title = { Text("Mis Tareas") },
+        title = { Text("Gestor Estudiantil") },
         navigationIcon = {
             IconButton(onClick = { /* acción al pulsar menú */ }) {
                 Icon(Icons.Default.Menu, contentDescription = "Menú")
