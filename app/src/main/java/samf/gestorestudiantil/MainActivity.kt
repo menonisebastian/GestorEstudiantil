@@ -3,6 +3,7 @@ package samf.gestorestudiantil
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,14 +49,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
+import samf.gestorestudiantil.ui.theme.HomeScreen
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             GestorEstudiantilTheme {
-                MyScaffoldScreen()
+                HomeScreen()
             }
         }
     }
