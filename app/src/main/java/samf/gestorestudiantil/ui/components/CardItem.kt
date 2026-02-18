@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.theme
+package samf.gestorestudiantil.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.models.Curso
 
 @Composable
 fun CursoCardItem(curso: Curso) {

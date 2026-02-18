@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
-import samf.gestorestudiantil.ui.theme.HomeScreen
+import samf.gestorestudiantil.ui.screens.HomeScreen
 
 
 class MainActivity : ComponentActivity() {

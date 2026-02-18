@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.theme
+package samf.gestorestudiantil.models
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons

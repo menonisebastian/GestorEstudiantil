@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.theme
+package samf.gestorestudiantil.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,6 +52,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.ui.components.CursoCardItem
+import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.models.listaCursos
+import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.textColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +110,8 @@ fun HomeScreen() {
                 actions = {
                     IconButton(onClick = {}) { Icon(Icons.Default.MoreHoriz,
                         "Opciones",
-                        tint = textColor) }
+                        tint = textColor
+                    ) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = backgroundColor,
