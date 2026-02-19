@@ -42,8 +42,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.Notificacion
-import samf.gestorestudiantil.models.tipoNotificacion
+import samf.gestorestudiantil.models.Recordatorio
+
+
+
+import samf.gestorestudiantil.models.tipoRecordatorio
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
@@ -158,17 +161,16 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
 }
 
 @Composable
-fun CustomNotificationCard(notificacion: Notificacion)
+fun CustomNotificationCard(recordatorio: Recordatorio)
 {
-
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
-    val label = notificacion.titulo
-    val description = notificacion.descripcion
-    val date = notificacion.fecha
-    val time = notificacion.hora
-    val tipo = notificacion.tipo
+    val label = recordatorio.titulo
+    val description = recordatorio.descripcion
+    val date = recordatorio.fecha
+    val time = recordatorio.hora
+    val tipo = recordatorio.tipo
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -220,7 +222,7 @@ fun CustomNotificationCard(notificacion: Notificacion)
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                TypeChip(tipoNotificacion = tipo)
+                TypeChip(tipoRecordatorio = tipo)
             }
         }
     }
@@ -251,11 +253,12 @@ fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit)
 }
 
 @Composable
-fun TypeChip(tipoNotificacion: tipoNotificacion) {
+fun TypeChip(tipoRecordatorio: tipoRecordatorio) {
     Box(
         modifier = Modifier
             .background(
-                color = tipoNotificacion.color.copy(alpha = 0.2f), // Fondo suave
+                color = tipoRecordatorio
+                    .color.copy(alpha = 0.2f), // Fondo suave
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(3.dp)
@@ -263,8 +266,8 @@ fun TypeChip(tipoNotificacion: tipoNotificacion) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = tipoNotificacion.label,
-            color = tipoNotificacion.color, // Texto del color fuerte
+            text = tipoRecordatorio.label,
+            color = tipoRecordatorio.color, // Texto del color fuerte
             fontWeight = FontWeight.Bold,
             fontSize = 8.sp
         )

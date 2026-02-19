@@ -31,7 +31,7 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
 {
     var textoBusqueda by remember { mutableStateOf("") }
 
-    val materiasFiltrados = remember(textoBusqueda) {
+    val materiasFiltradas = remember(textoBusqueda) {
         if (textoBusqueda.isBlank()) listaMaterias
         else listaMaterias.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
     }
@@ -76,7 +76,7 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
             contentPadding = PaddingValues(horizontal = 20.dp), // Mantiene el alineamiento visual
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(materiasFiltrados) { materia ->
+            items(materiasFiltradas) { materia ->
                 CardItem(item = materia,
                     getIcono = { it.icono },
                     getNombre = {it.nombre},
@@ -89,7 +89,7 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
 
         // Mensaje vacío (reutilizando el padding del bloque 1 si quisiéramos,
         // o aplicándolo aquí si es un caso especial)
-        if (materiasFiltrados.isEmpty()) {
+        if (materiasFiltradas.isEmpty()) {
             MensajeVacio()
         }
     }

@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
-import samf.gestorestudiantil.ui.panels.estudiante.NotificacionesEstudiantePanel
+import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +87,7 @@ fun EstudianteHomeScreen() {
                 "Materias" -> MateriasEstudiantePanel(paddingValues)
                 "Horarios" -> HorariosEstudiantePanel(paddingValues)
                 "Calificaciones"    -> CalificacionesEstudiantePanel(paddingValues)
-                "Notificaciones"  -> NotificacionesEstudiantePanel(paddingValues)
+                "Recordatorios"  -> RecordatoriosEstudiantePanel(paddingValues)
             }
         }
     }

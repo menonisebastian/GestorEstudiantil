@@ -20,22 +20,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.listaNotificaciones
+import samf.gestorestudiantil.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun NotificacionesEstudiantePanel(paddingValues: PaddingValues)
+fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
 {
     var textoBusqueda by remember { mutableStateOf("") }
 
 
-    val notificacionesFiltradas = remember(textoBusqueda) {
+    val recordatoriosFiltrados = remember(textoBusqueda) {
         if (textoBusqueda.isBlank())
-            listaNotificaciones
-        else listaNotificaciones.filter { it.titulo.contains(textoBusqueda, ignoreCase = true) }
+            listaRecordatorios
+        else listaRecordatorios.filter { it.titulo.contains(textoBusqueda, ignoreCase = true) }
     }
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -55,7 +55,7 @@ fun NotificacionesEstudiantePanel(paddingValues: PaddingValues)
 
             // Título (ya no necesita padding individual)
             Text(
-                text = "Mis Notificaciones",
+                text = "Mis Recordatorios",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor
@@ -69,15 +69,15 @@ fun NotificacionesEstudiantePanel(paddingValues: PaddingValues)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (notificacionesFiltradas.isEmpty()) Text(
-                text = "No hay notificaciones",
+            if (recordatoriosFiltrados.isEmpty()) Text(
+                text = "No hay recordatorios",
                 color = surfaceDimColor,
                 fontSize = 16.sp
             )
             else
             {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    items(notificacionesFiltradas){ notificacion ->
+                    items(recordatoriosFiltrados){ notificacion ->
                         CustomNotificationCard(notificacion)
                     }
                     item{Spacer(modifier = Modifier.height(16.dp))}

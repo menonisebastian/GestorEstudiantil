@@ -14,18 +14,18 @@ val itemsEstudiante: Map<String, ImageVector> = mapOf(
     "Materias" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
-    "Notificaciones" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications
 )
 
 val itemsProfesor: Map<String, ImageVector> = mapOf(
     "Materias" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
-    "Alarmas" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications
 )
 
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
     "Cursos" to Icons.AutoMirrored.Filled.List,
-    "Notificaciones" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications
 )
