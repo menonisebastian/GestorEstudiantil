@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "287696524955",
+    "project_id": "gestorinstituto-tfg",
+    "storage_bucket": "gestorinstituto-tfg.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:287696524955:android:8160c1134d0e7d7dea583e",
+        "android_client_info": {
+          "package_name": "samf.gestorestudiantil"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "287696524955-tkktj06eb5kh3vkkqs2jej9n6atn2c3i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "samf.gestorestudiantil",
+            "certificate_hash": "9545b5ae714b193dca57c99c68f1f5e3fbd16e14"
+          }
+        },
+        {
+          "client_id": "287696524955-6pqo614aj8frbqe2vn3ceau3gprqrafm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCSt4TKN0_VrJdSuxobFhe1nwYCPN24fM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "287696524955-6pqo614aj8frbqe2vn3ceau3gprqrafm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

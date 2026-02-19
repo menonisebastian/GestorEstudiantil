@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -57,4 +58,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Importar la plataforma Firebase BOM
+    implementation(platform(libs.firebase.bom))
+
+    // Librerías de Firebase (Auth y Firestore)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+
+    // Librería para Google Sign-In
+    implementation(libs.play.services.auth)
 }
