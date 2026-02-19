@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,7 +29,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults.colors
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +42,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.models.Notificacion
+import samf.gestorestudiantil.models.tipoNotificacion
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import kotlin.collections.component1
@@ -46,13 +53,13 @@ import kotlin.collections.component2
 import kotlin.collections.forEach
 
 @Composable
-fun TopBarRow(name: String, role: String) {
+fun TopBarRow(name: String, role: String, curso: String) {
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        AccBox(name, role)
+        AccBox(name, role, curso)
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -151,19 +158,20 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
 }
 
 @Composable
-fun CustomNotificationCard(tipo: tipoNotificacion)
+fun CustomNotificationCard(notificacion: Notificacion)
 {
 
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
-    val label = "Titulo"
-    val description = "Descripcion"
-    val date = "09/02/2026"
-    val time = "10:10"
+    val label = notificacion.titulo
+    val description = notificacion.descripcion
+    val date = notificacion.fecha
+    val time = notificacion.hora
+    val tipo = notificacion.tipo
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor),
     )
     {
         Row(verticalAlignment = Alignment.CenterVertically,
@@ -214,14 +222,34 @@ fun CustomNotificationCard(tipo: tipoNotificacion)
 
                 TypeChip(tipoNotificacion = tipo)
             }
-
-
         }
-
     }
 }
 
-// ========= BOX DE PRIORIDAD DE TAREA =========== //
+@Composable
+fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit)
+{
+    OutlinedTextField(
+        value = textoBusqueda,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        placeholder = { Text("Buscar", color = surfaceDimColor) },
+        leadingIcon = { Icon(Icons.Default.Search, "Buscar", tint = Color.Gray) },
+        trailingIcon = { Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray) },
+        shape = RoundedCornerShape(16.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = surfaceColor,
+            unfocusedContainerColor = surfaceColor,
+            disabledContainerColor = surfaceColor,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
+        singleLine = true
+    )
+}
+
 @Composable
 fun TypeChip(tipoNotificacion: tipoNotificacion) {
     Box(
@@ -243,7 +271,6 @@ fun TypeChip(tipoNotificacion: tipoNotificacion) {
     }
 }
 
-
 @Composable
 fun MensajeVacio() {
     Box(
@@ -256,20 +283,18 @@ fun MensajeVacio() {
     }
 }
 
-
 @Composable
-fun AccBox(name: String, role: String) {
+fun AccBox(name: String, role: String, curso: String) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-        //modifier = Modifier.padding(horizontal = 16.dp)
     )
     {
         AccImg()
         Spacer(modifier = Modifier.width(16.dp))
         Column{
             Text("Hola, $name", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
-            Text(role, fontSize = 12.sp, color = surfaceDimColor)
+            Text("$role - $curso", fontSize = 12.sp, color = surfaceDimColor)
         }
     }
 }

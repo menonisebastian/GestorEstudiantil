@@ -35,17 +35,19 @@ fun EstudianteHomeScreen() {
 
     var name by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("") }
+    var curso by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf("Materias") }
 
     name = "Sebastian"      //Obtiene el nombre de usuario de Firebase
     role = "Estudiante"     //Obtiene el rol del usuario de Firebase
+    curso = "DAMV2"
 
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
-                    TopBarRow(name, role)
+                    TopBarRow(name, role, curso)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = backgroundColor,

@@ -4,8 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Grading
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Business
-import androidx.compose.material.icons.filled.Class
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Class
 import androidx.compose.material.icons.outlined.Notifications

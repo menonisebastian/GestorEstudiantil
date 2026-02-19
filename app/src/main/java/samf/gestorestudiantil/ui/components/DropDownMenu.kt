@@ -7,7 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenu
@@ -79,50 +78,4 @@ fun DropDownMenu()
                 onClick = {   })
         }
     }
-
-
-//    var expanded by remember { mutableStateOf(expanded) }
-//
-//    DropdownMenu(expanded = expanded,
-//        onDismissRequest = { expanded = true },
-//        shape = RoundedCornerShape(30.dp),
-//        modifier = Modifier.background(surfaceColor)
-//    )
-//    {
-//        DropdownMenuItem(
-//            text = { Text("Cuenta") },
-//            leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null, tint = textColor) },
-//            onClick = { expanded = false })
-//        HorizontalDivider()
-//
-//        DropdownMenuItem(
-//            text = { Text("Preferencias") },
-//            leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null, tint = textColor) },
-//            onClick = { expanded = false })
-//        HorizontalDivider()
-//
-//        DropdownMenuItem(
-//            text = { Text("Ayuda") },
-//            leadingIcon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = textColor) },
-//            onClick = {  }
-//        )
-//        HorizontalDivider()
-//
-//        DropdownMenuItem(
-//            text = { Text("Exportar tareas") },
-//            leadingIcon = { Icon(Icons.Outlined.SaveAlt, contentDescription = null, tint = textColor) },
-//            onClick = { expanded = false })
-//        HorizontalDivider()
-//
-//        DropdownMenuItem(
-//            text = { Text("Vaciar lista") },
-//            leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = textColor) },
-//            onClick = {  })
-//        HorizontalDivider()
-//
-//        DropdownMenuItem(
-//            text = { Text("Cerrar sesión") },
-//            leadingIcon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = textColor) },
-//            onClick = {   })
-//    }
 }

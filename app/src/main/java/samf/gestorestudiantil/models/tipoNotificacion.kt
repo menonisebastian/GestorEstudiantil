@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.components
+package samf.gestorestudiantil.models
 
 import androidx.compose.ui.graphics.Color
 
