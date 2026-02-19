@@ -40,6 +40,7 @@ val ColorProgMovil = Color(0xFFEF9A9A) // Rojo suave
 val ColorDocker = Color(0xFFD1C4E9) // Morado suave
 val ColorFOL = Color(0xFF80DEEA) // Cian/Turquesa
 val ColorServicios = Color(0xFF90CAF9) // Azul claro
+val ColorReceso = Color.LightGray
 
 data class ClaseHorario(
     val materia: String,
@@ -153,7 +154,7 @@ fun getClasesPorDia(dia: String): List<ClaseHorario> {
             ClaseHorario("Desarrollo de Interfaces", "16:00 - 16:50", ColorDesarrollo),
             ClaseHorario("Desarrollo de Interfaces", "16:55 - 17:45", ColorDesarrollo),
             ClaseHorario("Prog. Multiplataforma y Móvil", "17:50 - 18:40", ColorProgMovil),
-            ClaseHorario("--- RECREO ---", "18:40 - 19:05", Color.LightGray.copy(alpha = 0.5f)),
+            ClaseHorario("--- RECREO ---", "18:40 - 19:05", ColorReceso),
             ClaseHorario("Prog. Multiplataforma y Móvil", "19:05 - 19:55", ColorProgMovil),
             ClaseHorario("Prog. Servicios y Procesos", "20:00 - 20:50", ColorServicios),
             ClaseHorario("Prog. Servicios y Procesos", "20:55 - 21:45", ColorServicios)
@@ -162,7 +163,7 @@ fun getClasesPorDia(dia: String): List<ClaseHorario> {
             ClaseHorario("Sostenibilidad", "16:00 - 16:50", ColorSostenibilidad),
             ClaseHorario("Sistemas de Gestión Empresarial", "16:55 - 17:45", ColorSistemas),
             ClaseHorario("Sistemas de Gestión Empresarial", "17:50 - 18:40", ColorSistemas),
-            ClaseHorario("--- RECREO ---", "18:40 - 19:05", Color.LightGray.copy(alpha = 0.5f)),
+            ClaseHorario("--- RECREO ---", "18:40 - 19:05", ColorReceso),
             ClaseHorario("FOL", "19:05 - 19:55", ColorFOL),
             ClaseHorario("Prog. Servicios y Procesos", "20:00 - 20:50", ColorServicios),
             ClaseHorario("Prog. Servicios y Procesos", "20:55 - 21:45", ColorServicios)
@@ -171,7 +172,7 @@ fun getClasesPorDia(dia: String): List<ClaseHorario> {
             ClaseHorario("Acceso a Datos", "16:00 - 16:50", ColorAccesoDatos),
             ClaseHorario("Acceso a Datos", "16:55 - 17:45", ColorAccesoDatos),
             ClaseHorario("Docker", "17:50 - 18:40", ColorDocker),
-            ClaseHorario("--- RECREO ---", "18:40 - 19:05", Color.LightGray.copy(alpha = 0.5f)),
+            ClaseHorario("--- RECREO ---", "18:40 - 19:05", ColorReceso),
             ClaseHorario("FOL", "19:05 - 19:55", ColorFOL),
             ClaseHorario("Desarrollo de Interfaces", "20:00 - 20:50", ColorDesarrollo),
             ClaseHorario("Desarrollo de Interfaces", "20:55 - 21:45", ColorDesarrollo)
@@ -180,7 +181,7 @@ fun getClasesPorDia(dia: String): List<ClaseHorario> {
             ClaseHorario("Acceso a Datos", "16:00 - 16:50", ColorAccesoDatos),
             ClaseHorario("Prog. Multiplataforma y Móvil", "16:55 - 17:45", ColorProgMovil),
             ClaseHorario("Prog. Multiplataforma y Móvil", "17:50 - 18:40", ColorProgMovil),
-            ClaseHorario("--- RECREO ---", "18:40 - 19:05", Color.LightGray.copy(alpha = 0.5f)),
+            ClaseHorario("--- RECREO ---", "18:40 - 19:05", ColorReceso),
             ClaseHorario("Prog. Multiplataforma y Móvil", "19:05 - 19:55", ColorProgMovil),
             ClaseHorario("Docker", "20:00 - 20:50", ColorDocker),
             ClaseHorario("Sistemas de Gestión Empresarial", "20:55 - 21:45", ColorSistemas)
@@ -189,7 +190,7 @@ fun getClasesPorDia(dia: String): List<ClaseHorario> {
             ClaseHorario("Sistemas de Gestión Empresarial", "16:00 - 16:50", ColorSistemas),
             ClaseHorario("Sistemas de Gestión Empresarial", "16:55 - 17:45", ColorSistemas),
             ClaseHorario("Desarrollo de Interfaces", "17:50 - 18:40", ColorDesarrollo),
-            ClaseHorario("--- RECREO ---", "18:40 - 19:05", Color.LightGray.copy(alpha = 0.5f)),
+            ClaseHorario("--- RECREO ---", "18:40 - 19:05", ColorReceso),
             ClaseHorario("Desarrollo de Interfaces", "19:05 - 19:55", ColorDesarrollo),
             ClaseHorario("Acceso a Datos", "20:00 - 20:50", ColorAccesoDatos),
             ClaseHorario("Acceso a Datos", "20:55 - 21:45", ColorAccesoDatos)

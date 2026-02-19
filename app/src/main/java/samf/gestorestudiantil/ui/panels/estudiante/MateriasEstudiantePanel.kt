@@ -10,29 +10,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.models.listaMaterias
 import samf.gestorestudiantil.ui.components.CardItem
+import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.components.MensajeVacio
-import samf.gestorestudiantil.ui.theme.surfaceColor
-import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
@@ -59,26 +50,6 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
         ) {
-            // Barra de Búsqueda (ya no necesita padding individual)
-            OutlinedTextField(
-                value = textoBusqueda,
-                onValueChange = { textoBusqueda = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                placeholder = { Text("Buscar", color = surfaceDimColor) },
-                leadingIcon = { Icon(Icons.Default.Search, "Buscar", tint = Color.Gray) },
-                trailingIcon = { Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray) },
-                shape = RoundedCornerShape(16.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = surfaceColor,
-                    unfocusedContainerColor = surfaceColor,
-                    disabledContainerColor = surfaceColor,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
-                singleLine = true
-            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -89,6 +60,12 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Barra de Búsqueda (ya no necesita padding individual)
+
+            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it })
         }
 
         Spacer(modifier = Modifier.height(16.dp))
