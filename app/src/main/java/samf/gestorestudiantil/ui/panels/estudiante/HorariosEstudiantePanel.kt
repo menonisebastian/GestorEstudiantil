@@ -152,6 +152,8 @@ fun ItemHorario(clase: ClaseHorario) {
                 Text(
                     text = clase.profesor,
                     fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black.copy(alpha = 0.6f)
                 )
             }
         }
