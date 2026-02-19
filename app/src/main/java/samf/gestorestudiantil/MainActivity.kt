@@ -48,8 +48,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import samf.gestorestudiantil.ui.screens.EstudianteHomeScreen
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
-import samf.gestorestudiantil.ui.screens.HomeScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GestorEstudiantilTheme {
-                HomeScreen()
+                EstudianteHomeScreen()
             }
         }
     }

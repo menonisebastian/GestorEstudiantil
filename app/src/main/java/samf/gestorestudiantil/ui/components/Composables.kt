@@ -1,34 +1,41 @@
 package samf.gestorestudiantil.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -40,76 +47,220 @@ import kotlin.collections.forEach
 
 @Composable
 fun TopBarRow(name: String, role: String) {
-    Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 16.dp)) {
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 16.dp)
+    ) {
         AccBox(name, role)
 
         Spacer(modifier = Modifier.weight(1f))
 
-        IconButton(onClick = {}) {
-            Icon(
-                Icons.Default.MoreHoriz,
-                "Opciones",
-                tint = textColor
+        DropDownMenu()
+    }
+}
+
+@Composable
+fun BottomNavBar(
+    items: Map<String, ImageVector>,
+    selectedItem: String,          // Nuevo: Recibe cuál está seleccionado
+    onItemSelected: (String) -> Unit
+)
+{
+    // Componente oficial de Material3
+    NavigationBar(
+        containerColor = backgroundColor, // O el color que desees para el fondo
+        contentColor = textColor
+    ) {
+        items.forEach { (label, icon) ->
+            val isSelected = selectedItem == label
+
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onItemSelected(label) },
+                icon = {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = label
+                    )
+                },
+                label = {
+                    Text(
+                        text = label,
+                        fontSize = 10.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                // Personalización de colores para que coincida con tu tema
+                colors = colors(
+                    selectedIconColor = textColor,
+                    selectedTextColor = textColor,
+                    indicatorColor = surfaceDimColor.copy(alpha = 0.3f), // El color de la "píldora" de fondo
+                    unselectedIconColor = surfaceDimColor,
+                    unselectedTextColor = surfaceDimColor
+                )
             )
         }
     }
 }
 
+
 @Composable
-fun BottomBar(items: Map<String, ImageVector>) {
+fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
+    val weekDays = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes")
 
-    var selectedItem by remember { mutableStateOf(items.keys.first()) }
-
-    // Usamos Row para distribuir los botones horizontalmente
+    // Usamos un Row con scroll horizontal por si la pantalla es muy pequeña
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor), // Asegúrate de que esta variable sea accesible o usa MaterialTheme.colorScheme.background
-        horizontalArrangement = Arrangement.SpaceEvenly, // Distribuye el espacio equitativamente
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly, // Intenta distribuirlos
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Recorremos el mapa (key = nombre, value = icono)
-        items.forEach { (label, icon) ->
-            BottomBarButton(
-                icon = icon,
-                label = label,
-                selected = selectedItem == label,
-                onClick = {
-                    // Aquí iría la lógica al pulsar cada botón
-                    // Ejemplo: navController.navigate(route)
-                }
+        weekDays.forEach { day ->
+            val isSelected = selectedItem == day
+
+            FilterChip(
+                selected = isSelected,
+                onClick = { onItemSelected(day) },
+                label = {
+                    Text(
+                        // Mostramos las primeras 3 letras para que quepa bien (Lun, Mar...)
+                        text = day.take(3),
+                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 4.dp),
+                // Personalizamos los colores para tu tema
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = textColor,
+                    selectedLabelColor = backgroundColor,
+                    containerColor = Color.Transparent,
+                    labelColor = surfaceDimColor
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = if (isSelected) Color.Transparent else surfaceDimColor,
+                    borderWidth = 1.dp
+                )
             )
         }
     }
 }
 
 @Composable
-fun BottomBarButton(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
+fun CustomNotificationCard(tipo: tipoNotificacion)
+{
+
+    val iconModifier = Modifier
+        .size(16.dp)
+        .padding(end = 4.dp)
+    val label = "Titulo"
+    val description = "Descripcion"
+    val date = "09/02/2026"
+    val time = "10:10"
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+    )
+    {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+        {
+            Column{
+                Column()
+                {
+                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor)
+                    Text(description, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    Icon(Icons.Outlined.DateRange,
+                        "Fecha",
+                        tint = surfaceDimColor,
+                        modifier = iconModifier)
+                    Text(date,
+                        color = surfaceDimColor,
+                        fontSize = 10.sp)
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Icon(Icons.Outlined.AccessTime,
+                        "Hora",
+                        tint = surfaceDimColor,
+                        modifier = iconModifier)
+                    Text(time,
+                        color = surfaceDimColor,
+                        fontSize = 10.sp)
+
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Column (horizontalAlignment = Alignment.CenterHorizontally) {
+
+                IconButton(onClick = {}, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Outlined.Delete, "Eliminar",
+                        tint = Color.Red
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                TypeChip(tipoNotificacion = tipo)
+            }
+
+
+        }
+
+    }
+}
+
+// ========= BOX DE PRIORIDAD DE TAREA =========== //
+@Composable
+fun TypeChip(tipoNotificacion: tipoNotificacion) {
     Box(
         modifier = Modifier
-            .size(80.dp)
-            .clip(CircleShape)
-            .clickable(onClick = { onClick() }),
+            .background(
+                color = tipoNotificacion.color.copy(alpha = 0.2f), // Fondo suave
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(3.dp)
+            .width(40.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally)
-        {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (selected) textColor else surfaceDimColor,
-                //modifier = Modifier.size(24.dp)
-            )
-            Text(label, color = if (selected) textColor else surfaceDimColor, fontSize = 12.sp)
-        }
+        Text(
+            text = tipoNotificacion.label,
+            color = tipoNotificacion.color, // Texto del color fuerte
+            fontWeight = FontWeight.Bold,
+            fontSize = 8.sp
+        )
+    }
+}
+
+
+@Composable
+fun MensajeVacio() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 50.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("No se encontraron cursos", color = Color.Gray)
     }
 }
 
 
 @Composable
 fun AccBox(name: String, role: String) {
-    Row (horizontalArrangement = Arrangement.Center,
+    Row(
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         //modifier = Modifier.padding(horizontal = 16.dp)
     )

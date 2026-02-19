@@ -1,7 +1,6 @@
-package samf.gestorestudiantil.ui.layouts.estudiante
+package samf.gestorestudiantil.ui.panels.estudiante
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -32,12 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.models.listaMaterias
 import samf.gestorestudiantil.ui.components.CardItem
+import samf.gestorestudiantil.ui.components.MensajeVacio
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun EstudianteLayout(paddingValues: PaddingValues)
+fun MateriasEstudiantePanel(paddingValues: PaddingValues)
 {
     var textoBusqueda by remember { mutableStateOf("") }
 
@@ -114,14 +113,7 @@ fun EstudianteLayout(paddingValues: PaddingValues)
         // Mensaje vacío (reutilizando el padding del bloque 1 si quisiéramos,
         // o aplicándolo aquí si es un caso especial)
         if (materiasFiltrados.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 50.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No se encontraron cursos", color = Color.Gray)
-            }
+            MensajeVacio()
         }
     }
 }
