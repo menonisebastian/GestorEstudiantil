@@ -229,6 +229,38 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
 }
 
 @Composable
+fun CustomTextField(
+    texto: String,
+    onValueChange: (String) -> Unit,
+    icon: ImageVector? = null,
+    label: String
+)
+{
+    OutlinedTextField(
+        value = texto,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = surfaceColor,
+            unfocusedContainerColor = surfaceColor,
+            disabledContainerColor = surfaceColor,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
+        singleLine = true,
+        leadingIcon = {
+            if (icon != null) {
+                Icon(icon, null, tint = Color.Gray)
+            }
+        }
+    )
+}
+
+@Composable
 fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit)
 {
     OutlinedTextField(

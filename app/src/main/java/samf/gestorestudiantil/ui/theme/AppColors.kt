@@ -19,3 +19,15 @@ val surfaceColor: Color
 val surfaceDimColor: Color
     @Composable
     get() = colorScheme.surfaceDim
+
+val primaryColor: Color
+    @Composable
+    get() = colorScheme.primary
+
+val secondaryColor: Color
+    @Composable
+    get() = colorScheme.secondary
+
+val tertiaryColor: Color
+    @Composable
+    get() = colorScheme.tertiary
