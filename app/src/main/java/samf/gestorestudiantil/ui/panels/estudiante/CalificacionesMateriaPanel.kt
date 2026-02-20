@@ -17,45 +17,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.models.Materia
-import samf.gestorestudiantil.models.listaMaterias
-import samf.gestorestudiantil.ui.components.MateriaCard
+import samf.gestorestudiantil.models.Modulo
+import samf.gestorestudiantil.ui.components.ModuloCard
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onMateriaClick: (Materia) -> Unit)
-{
+fun CalificacionesMateriaPanel(
+    materia: Materia,
+    paddingValues: PaddingValues
+) {
+    val listaModulos = listOf<Modulo>(
+        Modulo(1, "UD1", 8.0, materia.descripcion),
+        Modulo(2, "UD2", 7.0, materia.descripcion),
+        Modulo(3, "UD3", 9.0, materia.descripcion),
+        Modulo(4, "TFG", 10.0, materia.descripcion)
+    )
+
+    val notaMedia = listaModulos.sumOf { it.nota } / listaModulos.size
+
     Column(modifier = Modifier
         .padding(paddingValues)
         .fillMaxSize()
-    ) {
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // BLOQUE 1: Contenido con márgenes (Agrupado)
-        // Aquí metemos todo lo que SÍ necesita márgenes
-        Column(
+    )
+    {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
-        ) {
-
+                .padding(horizontal = 20.dp)
+        )
+        {
             Spacer(modifier = Modifier.height(24.dp))
+            Text(materia.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
 
-            // Título (ya no necesita padding individual)
-            Text(
-                text = "Mis Calificaciones",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = textColor
-            )
+            Text("Nota media: $notaMedia", fontSize = 16.sp, color = textColor)
 
+            // BLOQUE 1: Contenido con márgenes
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp))
             {
-                items(listaMaterias)
+                items(listaModulos)
                 {
-                    materia ->
-                    MateriaCard(materia, onClick = {
-                        onMateriaClick(materia)
-                    })
+                        modulo ->
+                    ModuloCard(modulo)
                 }
                 item{Spacer(modifier = Modifier.height(16.dp))}
             }

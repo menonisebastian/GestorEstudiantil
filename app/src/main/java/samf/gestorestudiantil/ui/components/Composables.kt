@@ -42,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.models.Materia
+import samf.gestorestudiantil.models.Modulo
 import samf.gestorestudiantil.models.Recordatorio
 
 
@@ -224,6 +226,125 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
 
                 TypeChip(tipoRecordatorio = tipo)
             }
+        }
+    }
+}
+
+@Composable
+fun MateriaCard(materia: Materia, onClick:() -> Unit )
+{
+    val iconModifier = Modifier
+        .size(16.dp)
+        .padding(end = 4.dp)
+    val label = materia.nombre
+    val description = materia.descripcion
+    val qtyHours = materia.horas
+    val prof = materia.profesor
+    val icon = materia.icono
+    val iconColor = materia.colorIcono
+    val fondoColor = materia.colorFondo
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = fondoColor),
+        onClick = {onClick()}
+    )
+    {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+        {
+            Column{
+                Column()
+                {
+                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = iconColor)
+                    Text(description, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    Icon(Icons.Outlined.Person,
+                        "Fecha",
+                        tint = surfaceDimColor,
+                        modifier = iconModifier)
+                    Text(prof,
+                        color = surfaceDimColor,
+                        fontSize = 10.sp)
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Icon(Icons.Outlined.AccessTime,
+                        "Hora",
+                        tint = surfaceDimColor,
+                        modifier = iconModifier)
+                    Text(qtyHours,
+                        color = surfaceDimColor,
+                        fontSize = 10.sp)
+
+                }
+            }
+
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(icon,
+                null,
+                tint = iconColor)
+        }
+    }
+}
+
+@Composable
+fun ModuloCard(modulo: Modulo)
+{
+    val label = modulo.nombre
+    val materia = modulo.materia
+    val nota = modulo.nota
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor)
+    )
+    {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+        {
+            Column{
+                Column()
+                {
+                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor)
+                    Text(materia, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
+
+                }
+//                Row(verticalAlignment = Alignment.CenterVertically) {
+//
+//                    Icon(Icons.Outlined.Person,
+//                        "Fecha",
+//                        tint = surfaceDimColor,
+//                        modifier = iconModifier)
+//                    Text(prof,
+//                        color = surfaceDimColor,
+//                        fontSize = 10.sp)
+//
+//                    Spacer(modifier = Modifier.width(16.dp))
+//
+//                    Icon(Icons.Outlined.AccessTime,
+//                        "Hora",
+//                        tint = surfaceDimColor,
+//                        modifier = iconModifier)
+//                    Text(qtyHours,
+//                        color = surfaceDimColor,
+//                        fontSize = 10.sp)
+//
+//                }
+            }
+
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text("Nota: $nota", textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
         }
     }
 }

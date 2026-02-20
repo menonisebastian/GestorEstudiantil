@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.Color
@@ -29,9 +30,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
+import samf.gestorestudiantil.models.Materia
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.dialogs.AddRecordatorioDialog
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
+import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesMateriaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -55,6 +58,8 @@ fun EstudianteHomeScreen() {
     val showFab = tabs[pagerState.currentPage] == "Recordatorios"
 
     var showRecordatorioDialog by remember { mutableStateOf(false) }
+
+    var materiaSeleccionada by remember { mutableStateOf<Materia?>(null) }
 
 
     name = "Sebastian"      //Obtiene el nombre de usuario de Firebase
@@ -125,8 +130,32 @@ fun EstudianteHomeScreen() {
             when (tabs[page]) {
                 "Materias" -> MateriasEstudiantePanel(PaddingValues(0.dp)) // Pasamos 0dp porque el padding ya lo tiene el Pager
                 "Horarios" -> HorariosEstudiantePanel(PaddingValues(0.dp))
-                "Calificaciones"    -> CalificacionesEstudiantePanel(PaddingValues(0.dp))
                 "Recordatorios"  -> RecordatoriosEstudiantePanel(PaddingValues(0.dp))
+                // 2. LÓGICA MODIFICADA PARA CALIFICACIONES
+                "Calificaciones" -> {
+                    if (materiaSeleccionada != null) {
+                        // A) Si hay materia seleccionada, mostramos el panel de detalle
+                        CalificacionesMateriaPanel(
+                            paddingValues = PaddingValues(0.dp),
+                            materia = materiaSeleccionada!!
+                            // Opcional: Pasa un padding si lo necesitas
+                        )
+
+                        // B) Manejamos el botón "Atrás" del dispositivo
+                        BackHandler {
+                            materiaSeleccionada = null // Al volver, limpiamos la selección
+                        }
+                    } else {
+                        // C) Si es null, mostramos la lista normal
+                        CalificacionesEstudiantePanel(
+                            paddingValues = PaddingValues(0.dp),
+                            onMateriaClick = { materia ->
+                                // Al hacer click, guardamos la materia en el estado
+                                materiaSeleccionada = materia
+                            }
+                        )
+                    }
+                }
             }
         }
     }
