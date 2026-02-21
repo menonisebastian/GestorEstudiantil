@@ -26,9 +26,9 @@ fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onAsignaturaClic
 {
     Column(modifier = Modifier
         .padding(paddingValues)
-        .fillMaxSize()
+        .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
 
         // BLOQUE 1: Contenido con márgenes (Agrupado)
         // Aquí metemos todo lo que SÍ necesita márgenes
@@ -38,14 +38,13 @@ fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onAsignaturaClic
                 .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
         ) {
 
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Título (ya no necesita padding individual)
             Text(
                 text = "Mis Calificaciones",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor
+                color = textColor,
+                modifier = Modifier.padding(top = 16.dp)
             )
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp))

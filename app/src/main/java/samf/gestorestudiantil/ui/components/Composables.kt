@@ -167,8 +167,7 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -203,69 +202,53 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
     }
 }
 
+// ==========================================
+// TARJETAS CORREGIDAS (Layout Bounds Fix)
+// ==========================================
+
 @Composable
-fun CustomNotificationCard(recordatorio: Recordatorio)
-{
+fun CustomNotificationCard(recordatorio: Recordatorio) {
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
-    val label = recordatorio.titulo
-    val description = recordatorio.descripcion
-    val date = recordatorio.fecha
-    val time = recordatorio.hora
-    val tipo = recordatorio.tipo
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
-    )
-    {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-        {
-            Column{
-                Column()
-                {
-                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor)
-                    Text(description, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            // AÑADIDO: weight(1f) arregla el problema de los textos largos
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = recordatorio.titulo, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(recordatorio.descripcion, fontSize = 11.sp, color = surfaceDimColor, lineHeight = 14.sp)
 
-                    Icon(Icons.Outlined.DateRange,
-                        "Fecha",
-                        tint = surfaceDimColor,
-                        modifier = iconModifier)
-                    Text(date,
-                        color = surfaceDimColor,
-                        fontSize = 10.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.DateRange, "Fecha", tint = surfaceDimColor, modifier = iconModifier)
+                    Text(recordatorio.fecha, color = surfaceDimColor, fontSize = 10.sp)
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Icon(Icons.Outlined.AccessTime,
-                        "Hora",
-                        tint = surfaceDimColor,
-                        modifier = iconModifier)
-                    Text(time,
-                        color = surfaceDimColor,
-                        fontSize = 10.sp)
-
+                    Icon(Icons.Outlined.AccessTime, "Hora", tint = surfaceDimColor, modifier = iconModifier)
+                    Text(recordatorio.hora, color = surfaceDimColor, fontSize = 10.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            // AÑADIDO: Spacer con ancho fijo en lugar de weight
+            Spacer(modifier = Modifier.width(12.dp))
 
-            Row (verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TypeChip(option = recordatorio.tipo)
 
-                TypeChip(option = tipo)
+                Spacer(modifier = Modifier.width(8.dp))
 
-                Spacer(modifier = Modifier.width(16.dp))
-
-                IconButton(onClick = {}, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Outlined.Delete, "Eliminar",
-                        tint = Color.Red
-                    )
+                IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Outlined.Delete, "Eliminar", tint = Color.Red, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -273,19 +256,11 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
 }
 
 @Composable
-fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit )
-{
+fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit ) {
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
 
-    val label = asignatura.nombre
-    val description = asignatura.descripcion
-    val qtyHours = asignatura.horas
-    // Usamos profesorId por ahora (más adelante podrías cruzar datos para mostrar el nombre real)
-    val prof = asignatura.profesorId
-
-    // Aquí usamos los mappers creados para convertir String a elementos de interfaz
     val icon = asignatura.iconoName.toComposeIcon()
     val iconColor = asignatura.colorIconoHex.toComposeColor()
     val fondoColor = asignatura.colorFondoHex.toComposeColor()
@@ -293,77 +268,59 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit )
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = fondoColor),
-        onClick = {onClick()}
-    )
-    {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-        {
-            Column()
-            {
-                Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = iconColor)
-                Text(description, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        onClick = { onClick() }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            // AÑADIDO: weight(1f) evita que la descripción aplaste a los demás componentes
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = asignatura.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = iconColor)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(asignatura.descripcion, fontSize = 11.sp, color = surfaceDimColor, lineHeight = 14.sp)
 
-                Icon(Icons.Outlined.Person,
-                    "Profesor",
-                    tint = surfaceDimColor,
-                    modifier = iconModifier)
-                Text(prof,
-                    color = surfaceDimColor,
-                    fontSize = 10.sp)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Person, "Profesor", tint = surfaceDimColor, modifier = iconModifier)
+                    Text(asignatura.profesorId, color = surfaceDimColor, fontSize = 10.sp)
 
-                Icon(Icons.Outlined.AccessTime,
-                    "Hora",
-                    tint = surfaceDimColor,
-                    modifier = iconModifier)
-                Text(qtyHours,
-                    color = surfaceDimColor,
-                    fontSize = 10.sp)
+                    Spacer(modifier = Modifier.width(16.dp))
 
+                    Icon(Icons.Outlined.AccessTime, "Hora", tint = surfaceDimColor, modifier = iconModifier)
+                    Text(asignatura.horas, color = surfaceDimColor, fontSize = 10.sp)
+                }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            // AÑADIDO: Espacio fijo para asegurar que el icono a la derecha tenga sitio
+            Spacer(modifier = Modifier.width(16.dp))
 
-            Icon(icon,
-                null,
-                tint = iconColor)
+            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
         }
     }
 }
 
 @Composable
-fun EvaluacionCard(evaluacion: Evaluacion)
-{
-    val label = evaluacion.nombre
-    val nota = evaluacion.nota
-    val tipo = evaluacion.tipoEvaluacion
-    val modulos = evaluacion.modulosEvaluados
-
+fun EvaluacionCard(evaluacion: Evaluacion) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor)
-    )
-    {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-        {
-            Column()
-            {
-                TypeChip(option = tipo)
-                Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            // AÑADIDO: weight(1f) por seguridad en caso de que el nombre de la evaluación sea muy largo
+            Column(modifier = Modifier.weight(1f)) {
+                TypeChip(option = evaluacion.tipoEvaluacion)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(text = evaluacion.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(16.dp))
 
-            Text("Nota: $nota", textAlign = TextAlign.Justify, fontSize = 12.sp, color = textColor)
+            Text("Nota: ${evaluacion.nota}", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
         }
     }
 }

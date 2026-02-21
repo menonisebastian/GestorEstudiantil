@@ -41,33 +41,28 @@ fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
         .padding(paddingValues)
         .fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
 
         // BLOQUE 1: Contenido con márgenes (Agrupado)
         // Aquí metemos todo lo que SÍ necesita márgenes
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
+                .padding(horizontal = 20.dp), // <--- Un solo padding para todo este bloque
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Título (ya no necesita padding individual)
             Text(
                 text = "Mis Recordatorios",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor
+                color = textColor,
+                modifier = Modifier.padding(top = 16.dp)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Barra de Búsqueda (ya no necesita padding individual)
 
             CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it })
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             if (recordatoriosFiltrados.isEmpty()) Text(
                 text = "No hay recordatorios",
@@ -81,6 +76,10 @@ fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
                         CustomNotificationCard(notificacion)
                     }
                     item{Spacer(modifier = Modifier.height(16.dp))}
+                    if (recordatoriosFiltrados.lastIndex == recordatoriosFiltrados.size)
+                    item{
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

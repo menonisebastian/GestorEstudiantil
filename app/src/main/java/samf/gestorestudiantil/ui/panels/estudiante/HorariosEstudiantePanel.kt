@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -60,28 +61,26 @@ fun HorariosEstudiantePanel(paddingValues: PaddingValues) {
     Column(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Título
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Spacer(modifier = Modifier.height(24.dp))
+        Column(modifier = Modifier.padding(horizontal = 20.dp))
+        {
             Text(
                 text = "Horario Personal - $curso",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor
+                color = textColor,
+                modifier = Modifier.padding(top = 16.dp)
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Barra de selección de días
         WeekNavBar(
             selectedItem = selectedDay,
             onItemSelected = { nuevoDia -> selectedDay = nuevoDia }
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Contenido cambiante con animación
         AnimatedContent(

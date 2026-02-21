@@ -41,9 +41,10 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
     Column(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
+
 
         // BLOQUE 1: Contenido con márgenes (Agrupado)
         // Aquí metemos todo lo que SÍ necesita márgenes
@@ -53,24 +54,20 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
                 .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
         ) {
 
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Título (ya no necesita padding individual)
             Text(
                 text = "Mis Asignaturas",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor
+                color = textColor,
+                modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Barra de Búsqueda (ya no necesita padding individual)
 
             CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it })
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // BLOQUE 2: Contenido Borde a Borde (Fuera del bloque con padding)
         LazyRow(
