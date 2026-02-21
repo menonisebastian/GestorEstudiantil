@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GestorEstudiantil</string>
+    <string name="id_token">287696524955-6pqo614aj8frbqe2vn3ceau3gprqrafm.apps.googleusercontent.com</string>
+    <string name="github_link">https://github.com/menonisebastian/ToDoApp</string>
 </resources>
