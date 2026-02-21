@@ -212,17 +212,17 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Column (horizontalAlignment = Alignment.CenterHorizontally) {
+            Row (verticalAlignment = Alignment.CenterVertically) {
+
+                TypeChip(option = tipo)
+
+                Spacer(modifier = Modifier.width(16.dp))
 
                 IconButton(onClick = {}, modifier = Modifier.size(24.dp)) {
                     Icon(Icons.Outlined.Delete, "Eliminar",
                         tint = Color.Red
                     )
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                TypeChip(option = tipo)
             }
         }
     }
@@ -309,17 +309,15 @@ fun ModuloCard(modulo: Modulo)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         )
         {
-            Column{
-                Column()
-                {
-                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor)
-                    TypeChip(option = tipo)
-                }
+            Column()
+            {
+                TypeChip(option = tipo)
+                Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Text("Nota: $nota", textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
+            Text("Nota: $nota", textAlign = TextAlign.Justify, fontSize = 12.sp, color = textColor)
         }
     }
 }
