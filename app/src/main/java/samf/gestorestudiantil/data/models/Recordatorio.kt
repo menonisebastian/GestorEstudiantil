@@ -1,4 +1,6 @@
-package samf.gestorestudiantil.models
+package samf.gestorestudiantil.data.models
+
+import samf.gestorestudiantil.data.enums.tipoRecordatorio
 
 data class Recordatorio(
     val titulo: String,
@@ -8,7 +10,7 @@ data class Recordatorio(
     val tipo: tipoRecordatorio
 )
 
-val listaRecordatorios = listOf<Recordatorio>(
+val listaRecordatorios = listOf(
     Recordatorio("Examen de Programación", "UD4-UD5-UD6", "20/03/2023", "10:00", tipoRecordatorio.EXAMEN),
     Recordatorio("Entrega Practica Moviles", "Practica de Firebase", "10/02/2026", "16:00", tipoRecordatorio.TAREA),
     Recordatorio("Reunion TFG", "Reunirme con Juan Manuel", "20/02/2026", "18:00", tipoRecordatorio.EVENTO)

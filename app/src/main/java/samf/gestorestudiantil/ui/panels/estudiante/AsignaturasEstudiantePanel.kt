@@ -20,20 +20,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.listaMaterias
+import samf.gestorestudiantil.data.models.listaAsignaturas
 import samf.gestorestudiantil.ui.components.CardItem
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.components.MensajeVacio
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun MateriasEstudiantePanel(paddingValues: PaddingValues)
+fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
 {
     var textoBusqueda by remember { mutableStateOf("") }
 
-    val materiasFiltradas = remember(textoBusqueda) {
-        if (textoBusqueda.isBlank()) listaMaterias
-        else listaMaterias.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
+    val asignaturasFiltradas = remember(textoBusqueda) {
+        if (textoBusqueda.isBlank()) listaAsignaturas
+        else listaAsignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
     }
 
     Column(
@@ -55,7 +55,7 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
 
             // Título (ya no necesita padding individual)
             Text(
-                text = "Mis Materias",
+                text = "Mis Asignaturas",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor
@@ -76,7 +76,7 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
             contentPadding = PaddingValues(horizontal = 20.dp), // Mantiene el alineamiento visual
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(materiasFiltradas) { materia ->
+            items(asignaturasFiltradas) { materia ->
                 CardItem(item = materia,
                     getIcono = { it.icono },
                     getNombre = {it.nombre},
@@ -89,7 +89,7 @@ fun MateriasEstudiantePanel(paddingValues: PaddingValues)
 
         // Mensaje vacío (reutilizando el padding del bloque 1 si quisiéramos,
         // o aplicándolo aquí si es un caso especial)
-        if (materiasFiltradas.isEmpty()) {
+        if (asignaturasFiltradas.isEmpty()) {
             MensajeVacio()
         }
     }

@@ -22,26 +22,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.Materia
-import samf.gestorestudiantil.models.Modulo
-import samf.gestorestudiantil.models.tipoEvaluacion
+import samf.gestorestudiantil.data.models.Evaluacion
+import samf.gestorestudiantil.data.enums.tipoEvaluacion
+import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.ui.components.ModuloCard
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun CalificacionesMateriaPanel(
-    materia: Materia,
+fun CalificacionesAsignaturaPanel(
+    asignatura: Asignatura,
     paddingValues: PaddingValues,
     onBackClick: () -> Unit
 ) {
-    val listaModulos = listOf(
-        Modulo(1, "UD1", 8.0, materia.descripcion, tipoEvaluacion.Exposicion),
-        Modulo(2, "UD2", 7.0, materia.descripcion, tipoEvaluacion.Practica),
-        Modulo(3, "UD3", 9.0, materia.descripcion, tipoEvaluacion.Examen),
-        Modulo(4, "TFG", 10.0, materia.descripcion, tipoEvaluacion.Proyecto)
+    val listaEvaluaciones = listOf(
+        Evaluacion(1, "UD1", 8.0, "", asignatura.descripcion, tipoEvaluacion.Exposicion),
+        Evaluacion(2, "UD2", 7.0, "", asignatura.descripcion, tipoEvaluacion.Practica),
+        Evaluacion(3, "UD3", 9.0, "", asignatura.descripcion, tipoEvaluacion.Examen),
+        Evaluacion(4, "TFG", 10.0, "", asignatura.descripcion, tipoEvaluacion.Proyecto)
     )
 
-    val notaMedia = listaModulos.sumOf { it.nota } / listaModulos.size
+    val notaMedia = listaEvaluaciones.sumOf { it.nota } / listaEvaluaciones.size
 
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -64,14 +64,14 @@ fun CalificacionesMateriaPanel(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Icon(imageVector = materia.icono, contentDescription = "Ver Calificaciones", tint = textColor, modifier = Modifier.padding(end = 8.dp))
-                Text(materia.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                Icon(imageVector = asignatura.icono, contentDescription = "Ver Calificaciones", tint = textColor, modifier = Modifier.padding(end = 8.dp))
+                Text(asignatura.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
             }
 
             // BLOQUE 1: Contenido con márgenes
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp))
             {
-                items(listaModulos)
+                items(listaEvaluaciones)
                 {
                         modulo ->
                     ModuloCard(modulo)

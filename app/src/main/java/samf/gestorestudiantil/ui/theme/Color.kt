@@ -15,3 +15,4 @@ val onSurfaceDark = Color(0xFFEAEAEA)
 val Gray = Color.Gray
 val DayGreen = Color(0xFFD0F5E1)
 val DarkGreen = Color(0xFF27AE60)
+val GoodBlue = Color(0xFF4A8FE1)

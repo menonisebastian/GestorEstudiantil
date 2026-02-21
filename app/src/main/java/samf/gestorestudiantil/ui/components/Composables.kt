@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,28 +13,52 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,16 +66,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.ChipOption
-import samf.gestorestudiantil.models.Materia
-import samf.gestorestudiantil.models.Modulo
-import samf.gestorestudiantil.models.Recordatorio
+import samf.gestorestudiantil.domain.formatearFechaParaMostrar
+import samf.gestorestudiantil.data.interfaces.ChipOption
+import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Evaluacion
+import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.forEach
@@ -229,18 +258,18 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
 }
 
 @Composable
-fun MateriaCard(materia: Materia, onClick:() -> Unit )
+fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit )
 {
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
-    val label = materia.nombre
-    val description = materia.descripcion
-    val qtyHours = materia.horas
-    val prof = materia.profesor
-    val icon = materia.icono
-    val iconColor = materia.colorIcono
-    val fondoColor = materia.colorFondo
+    val label = asignatura.nombre
+    val description = asignatura.descripcion
+    val qtyHours = asignatura.horas
+    val prof = asignatura.profesor
+    val icon = asignatura.icono
+    val iconColor = asignatura.colorIcono
+    val fondoColor = asignatura.colorFondo
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -293,11 +322,11 @@ fun MateriaCard(materia: Materia, onClick:() -> Unit )
 }
 
 @Composable
-fun ModuloCard(modulo: Modulo)
+fun ModuloCard(evaluacion: Evaluacion)
 {
-    val label = modulo.nombre
-    val nota = modulo.nota
-    val tipo = modulo.tipoEvaluacion
+    val label = evaluacion.nombre
+    val nota = evaluacion.nota
+    val tipo = evaluacion.tipoEvaluacion
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -327,10 +356,57 @@ fun CustomTextField(
     texto: String,
     onValueChange: (String) -> Unit,
     icon: ImageVector? = null,
+    label: String,
+    readOnly: Boolean,
+    isClickable: Boolean,
+    onClick: () -> Unit
+)
+{
+    Box (modifier = Modifier.clip(RoundedCornerShape(16.dp))){
+        TextField(
+            value = texto,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = surfaceColor,
+                unfocusedContainerColor = surfaceColor,
+                disabledContainerColor = surfaceColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            singleLine = true,
+            readOnly = readOnly,
+            leadingIcon = {
+                if (icon != null) {
+                    Icon(icon, null, tint = Color.Gray)
+                }
+            }
+        )
+        if (readOnly && isClickable) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(onClick = onClick)
+            )
+        }
+    }
+}
+
+@Composable
+fun CustomOptionsTextField(
+    texto: String,
+    onValueChange: (String) -> Unit,
+    opciones: List<String>,
+    icon: ImageVector? = null,
     label: String
 )
 {
-    OutlinedTextField(
+    TextField(
         value = texto,
         onValueChange = onValueChange,
         label = { Text(label) },
@@ -346,6 +422,15 @@ fun CustomTextField(
             unfocusedIndicatorColor = Color.Transparent,
         ),
         singleLine = true,
+        readOnly = true,
+        trailingIcon = {
+            CustomDropDownMenu(
+                baseIcon = Icons.Default.FilterList,
+                optionList = opciones,
+                onOptionSelected = {
+                        opcionSeleccionada ->
+                    onValueChange(opcionSeleccionada)
+                }) },
         leadingIcon = {
             if (icon != null) {
                 Icon(icon, null, tint = Color.Gray)
@@ -376,6 +461,223 @@ fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit)
         ),
         singleLine = true
     )
+}
+
+// ============ TEXTFIELD DE FECHA ============ //
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomDateField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = if (value.isNotBlank()) {
+            try {
+                val millis = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(value)?.time
+                    ?: System.currentTimeMillis()
+
+                if (millis < System.currentTimeMillis() - 86400000) {
+                    System.currentTimeMillis()
+                } else {
+                    millis
+                }
+            } catch (e: Exception) {
+                System.currentTimeMillis()
+            }
+        } else {
+            System.currentTimeMillis()
+        },
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                // Solo permite seleccionar fechas desde hoy en adelante
+                return utcTimeMillis >= System.currentTimeMillis() - 86400000
+            }
+        }
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                IconButton(
+                    onClick = {
+                        showDatePicker = false
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val sdf = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                            onValueChange(sdf.format(millis))
+                        }
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            },
+            dismissButton = {
+                IconButton(onClick = { showDatePicker = false },colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)) {
+                    Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            },
+            colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            DatePicker(
+                state = datePickerState,
+                title = {
+                    Text(
+                        "Seleccionar fecha",
+                        modifier = Modifier.padding(
+                            start = 24.dp,
+                            end = 12.dp,
+                            top = 16.dp,
+                            bottom = 12.dp
+                        )
+                    )
+                },
+                colors = DatePickerDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.secondary,
+                    headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                    subheadContentColor = MaterialTheme.colorScheme.onSurface,
+                    selectedDayContainerColor = MaterialTheme.colorScheme.secondary,
+                    navigationContentColor = MaterialTheme.colorScheme.onSurface,
+                    weekdayContentColor = MaterialTheme.colorScheme.primary,
+                )
+            )
+        }
+    }
+
+    CustomTextField(texto = formatearFechaParaMostrar(value),
+        onValueChange = {  },
+        label = label,
+        icon = Icons.Default.DateRange,
+        readOnly = true,
+        isClickable = true,
+        onClick = { showDatePicker = true }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomTimeField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String
+) {
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    // Calculamos la hora inicial. Si el valor viene vacío o con formato incorrecto,
+    // usamos la hora actual del sistema.
+    val (initialHour, initialMinute) = remember(value) {
+        if (value.isNotBlank() && value.contains(":")) {
+            try {
+                val parts = value.split(":")
+                parts[0].toInt() to parts[1].toInt()
+            } catch (e: Exception) {
+                val cal = java.util.Calendar.getInstance()
+                cal.get(java.util.Calendar.HOUR_OF_DAY) to cal.get(java.util.Calendar.MINUTE)
+            }
+        } else {
+            val cal = java.util.Calendar.getInstance()
+            cal.get(java.util.Calendar.HOUR_OF_DAY) to cal.get(java.util.Calendar.MINUTE)
+        }
+    }
+
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = true // Cambiar a false si prefieres formato AM/PM
+    )
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                IconButton(
+                    onClick = {
+                        showTimePicker = false
+                        // Formateamos a HH:mm
+                        val formattedTime = String.format(Locale.getDefault(), "%02d:%02d", timePickerState.hour, timePickerState.minute)
+                        onValueChange(formattedTime)
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            },
+            dismissButton = {
+                IconButton(
+                    onClick = { showTimePicker = false },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "Seleccionar hora",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp)
+                    )
+                    TimePicker(state = timePickerState)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    CustomTextField(
+        texto = value,
+        onValueChange = { },
+        label = label,
+        icon = Icons.Outlined.AccessTime,
+        readOnly = true,
+        isClickable = true,
+        onClick = { showTimePicker = true }
+    )
+}
+
+@Composable
+fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOptionSelected: (String) -> Unit)
+{
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
+    ) {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = baseIcon,
+                contentDescription = "Opciones",
+                tint = surfaceDimColor
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(30.dp),
+            offset = DpOffset(x = 0.dp, y = 0.dp),
+            containerColor = backgroundColor,
+        ) {
+            optionList.forEach {
+                option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = { onOptionSelected(option); expanded = false })
+
+                if (option != optionList.last())
+                    HorizontalDivider()
+            }
+        }
+    }
 }
 
 @Composable

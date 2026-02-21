@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.models
+package samf.gestorestudiantil.data.models
 
 data class Profesor(
     val id: Int,

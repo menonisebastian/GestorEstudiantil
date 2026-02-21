@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.listaRecordatorios
+import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.theme.surfaceDimColor

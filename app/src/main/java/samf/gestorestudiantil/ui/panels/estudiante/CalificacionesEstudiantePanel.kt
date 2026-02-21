@@ -16,13 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.models.Materia
-import samf.gestorestudiantil.models.listaMaterias
-import samf.gestorestudiantil.ui.components.MateriaCard
+import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.listaAsignaturas
+import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onMateriaClick: (Materia) -> Unit)
+fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onAsignaturaClick: (Asignatura) -> Unit)
 {
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -50,11 +50,11 @@ fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onMateriaClick: 
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp))
             {
-                items(listaMaterias)
+                items(listaAsignaturas)
                 {
-                    materia ->
-                    MateriaCard(materia, onClick = {
-                        onMateriaClick(materia)
+                    asignatura ->
+                    AsignaturaCard(asignatura, onClick = {
+                        onAsignaturaClick(asignatura)
                     })
                 }
                 item{Spacer(modifier = Modifier.height(16.dp))}
