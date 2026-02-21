@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,13 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.models.ChipOption
 import samf.gestorestudiantil.models.Materia
 import samf.gestorestudiantil.models.Modulo
 import samf.gestorestudiantil.models.Recordatorio
-
-
-
-import samf.gestorestudiantil.models.tipoRecordatorio
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
@@ -224,7 +222,7 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                TypeChip(tipoRecordatorio = tipo)
+                TypeChip(option = tipo)
             }
         }
     }
@@ -298,8 +296,8 @@ fun MateriaCard(materia: Materia, onClick:() -> Unit )
 fun ModuloCard(modulo: Modulo)
 {
     val label = modulo.nombre
-    val materia = modulo.materia
     val nota = modulo.nota
+    val tipo = modulo.tipoEvaluacion
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -315,32 +313,9 @@ fun ModuloCard(modulo: Modulo)
                 Column()
                 {
                     Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = textColor)
-                    Text(materia, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
-
+                    TypeChip(option = tipo)
                 }
-//                Row(verticalAlignment = Alignment.CenterVertically) {
-//
-//                    Icon(Icons.Outlined.Person,
-//                        "Fecha",
-//                        tint = surfaceDimColor,
-//                        modifier = iconModifier)
-//                    Text(prof,
-//                        color = surfaceDimColor,
-//                        fontSize = 10.sp)
-//
-//                    Spacer(modifier = Modifier.width(16.dp))
-//
-//                    Icon(Icons.Outlined.AccessTime,
-//                        "Hora",
-//                        tint = surfaceDimColor,
-//                        modifier = iconModifier)
-//                    Text(qtyHours,
-//                        color = surfaceDimColor,
-//                        fontSize = 10.sp)
-//
-//                }
             }
-
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -406,23 +381,25 @@ fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit)
 }
 
 @Composable
-fun TypeChip(tipoRecordatorio: tipoRecordatorio) {
+fun TypeChip(option: ChipOption) { // Cambiado de tipoRecordatorio a ChipOption
     Box(
         modifier = Modifier
             .background(
-                color = tipoRecordatorio
-                    .color.copy(alpha = 0.2f), // Fondo suave
-                shape = RoundedCornerShape(16.dp)
+                color = option.color.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(8.dp)
             )
             .padding(3.dp)
-            .width(40.dp),
+            // Nota: Un ancho fijo de 40.dp puede cortar textos largos de otros enums.
+            // Considera usar .widthIn(min = 40.dp) o quitarlo para ancho dinámico.
+            .widthIn(min = 40.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = tipoRecordatorio.label,
-            color = tipoRecordatorio.color, // Texto del color fuerte
+            text = option.label,
+            color = option.color,
             fontWeight = FontWeight.Bold,
-            fontSize = 8.sp
+            fontSize = 8.sp,
+            maxLines = 1 // Recomendado para evitar desbordes verticales
         )
     }
 }

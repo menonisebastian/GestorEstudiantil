@@ -136,6 +136,7 @@ fun EstudianteHomeScreen() {
                     if (materiaSeleccionada != null) {
                         // A) Si hay materia seleccionada, mostramos el panel de detalle
                         CalificacionesMateriaPanel(
+                            onBackClick = { materiaSeleccionada = null },
                             paddingValues = PaddingValues(0.dp),
                             materia = materiaSeleccionada!!
                             // Opcional: Pasa un padding si lo necesitas
