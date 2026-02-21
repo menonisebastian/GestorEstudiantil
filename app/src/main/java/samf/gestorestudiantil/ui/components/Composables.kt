@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +17,15 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
@@ -64,12 +68,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
+import samf.gestorestudiantil.domain.toComposeColor
+import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.data.interfaces.ChipOption
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
@@ -80,35 +91,42 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.forEach
 
 @Composable
-fun TopBarRow(name: String, role: String, curso: String) {
+fun TopBarRow(
+    name: String,
+    role: String,
+    curso: String,
+    onNavigateProfile: () -> Unit,
+    onNavigateSettings: () -> Unit,
+    onLogout: () -> Unit
+) {
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        AccBox(name, role, curso)
+        AccBox(name, role, curso, onClick = { onNavigateProfile() })
 
         Spacer(modifier = Modifier.weight(1f))
 
-        DropDownMenu()
+        DropDownMenu(
+            onNavigateProfile = { onNavigateProfile() },
+            onNavigateSettings = { onNavigateSettings() },
+            onLogout = { onLogout() }
+        )
     }
 }
 
 @Composable
 fun BottomNavBar(
     items: Map<String, ImageVector>,
-    selectedItem: String,          // Nuevo: Recibe cuál está seleccionado
+    selectedItem: String,
     onItemSelected: (String) -> Unit
 )
 {
-    // Componente oficial de Material3
     NavigationBar(
-        containerColor = backgroundColor, // O el color que desees para el fondo
+        containerColor = backgroundColor,
         contentColor = textColor
     ) {
         items.forEach { (label, icon) ->
@@ -130,11 +148,10 @@ fun BottomNavBar(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 },
-                // Personalización de colores para que coincida con tu tema
                 colors = colors(
                     selectedIconColor = textColor,
                     selectedTextColor = textColor,
-                    indicatorColor = surfaceDimColor.copy(alpha = 0.3f), // El color de la "píldora" de fondo
+                    indicatorColor = surfaceDimColor.copy(alpha = 0.3f),
                     unselectedIconColor = surfaceDimColor,
                     unselectedTextColor = surfaceDimColor
                 )
@@ -148,12 +165,11 @@ fun BottomNavBar(
 fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
     val weekDays = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes")
 
-    // Usamos un Row con scroll horizontal por si la pantalla es muy pequeña
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly, // Intenta distribuirlos
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         weekDays.forEach { day ->
@@ -164,14 +180,12 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
                 onClick = { onItemSelected(day) },
                 label = {
                     Text(
-                        // Mostramos las primeras 3 letras para que quepa bien (Lun, Mar...)
                         text = day.take(3),
-                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 },
                 modifier = Modifier.padding(horizontal = 4.dp),
-                // Personalizamos los colores para tu tema
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = textColor,
                     selectedLabelColor = backgroundColor,
@@ -200,6 +214,7 @@ fun CustomNotificationCard(recordatorio: Recordatorio)
     val date = recordatorio.fecha
     val time = recordatorio.hora
     val tipo = recordatorio.tipo
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -263,13 +278,17 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit )
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
+
     val label = asignatura.nombre
     val description = asignatura.descripcion
     val qtyHours = asignatura.horas
-    val prof = asignatura.profesor
-    val icon = asignatura.icono
-    val iconColor = asignatura.colorIcono
-    val fondoColor = asignatura.colorFondo
+    // Usamos profesorId por ahora (más adelante podrías cruzar datos para mostrar el nombre real)
+    val prof = asignatura.profesorId
+
+    // Aquí usamos los mappers creados para convertir String a elementos de interfaz
+    val icon = asignatura.iconoName.toComposeIcon()
+    val iconColor = asignatura.colorIconoHex.toComposeColor()
+    val fondoColor = asignatura.colorFondoHex.toComposeColor()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -282,35 +301,32 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         )
         {
-            Column{
-                Column()
-                {
-                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = iconColor)
-                    Text(description, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-
-                    Icon(Icons.Outlined.Person,
-                        "Fecha",
-                        tint = surfaceDimColor,
-                        modifier = iconModifier)
-                    Text(prof,
-                        color = surfaceDimColor,
-                        fontSize = 10.sp)
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Icon(Icons.Outlined.AccessTime,
-                        "Hora",
-                        tint = surfaceDimColor,
-                        modifier = iconModifier)
-                    Text(qtyHours,
-                        color = surfaceDimColor,
-                        fontSize = 10.sp)
-
-                }
+            Column()
+            {
+                Text(text = label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = iconColor)
+                Text(description, textAlign = TextAlign.Justify, fontSize = 10.sp, color = surfaceDimColor)
             }
+            Row(verticalAlignment = Alignment.CenterVertically) {
 
+                Icon(Icons.Outlined.Person,
+                    "Profesor",
+                    tint = surfaceDimColor,
+                    modifier = iconModifier)
+                Text(prof,
+                    color = surfaceDimColor,
+                    fontSize = 10.sp)
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Icon(Icons.Outlined.AccessTime,
+                    "Hora",
+                    tint = surfaceDimColor,
+                    modifier = iconModifier)
+                Text(qtyHours,
+                    color = surfaceDimColor,
+                    fontSize = 10.sp)
+
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -322,11 +338,12 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit )
 }
 
 @Composable
-fun ModuloCard(evaluacion: Evaluacion)
+fun EvaluacionCard(evaluacion: Evaluacion)
 {
     val label = evaluacion.nombre
     val nota = evaluacion.nota
     val tipo = evaluacion.tipoEvaluacion
+    val modulos = evaluacion.modulosEvaluados
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -353,18 +370,21 @@ fun ModuloCard(evaluacion: Evaluacion)
 
 @Composable
 fun CustomTextField(
-    texto: String,
+    value: String,
     onValueChange: (String) -> Unit,
     icon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
     label: String,
     readOnly: Boolean,
     isClickable: Boolean,
-    onClick: () -> Unit
+    onClick: (() -> Unit)? = null
 )
 {
+    var showPassword by remember { mutableStateOf(false) }
+
     Box (modifier = Modifier.clip(RoundedCornerShape(16.dp))){
         TextField(
-            value = texto,
+            value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
             modifier = Modifier
@@ -385,13 +405,50 @@ fun CustomTextField(
                 if (icon != null) {
                     Icon(icon, null, tint = Color.Gray)
                 }
+            },
+            trailingIcon = when (label)
+            {
+                "Contraseña" , "Confirmar contraseña" ->
+                { { if (value.isNotBlank())
+                {
+                    IconButton(onClick = { showPassword = !showPassword }
+                    ) {
+                        if (!showPassword)
+                            Icon(Icons.Default.Visibility,
+                                contentDescription = "Limpiar",
+                                tint = MaterialTheme.colorScheme.inversePrimary)
+                        else
+                            Icon(Icons.Default.VisibilityOff,
+                                contentDescription = "Limpiar",
+                                tint = MaterialTheme.colorScheme.inversePrimary)
+                    }
+                } } }
+                else -> { { } }
+            },
+            visualTransformation = when (label)
+            {
+                "Contraseña" , "Confirmar contraseña" ->
+                { if (!showPassword) PasswordVisualTransformation() else VisualTransformation.None }
+                else -> { VisualTransformation.None }
+            },
+            keyboardOptions = when (label)
+            {
+                "Contraseña" , "Confirmar contraseña" ->
+                {
+                    KeyboardOptions(keyboardType = KeyboardType.Password)
+                }
+                else -> { KeyboardOptions.Default }
             }
         )
         if (readOnly && isClickable) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .clickable(onClick = onClick)
+                    .clickable(
+                        onClick = {
+                            onClick?.invoke()
+                        }
+                    )
             )
         }
     }
@@ -492,7 +549,6 @@ fun CustomDateField(
         },
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                // Solo permite seleccionar fechas desde hoy en adelante
                 return utcTimeMillis >= System.currentTimeMillis() - 86400000
             }
         }
@@ -548,7 +604,7 @@ fun CustomDateField(
         }
     }
 
-    CustomTextField(texto = formatearFechaParaMostrar(value),
+    CustomTextField(value = formatearFechaParaMostrar(value),
         onValueChange = {  },
         label = label,
         icon = Icons.Default.DateRange,
@@ -567,8 +623,6 @@ fun CustomTimeField(
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // Calculamos la hora inicial. Si el valor viene vacío o con formato incorrecto,
-    // usamos la hora actual del sistema.
     val (initialHour, initialMinute) = remember(value) {
         if (value.isNotBlank() && value.contains(":")) {
             try {
@@ -587,7 +641,7 @@ fun CustomTimeField(
     val timePickerState = rememberTimePickerState(
         initialHour = initialHour,
         initialMinute = initialMinute,
-        is24Hour = true // Cambiar a false si prefieres formato AM/PM
+        is24Hour = true
     )
 
     if (showTimePicker) {
@@ -597,7 +651,6 @@ fun CustomTimeField(
                 IconButton(
                     onClick = {
                         showTimePicker = false
-                        // Formateamos a HH:mm
                         val formattedTime = String.format(Locale.getDefault(), "%02d:%02d", timePickerState.hour, timePickerState.minute)
                         onValueChange(formattedTime)
                     },
@@ -634,7 +687,7 @@ fun CustomTimeField(
     }
 
     CustomTextField(
-        texto = value,
+        value = value,
         onValueChange = { },
         label = label,
         icon = Icons.Outlined.AccessTime,
@@ -668,7 +721,7 @@ fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOption
             containerColor = backgroundColor,
         ) {
             optionList.forEach {
-                option ->
+                    option ->
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = { onOptionSelected(option); expanded = false })
@@ -681,7 +734,7 @@ fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOption
 }
 
 @Composable
-fun TypeChip(option: ChipOption) { // Cambiado de tipoRecordatorio a ChipOption
+fun TypeChip(option: ChipOption) {
     Box(
         modifier = Modifier
             .background(
@@ -689,8 +742,6 @@ fun TypeChip(option: ChipOption) { // Cambiado de tipoRecordatorio a ChipOption
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(3.dp)
-            // Nota: Un ancho fijo de 40.dp puede cortar textos largos de otros enums.
-            // Considera usar .widthIn(min = 40.dp) o quitarlo para ancho dinámico.
             .widthIn(min = 40.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -699,7 +750,7 @@ fun TypeChip(option: ChipOption) { // Cambiado de tipoRecordatorio a ChipOption
             color = option.color,
             fontWeight = FontWeight.Bold,
             fontSize = 8.sp,
-            maxLines = 1 // Recomendado para evitar desbordes verticales
+            maxLines = 1
         )
     }
 }
@@ -717,13 +768,13 @@ fun MensajeVacio() {
 }
 
 @Composable
-fun AccBox(name: String, role: String, curso: String) {
+fun AccBox(name: String, role: String, curso: String, onClick: () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     )
     {
-        AccImg()
+        AccImg(onClick = onClick)
         Spacer(modifier = Modifier.width(16.dp))
         Column{
             Text("Hola, $name", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
@@ -733,12 +784,13 @@ fun AccBox(name: String, role: String, curso: String) {
 }
 
 @Composable
-fun AccImg() {
+fun AccImg(onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .size(48.dp)
             .clip(CircleShape)
-            .background(Color.Blue), // El color oscuro del icono
+            .clickable(onClick = onClick)
+            .background(Color.Blue),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -746,6 +798,31 @@ fun AccImg() {
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+// ============ BOTONES LOGOS ============ //
+@Composable
+fun SocialMediaButton(
+    iconRes: Int,
+    size: Dp,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        elevation = CardDefaults.cardElevation(5.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .padding(15.dp) // Espacio entre tarjetas
+    ) {
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = "Logo",
+            modifier = Modifier
+                .size(size)
+                .padding(15.dp)
         )
     }
 }

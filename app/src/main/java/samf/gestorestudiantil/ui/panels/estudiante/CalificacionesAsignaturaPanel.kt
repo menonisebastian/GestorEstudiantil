@@ -25,7 +25,8 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.enums.tipoEvaluacion
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.ui.components.ModuloCard
+import samf.gestorestudiantil.domain.toComposeIcon
+import samf.gestorestudiantil.ui.components.EvaluacionCard
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
@@ -35,10 +36,10 @@ fun CalificacionesAsignaturaPanel(
     onBackClick: () -> Unit
 ) {
     val listaEvaluaciones = listOf(
-        Evaluacion(1, "UD1", 8.0, "", asignatura.descripcion, tipoEvaluacion.Exposicion),
-        Evaluacion(2, "UD2", 7.0, "", asignatura.descripcion, tipoEvaluacion.Practica),
-        Evaluacion(3, "UD3", 9.0, "", asignatura.descripcion, tipoEvaluacion.Examen),
-        Evaluacion(4, "TFG", 10.0, "", asignatura.descripcion, tipoEvaluacion.Proyecto)
+        Evaluacion("", "UD1", 8.0, "", asignatura.descripcion, tipoEvaluacion.Exposicion),
+        Evaluacion("", "UD2", 7.0, "", asignatura.descripcion, tipoEvaluacion.Practica),
+        Evaluacion("", "UD3", 9.0, "", asignatura.descripcion, tipoEvaluacion.Examen),
+        Evaluacion("", "TFG", 10.0, "", asignatura.descripcion, tipoEvaluacion.Proyecto)
     )
 
     val notaMedia = listaEvaluaciones.sumOf { it.nota } / listaEvaluaciones.size
@@ -64,7 +65,7 @@ fun CalificacionesAsignaturaPanel(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Icon(imageVector = asignatura.icono, contentDescription = "Ver Calificaciones", tint = textColor, modifier = Modifier.padding(end = 8.dp))
+                Icon(imageVector = asignatura.iconoName.toComposeIcon(), contentDescription = "Ver Calificaciones", tint = textColor, modifier = Modifier.padding(end = 8.dp))
                 Text(asignatura.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
             }
 
@@ -74,7 +75,7 @@ fun CalificacionesAsignaturaPanel(
                 items(listaEvaluaciones)
                 {
                         modulo ->
-                    ModuloCard(modulo)
+                    EvaluacionCard(modulo)
                 }
                 item{Spacer(modifier = Modifier.height(16.dp))}
             }

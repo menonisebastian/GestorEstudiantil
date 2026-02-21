@@ -103,7 +103,7 @@ fun EstudianteHomeScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    TopBarRow(name, role, curso)
+                    TopBarRow(name, role, curso, onNavigateProfile = {}, onNavigateSettings = {}, onLogout = {})
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = backgroundColor,
@@ -198,7 +198,7 @@ fun EstudianteHomeScreen() {
         AddRecordatorioDialog(
             onDismissRequest = { showRecordatorioDialog = false },
             onAddRecordatorio = { titulo, descripcion, fecha, hora, tipo ->
-                val nuevoRecordatorio = Recordatorio(titulo, descripcion, fecha, hora, tipo)
+                val nuevoRecordatorio = Recordatorio(titulo, descripcion, fecha, hora, tipo.toString())
                 recordatorios = recordatorios + nuevoRecordatorio
             showRecordatorioDialog = false
         })

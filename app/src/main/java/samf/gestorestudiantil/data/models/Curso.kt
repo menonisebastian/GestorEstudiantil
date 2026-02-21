@@ -12,20 +12,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 // 1. EL MODELO DE DATOS
 data class Curso(
-    val id: Int,
-    val nombre: String,
-    val descripcion: String,
-    val centroId: String,
-    val icono: ImageVector,
-    val colorFondo: Color,
-    val colorIcono: Color
+    var id: String = "",
+    var nombre: String = "",
+    var descripcion: String = "",
+    var centroId: String = "",
+    // Guardamos los estilos como String en Firebase
+    var iconoName: String = "Laptop",
+    var colorFondoHex: String = "#D0E1FF",
+    var colorIconoHex: String = "#4A90E2"
 )
 
-// 2. DATOS DE EJEMPLO (Mock Data)
+// Datos de ejemplo
 val listaCursos = listOf(
-    Curso(1, "DAM", "", "xxx", Icons.Default.Laptop, Color(0xFFD0E1FF), Color(0xFF4A90E2)), // Azul
-    Curso(2, "DAW", "", "xxx", Icons.Default.Web, Color(0xFFFFF0D0), Color(0xFFF5A623)),    // Naranja
-    Curso(3, "ASIR", "", "xxx", Icons.Default.Wifi, Color(0xFFD0F5E1), Color(0xFF27AE60)),  // Verde
-    Curso(4, "CS", "", "xxx", Icons.Default.Security, Color(0xFFF5D0FF), Color(0xFF9B51E0)), // Violeta
-    Curso(5, "Big Data", "", "xxx", Icons.Default.Storage, Color(0xFFFFD0D0), Color(0xFFE53935)) // Rojo
+    Curso("1", "DAM", "", "centro_1", "Laptop", "#D0E1FF", "#4A90E2"),
+    Curso("2", "DAW", "", "centro_1", "Web", "#FFF0D0", "#F5A623"),
+    Curso("3", "ASIR", "", "centro_1", "Wifi", "#D0F5E1", "#27AE60"),
+    Curso("4", "CS", "", "centro_1", "Security", "#F5D0FF", "#9B51E0"),
+    Curso("5", "Big Data", "", "centro_1", "Storage", "#FFFFD0D0", "#E53935")
 )

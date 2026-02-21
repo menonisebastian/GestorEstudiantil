@@ -29,7 +29,7 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 
 @Composable
-fun DropDownMenu()
+fun DropDownMenu(onNavigateSettings: () -> Unit, onLogout: () -> Unit, onNavigateProfile: () -> Unit = {})
 {
     var expanded by remember { mutableStateOf(false) }
 
@@ -56,26 +56,41 @@ fun DropDownMenu()
             DropdownMenuItem(
                 text = { Text("Cuenta") },
                 leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null, tint = textColor) },
-                onClick = { expanded = false })
+                onClick = {
+                    onNavigateProfile()
+                    expanded = false
+                }
+            )
             HorizontalDivider()
 
             DropdownMenuItem(
                 text = { Text("Preferencias") },
                 leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null, tint = textColor) },
-                onClick = { expanded = false })
+                onClick = {
+                    onNavigateSettings()
+                    expanded = false
+                }
+            )
             HorizontalDivider()
 
             DropdownMenuItem(
                 text = { Text("Ayuda") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = textColor) },
-                onClick = {  }
+                onClick = {
+
+                    expanded = false
+                }
             )
             HorizontalDivider()
 
             DropdownMenuItem(
                 text = { Text("Cerrar sesión") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = textColor) },
-                onClick = {   })
+                onClick = {
+                    onLogout()
+                    expanded = false
+                }
+            )
         }
     }
 }

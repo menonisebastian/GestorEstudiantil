@@ -63,22 +63,20 @@ fun AddRecordatorioDialog(
                 color = textColor)
 
             CustomTextField(
-                texto = titulo,
+                value = titulo,
                 onValueChange = { titulo = it },
                 icon = Icons.AutoMirrored.Filled.Label,
                 label = "Titulo",
                 readOnly = false,
-                isClickable = false,
-                onClick = {  }
+                isClickable = false
             )
             CustomTextField(
-                texto = descripcion,
+                value = descripcion,
                 onValueChange = { descripcion = it },
                 icon = Icons.Filled.Description,
                 label = "Descripcion",
                 readOnly = false,
-                isClickable = false,
-                onClick = {  }
+                isClickable = false
             )
             CustomDateField(
                 value = fecha,

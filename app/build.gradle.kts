@@ -67,4 +67,7 @@ dependencies {
 
     // Librería para Google Sign-In
     implementation(libs.play.services.auth)
+
+    // Navegación en Compose
+    implementation(libs.androidx.navigation.compose)
 }

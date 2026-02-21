@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.listaAsignaturas
+import samf.gestorestudiantil.domain.toComposeColor
+import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.ui.components.CardItem
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.components.MensajeVacio
@@ -78,11 +80,11 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
         ) {
             items(asignaturasFiltradas) { materia ->
                 CardItem(item = materia,
-                    getIcono = { it.icono },
+                    getIcono = { it.iconoName.toComposeIcon() },
                     getNombre = {it.nombre},
                     getHoras = {it.horas},
-                    getColorFondo = {it.colorFondo},
-                    getColorIcono = {it.colorIcono}
+                    getColorFondo = {it.colorFondoHex.toComposeColor()},
+                    getColorIcono = {it.colorIconoHex.toComposeColor()}
                 )
             }
         }

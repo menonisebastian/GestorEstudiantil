@@ -1,9 +1,10 @@
 package samf.gestorestudiantil.data.models
 
 data class User(
-    val id: String,
-    val nombre: String,
-    val email: String,
-    val rol: String,
-    val centroId: String
+    var id: String = "",
+    var nombre: String = "",
+    var email: String = "",
+    var rol: String = "", // Ej: "ESTUDIANTE", "PROFESOR", "ADMIN"
+    var cursoOArea: String = "", // Ej: "DAMV2" o "Dpto. Informática"
+    var centroId: String = ""
 )
