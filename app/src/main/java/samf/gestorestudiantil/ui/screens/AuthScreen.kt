@@ -1,12 +1,14 @@
 package samf.gestorestudiantil.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,18 +73,17 @@ val itemsAuth: Map<String, ImageVector> = mapOf(
 @Composable
 fun AuthScreen(
     onAuthSuccess: (User) -> Unit,
-    onRequireGoogleSetup: () -> Unit, // Callback para navegar
+    onRequireGoogleSetup: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
     val tabs = remember { itemsAuth.keys.toList() }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
-    val centro = "IES Comercio"
-    val token = stringResource(R.string.id_token)
+    val centro = "Gestor Estudiantil"
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+    val token = stringResource(R.string.id_token)
 
-    // Escuchamos los cambios de estado
     LaunchedEffect(authState) {
         if (authState.isSuccess && authState.user != null) {
             onAuthSuccess(authState.user!!)
@@ -131,15 +134,14 @@ fun AuthScreen(
                         paddingValues = paddingValues,
                         isLoading = authState.isLoading,
                         onLoginClick = { email, pass -> authViewModel.loginWithEmail(email, pass) },
-                        onGoogleClick = { authViewModel.loginWithGoogleToken(token) }
+                        onGoogleClick = { authViewModel.loginWithGoogleToken(idToken = token) }
                     )
                     "Registrarse" -> RegistroPanel(
                         paddingValues = paddingValues,
                         isLoading = authState.isLoading,
                         authViewModel = authViewModel,
-                        onRegisterClick = {
-                            email, pass, name, rol, centroId, cursoId, cursoNombre ->
-                            authViewModel.registerWithEmail(email, pass, name, rol, centroId, cursoId, cursoNombre)
+                        onRegisterClick = { email, pass, nombre, rol, centroId, cursoId, cursoNom ->
+                            authViewModel.registerWithEmail(email, pass, nombre, rol, centroId, cursoId, cursoNom)
                         }
                     )
                 }
@@ -217,14 +219,19 @@ fun LoginPanel(
 fun RegistroPanel(
     paddingValues: PaddingValues,
     isLoading: Boolean,
-    authViewModel: AuthViewModel, // Pasamos el ViewModel para acceder a las listas
+    authViewModel: AuthViewModel,
     onRegisterClick: (email: String, pass: String, nombre: String, rol: String, centroId: String, cursoId: String, cursoNombre: String) -> Unit
 ) {
+    // Control de paso (Wizzard)
+    var currentStep by remember { mutableIntStateOf(1) }
+
+    // Paso 1: Datos Personales
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
-    // Selectores Dinámicos
+    // Paso 2: Selectores Dinámicos
     var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
     val roles = listOf("ESTUDIANTE", "PROFESOR")
 
@@ -236,80 +243,124 @@ fun RegistroPanel(
 
     val context = LocalContext.current
 
-    // Observamos las listas desde el ViewModel
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text("Registro", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-
-            // 1. Selector de Rol
-            CustomOptionsTextField(
-                texto = rolSeleccionado,
-                onValueChange = { rolSeleccionado = it },
-                opciones = roles,
-                icon = Icons.Outlined.Person,
-                label = "¿Eres Estudiante o Profesor?"
-            )
-
-            // 2. Datos personales básicos
-            CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
-            CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
-            CustomTextField(value = password, onValueChange = { password = it }, icon = Icons.Outlined.Lock, label = "Contraseña", readOnly = isLoading, isClickable = !isLoading)
-
-            // 3. Selector de Instituto (Centro)
-            CustomOptionsTextField(
-                texto = centroNombre,
-                onValueChange = { nombreSeleccionado ->
-                    centroNombre = nombreSeleccionado
-                    // Buscamos el ID del centro seleccionado
-                    val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
-                    if (centroSel != null) {
-                        centroId = centroSel.id
-                        // Pedimos al ViewModel que cargue los cursos de este centro
-                        authViewModel.loadCursosPorCentro(centroSel.id)
-                        cursoNombre = "Seleccionar Curso..." // Reset del curso
-                        cursoId = ""
-                    }
-                },
-                opciones = centrosList.map { it.nombre },
-                icon = Icons.Default.Business,
-                label = "Instituto"
-            )
-
-            // 4. Selector de Curso (SOLO SI ES ESTUDIANTE)
-            if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
-                CustomOptionsTextField(
-                    texto = cursoNombre,
-                    onValueChange = { nombreSeleccionado ->
-                        cursoNombre = nombreSeleccionado
-                        val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
-                        if (cursoSel != null) cursoId = cursoSel.id
-                    },
-                    opciones = cursosList.map { it.nombre },
-                    icon = Icons.Default.Class,
-                    label = "Curso a matricular"
-                )
-            }
-
-            Button(
-                onClick = {
-                    if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
-                        Toast.makeText(context, "Por favor selecciona rol e instituto", Toast.LENGTH_SHORT).show()
-                    } else if (rolSeleccionado == "ESTUDIANTE" && cursoId.isEmpty()) {
-                        Toast.makeText(context, "Los estudiantes deben seleccionar un curso", Toast.LENGTH_SHORT).show()
-                    } else {
-                        onRegisterClick(email, password, name, rolSeleccionado, centroId, cursoId, cursoNombre)
-                    }
-                },
-                enabled = !isLoading,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+        Crossfade(targetState = currentStep, label = "RegistroSteps") { step ->
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Registrarme")
+                if (step == 1) {
+                    // ==========================================
+                    // PASO 1: DATOS PERSONALES
+                    // ==========================================
+                    Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("Paso 1 de 2: Datos personales", color = surfaceDimColor, fontSize = 14.sp)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
+                    CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
+                    CustomTextField(value = password, onValueChange = { password = it }, icon = Icons.Outlined.Lock, label = "Contraseña", readOnly = isLoading, isClickable = !isLoading)
+                    CustomTextField(value = confirmPassword, onValueChange = { confirmPassword = it }, icon = Icons.Outlined.Lock, label = "Confirmar contraseña", readOnly = isLoading, isClickable = !isLoading)
+
+                    Button(
+                        onClick = {
+                            if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                                Toast.makeText(context, "Por favor rellena todos los campos", Toast.LENGTH_SHORT).show()
+                            } else if (password != confirmPassword) {
+                                Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                            } else if (password.length < 6) {
+                                Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                            } else {
+                                currentStep = 2 // Avanzar al siguiente paso
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp)
+                    ) {
+                        Text("Siguiente")
+                    }
+                } else {
+                    // ==========================================
+                    // PASO 2: DATOS ACADÉMICOS
+                    // ==========================================
+                    Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("Paso 2 de 2: Datos académicos", color = surfaceDimColor, fontSize = 14.sp)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    CustomOptionsTextField(
+                        texto = rolSeleccionado,
+                        onValueChange = { rolSeleccionado = it },
+                        opciones = roles,
+                        icon = Icons.Outlined.Person,
+                        label = "¿Eres Estudiante o Profesor?"
+                    )
+
+                    CustomOptionsTextField(
+                        texto = centroNombre,
+                        onValueChange = { nombreSeleccionado ->
+                            centroNombre = nombreSeleccionado
+                            val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
+                            if (centroSel != null) {
+                                centroId = centroSel.id
+                                authViewModel.loadCursosPorCentro(centroSel.id)
+                                cursoNombre = "Seleccionar Curso..."
+                                cursoId = ""
+                            }
+                        },
+                        opciones = centrosList.map { it.nombre },
+                        icon = Icons.Default.Business,
+                        label = "Instituto"
+                    )
+
+                    if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
+                        CustomOptionsTextField(
+                            texto = cursoNombre,
+                            onValueChange = { nombreSeleccionado ->
+                                cursoNombre = nombreSeleccionado
+                                val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
+                                if (cursoSel != null) cursoId = cursoSel.id
+                            },
+                            opciones = cursosList.map { it.nombre },
+                            icon = Icons.Default.Class,
+                            label = "Curso a matricular"
+                        )
+                    }
+
+                    // Fila de Botones: Atrás y Registrarse
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { currentStep = 1 },
+                            modifier = Modifier.weight(1f).height(50.dp),
+                            enabled = !isLoading
+                        ) {
+                            Text("Atrás", color = textColor)
+                        }
+
+                        Button(
+                            onClick = {
+                                if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
+                                    Toast.makeText(context, "Por favor selecciona rol e instituto", Toast.LENGTH_SHORT).show()
+                                } else if (rolSeleccionado == "ESTUDIANTE" && cursoId.isEmpty()) {
+                                    Toast.makeText(context, "Los estudiantes deben seleccionar un curso", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    onRegisterClick(email, password, name, rolSeleccionado, centroId, cursoId, cursoNombre)
+                                }
+                            },
+                            enabled = !isLoading,
+                            modifier = Modifier.weight(1f).height(50.dp)
+                        ) {
+                            Text("Finalizar")
+                        }
+                    }
+                }
             }
         }
     }

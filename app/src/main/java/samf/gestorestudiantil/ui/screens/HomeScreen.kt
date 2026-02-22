@@ -44,6 +44,7 @@ import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.AddRecordatorioDialog
+import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
@@ -72,7 +73,7 @@ val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
     "Cursos" to Icons.AutoMirrored.Filled.List,
-    "Recordatorios" to Icons.Outlined.Notifications
+    "Notificaciones" to Icons.Outlined.Notifications
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,8 +94,8 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
 
-    // Solo mostramos el FAB de añadir en la pestaña "Recordatorios"
-    val showFab = tabs[pagerState.currentPage] == "Recordatorios"
+    // Solo mostramos el FAB de añadir en la pestaña "Recordatorios" o "Notificaciones"
+    val showFab = tabs[pagerState.currentPage] == "Recordatorios" || tabs[pagerState.currentPage] == "Notificaciones"
     var showRecordatorioDialog by remember { mutableStateOf(false) }
 
     // Estados para las vistas compartidas o específicas
@@ -174,7 +175,7 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
                     // Misma lógica de reutilización. El panel puede recibir el rol para mostrar diferentes cosas
                     HorariosEstudiantePanel(PaddingValues(0.dp))
                 }
-                "Recordatorios" -> {
+                "Recordatorios", "Notificaciones" -> {
                     RecordatoriosEstudiantePanel(PaddingValues(0.dp))
                 }
                 "Calificaciones" -> {
@@ -195,7 +196,10 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
                     }
                 }
                 // --- PLACEHOLDERS PARA PANELES DE ADMIN ---
-                "Usuarios" -> PlaceholderPanel("Panel de Gestión de Usuarios")
+                "Usuarios" -> UsuariosAdminPanel(
+                    paddingValues = PaddingValues(0.dp),
+                    usuarioActual = usuario
+                )
                 "Centros" -> PlaceholderPanel("Panel de Gestión de Centros")
                 "Cursos" -> PlaceholderPanel("Panel de Gestión de Cursos")
             }

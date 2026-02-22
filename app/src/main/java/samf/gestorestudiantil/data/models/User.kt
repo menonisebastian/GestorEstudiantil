@@ -8,5 +8,7 @@ data class User(
     var cursoId: String = "", // ID del curso (para estudiantes)
     var cursoOArea: String = "", // Nombre visual del curso o departamento
     var centroId: String = "",
-    var estado: String = "ACTIVO" // "PENDIENTE" (esperando admin) o "ACTIVO"
+    var estado: String = "ACTIVO", // "PENDIENTE" (esperando admin) o "ACTIVO"
+    var imgUrl: String = ""
+
 )

@@ -71,4 +71,9 @@ dependencies {
 
     // Navegación en Compose
     implementation(libs.androidx.navigation.compose)
+
+    // Cloudinary para Android
+    implementation(libs.cloudinary.android)
+    // Coil para mostrar la imagen desde la URL
+    implementation(libs.coil.compose)
 }
