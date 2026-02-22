@@ -1,10 +1,14 @@
 package samf.gestorestudiantil.ui.screens
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,9 +21,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.AppRegistration
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Class
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
@@ -43,7 +51,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,12 +62,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
+import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.SocialMediaButton
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -140,8 +157,8 @@ fun AuthScreen(
                         paddingValues = paddingValues,
                         isLoading = authState.isLoading,
                         authViewModel = authViewModel,
-                        onRegisterClick = { email, pass, nombre, rol, centroId, cursoId, cursoNom ->
-                            authViewModel.registerWithEmail(email, pass, nombre, rol, centroId, cursoId, cursoNom)
+                        onRegisterClick = { email, pass, nombre, rol, centroId, cursoId, cursoNom, fotoUrl ->
+                            authViewModel.registerWithEmail(email, pass, nombre, rol, centroId, cursoId, cursoNom, fotoUrl)
                         }
                     )
                 }
@@ -149,7 +166,7 @@ fun AuthScreen(
 
             if (authState.isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
+                    modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
             }
@@ -220,16 +237,17 @@ fun RegistroPanel(
     paddingValues: PaddingValues,
     isLoading: Boolean,
     authViewModel: AuthViewModel,
-    onRegisterClick: (email: String, pass: String, nombre: String, rol: String, centroId: String, cursoId: String, cursoNombre: String) -> Unit
+    onRegisterClick: (email: String, pass: String, nombre: String, rol: String, centroId: String, cursoId: String, cursoNombre: String, fotoUrl: String) -> Unit
 ) {
     // Control de paso (Wizzard)
     var currentStep by remember { mutableIntStateOf(1) }
 
-    // Paso 1: Datos Personales
+    // Paso 1: Datos Personales y Foto
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var fotoUrl by remember { mutableStateOf("") } // <-- ESTADO PARA LA FOTO
 
     // Paso 2: Selectores Dinámicos
     var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
@@ -255,12 +273,15 @@ fun RegistroPanel(
             ) {
                 if (step == 1) {
                     // ==========================================
-                    // PASO 1: DATOS PERSONALES
+                    // PASO 1: DATOS PERSONALES Y FOTO
                     // ==========================================
                     Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("Paso 1 de 2: Datos personales", color = surfaceDimColor, fontSize = 14.sp)
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    // COMPONENTE PARA ELEGIR FOTO
+                    ProfileImagePicker(
+                        currentPhotoUrl = fotoUrl,
+                        onPhotoUploaded = { urlSegura -> fotoUrl = urlSegura }
+                    )
 
                     CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
                     CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
@@ -351,7 +372,7 @@ fun RegistroPanel(
                                 } else if (rolSeleccionado == "ESTUDIANTE" && cursoId.isEmpty()) {
                                     Toast.makeText(context, "Los estudiantes deben seleccionar un curso", Toast.LENGTH_SHORT).show()
                                 } else {
-                                    onRegisterClick(email, password, name, rolSeleccionado, centroId, cursoId, cursoNombre)
+                                    onRegisterClick(email, password, name, rolSeleccionado, centroId, cursoId, cursoNombre, fotoUrl)
                                 }
                             },
                             enabled = !isLoading,

@@ -109,9 +109,10 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
                 title = {
                     // Reutilizamos tu TopBarRow pasándole los datos del usuario inyectado
                     TopBarRow(
-                        usuario.nombre,
-                        usuario.rol,
-                        usuario.cursoOArea,
+                        name = usuario.nombre,
+                        role = usuario.rol,
+                        curso = usuario.cursoOArea,
+                        imgUrl = usuario.imgUrl,
                         onNavigateProfile = { navController.navigate("profile") },
                         onNavigateSettings = { navController.navigate("settings") },
                         onLogout = onLogout

@@ -14,6 +14,7 @@ import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.data.models.listaCentros
 
 data class AuthState(
     val isLoading: Boolean = false,
@@ -40,34 +41,28 @@ class AuthViewModel : ViewModel() {
 
     init {
         checkCurrentUser()
-        loadCentros() // Cargamos los institutos al iniciar la pantalla
+        loadCentros()
     }
 
     // ====================================================================
     // CARGA DE DATOS PARA SELECTORES (DROPDOWNS)
     // ====================================================================
     private fun loadCentros() {
-        // PARA PRUEBAS: Usamos la lista de prueba de Centro.kt
-        _centros.value = samf.gestorestudiantil.data.models.listaCentros
 
-        /* CUANDO TENGAS FIREBASE LISTO, BORRAS LO DE ARRIBA Y DESCOMENTAS ESTO:
-        viewModelScope.launch {
-            try {
-                val snapshot = db.collection("centros").get().await()
-                val lista = snapshot.toObjects(Centro::class.java)
-                _centros.value = lista
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        */
+        _centros.value = listaCentros
+
+//        viewModelScope.launch {
+//            try {
+//                val snapshot = db.collection("centros").get().await()
+//                val lista = snapshot.toObjects(Centro::class.java)
+//                _centros.value = lista
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
     }
 
     fun loadCursosPorCentro(centroId: String) {
-        // PARA PRUEBAS: Filtramos la lista local de Curso.kt
-        _cursos.value = samf.gestorestudiantil.data.models.listaCursos.filter { it.centroId == centroId }
-
-        /* CUANDO TENGAS FIREBASE LISTO, USAS ESTO:
         viewModelScope.launch {
             try {
                 val snapshot = db.collection("cursos")
@@ -79,7 +74,6 @@ class AuthViewModel : ViewModel() {
                 e.printStackTrace()
             }
         }
-        */
     }
 
     // ====================================================================
@@ -102,18 +96,19 @@ class AuthViewModel : ViewModel() {
             try {
                 val result = auth.signInWithEmailAndPassword(email, pass).await()
                 result.user?.uid?.let { fetchUserFromFirestore(it) }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _authState.value = AuthState(errorMessage = "Credenciales incorrectas")
             }
         }
     }
 
     // ====================================================================
-    // REGISTRO CON LÓGICA DE ROLES Y ESTADOS (Email/Contraseña)
+    // REGISTRO CON LÓGICA DE ROLES, ESTADOS Y FOTO DE PERFIL
     // ====================================================================
     fun registerWithEmail(
         email: String, pass: String, name: String,
-        rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String
+        rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String,
+        imgUrl: String // <-- NUEVO PARÁMETRO DE CLOUDINARY
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
             _authState.value = AuthState(errorMessage = "Faltan datos obligatorios")
@@ -123,41 +118,39 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                // 1. Logica del Rol y Estado inicial
                 var finalRol = rolSeleccionado
                 var estadoInicial = "ACTIVO"
                 var areaOCurso = cursoNombre
 
                 if (rolSeleccionado == "ESTUDIANTE") {
-                    estadoInicial = "PENDIENTE" // Requiere aprobación
+                    estadoInicial = "PENDIENTE"
                 } else if (rolSeleccionado == "PROFESOR") {
                     areaOCurso = "Sin asignar"
-                    // AUTO-ADMIN: Verificamos si ya hay un admin en este centro
                     val admins = db.collection("usuarios")
                         .whereEqualTo("centroId", centroId)
                         .whereEqualTo("rol", "ADMIN")
                         .get().await()
 
                     if (admins.isEmpty) {
-                        finalRol = "ADMIN" // ¡Es el primero! Lo hacemos Admin
+                        finalRol = "ADMIN"
                     }
                 }
 
-                // 2. Crear Auth User
                 val result = auth.createUserWithEmailAndPassword(email, pass).await()
                 val uid = result.user?.uid ?: throw Exception("Error Auth")
 
-                // 3. Crear Perfil en Firestore
+                // CREAMOS EL USUARIO CON LA FOTO INCLUIDA
                 val newUser = User(
                     id = uid, nombre = name, email = email,
                     rol = finalRol, cursoId = cursoId, cursoOArea = areaOCurso,
-                    centroId = centroId, estado = estadoInicial
+                    centroId = centroId, estado = estadoInicial,
+                    imgUrl = imgUrl // <-- GUARDADO EN FIRESTORE
                 )
 
                 db.collection("usuarios").document(uid).set(newUser).await()
                 _authState.value = AuthState(isSuccess = true, user = newUser)
 
-            } catch (e: FirebaseAuthUserCollisionException) {
+            } catch (_: FirebaseAuthUserCollisionException) {
                 _authState.value = AuthState(errorMessage = "El correo ya está registrado.")
             } catch (e: Exception) {
                 _authState.value = AuthState(errorMessage = "Error en registro: ${e.message}")
@@ -179,11 +172,9 @@ class AuthViewModel : ViewModel() {
                 val doc = db.collection("usuarios").document(firebaseUser.uid).get().await()
 
                 if (doc.exists()) {
-                    // Ya existía en Firestore -> Login normal
                     val user = doc.toObject(User::class.java)
                     _authState.value = AuthState(isSuccess = true, user = user)
                 } else {
-                    // Es la primera vez -> Pedimos contraseña y completar perfil (redirección)
                     _authState.value = AuthState(requireGooglePasswordSetup = true)
                 }
             } catch (e: Exception) {
@@ -192,19 +183,14 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // ====================================================================
-    // COMPLETAR REGISTRO DE GOOGLE (Tras establecer la contraseña)
-    // ====================================================================
     fun completeGoogleSetup(password: String) {
         val firebaseUser = auth.currentUser ?: return
 
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                // 1. Asignamos la contraseña para que pueda entrar por Email en el futuro
                 firebaseUser.updatePassword(password).await()
 
-                // 2. Creamos su perfil oficial en Firestore (Por defecto Estudiante, luego se puede modificar para añadir selectores si lo deseas)
                 val newUser = User(
                     id = firebaseUser.uid,
                     nombre = firebaseUser.displayName ?: "Usuario de Google",
@@ -212,11 +198,11 @@ class AuthViewModel : ViewModel() {
                     rol = "ESTUDIANTE",
                     cursoOArea = "Sin asignar",
                     centroId = "",
-                    estado = "PENDIENTE" // Lo ponemos pendiente por seguridad hasta que lo asigne un admin
+                    estado = "PENDIENTE",
+                    imgUrl = firebaseUser.photoUrl?.toString() ?: "" // Aprovechamos la foto de Google si la tiene
                 )
                 db.collection("usuarios").document(firebaseUser.uid).set(newUser).await()
 
-                // 3. Éxito final
                 _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -225,9 +211,6 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // ====================================================================
-    // FUNCIONES AUXILIARES
-    // ====================================================================
     private suspend fun fetchUserFromFirestore(uid: String) {
         try {
             val doc = db.collection("usuarios").document(uid).get().await()
@@ -235,7 +218,6 @@ class AuthViewModel : ViewModel() {
             if (user != null) {
                 _authState.value = AuthState(isSuccess = true, user = user)
             } else {
-                // Si existe en Auth pero NO en Firestore, abandonó la app antes de poner la contraseña
                 _authState.value = AuthState(requireGooglePasswordSetup = true)
             }
         } catch (e: Exception) {

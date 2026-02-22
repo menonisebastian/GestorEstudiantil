@@ -16,37 +16,38 @@ import com.cloudinary.android.callback.UploadCallback
 // MAPPERS PARA LA INTERFAZ (UI Mappers)
 // ==========================================
 
-// Función que maneja la lógica de subida con el SDK de Cloudinary
+// =========================================================
+// FUNCIÓN UNIVERSAL DE CLOUDINARY
+// =========================================================
 fun uploadToCloudinary(
     uri: Uri,
-    onStart: () -> Unit,
-    onProgress: (Float) -> Unit,
+    fileName: String? = null, // <-- NUEVO: Parámetro para el nombre del archivo
+    onStart: () -> Unit = {},
+    onProgress: (Float) -> Unit = {},
     onSuccess: (String) -> Unit,
     onError: (String) -> Unit
 ) {
-    MediaManager.get().upload(uri)
-        // RECUERDA: Cambiar esto por el nombre de tu Upload Preset Unsigned en Cloudinary
-        .unsigned("gestor_perfiles")
-        .callback(object : UploadCallback {
-            override fun onStart(requestId: String) {
-                onStart()
-            }
+    val request = MediaManager.get().upload(uri).unsigned("gestor_perfiles")
 
-            override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) {
-                onProgress(bytes.toFloat() / totalBytes.toFloat())
-            }
+    // Si recibimos un nombre (ej. ID del usuario), se lo asignamos a Cloudinary
+    if (fileName != null) {
+        request.option("public_id", fileName)
+    }
 
-            override fun onSuccess(requestId: String, resultData: Map<*, *>) {
-                val secureUrl = resultData["secure_url"] as String
-                onSuccess(secureUrl)
-            }
-
-            override fun onError(requestId: String, error: ErrorInfo) {
-                onError(error.description)
-            }
-
-            override fun onReschedule(requestId: String, error: ErrorInfo) {}
-        })
+    request.callback(object : UploadCallback {
+        override fun onStart(requestId: String) { onStart() }
+        override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) {
+            onProgress(bytes.toFloat() / totalBytes.toFloat())
+        }
+        override fun onSuccess(requestId: String, resultData: Map<*, *>) {
+            val secureUrl = resultData["secure_url"] as String
+            onSuccess(secureUrl)
+        }
+        override fun onError(requestId: String, error: ErrorInfo) {
+            onError(error.description)
+        }
+        override fun onReschedule(requestId: String, error: ErrorInfo) {}
+    })
         .dispatch()
 }
 

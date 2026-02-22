@@ -1,13 +1,19 @@
 package samf.gestorestudiantil.ui.components
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,11 +35,13 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -68,6 +76,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -77,6 +87,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
@@ -84,7 +95,9 @@ import samf.gestorestudiantil.data.interfaces.ChipOption
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Recordatorio
+import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -96,16 +109,16 @@ fun TopBarRow(
     name: String,
     role: String,
     curso: String,
+    imgUrl: String = "",
     onNavigateProfile: () -> Unit,
     onNavigateSettings: () -> Unit,
     onLogout: () -> Unit
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        AccBox(name, role, curso, onClick = { onNavigateProfile() })
+        AccBox(name, role, curso, imgUrl, onClick = { onNavigateProfile() })
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -122,8 +135,7 @@ fun BottomNavBar(
     items: Map<String, ImageVector>,
     selectedItem: String,
     onItemSelected: (String) -> Unit
-)
-{
+) {
     NavigationBar(
         containerColor = backgroundColor,
         contentColor = textColor
@@ -158,7 +170,6 @@ fun BottomNavBar(
         }
     }
 }
-
 
 @Composable
 fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
@@ -201,6 +212,96 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
     }
 }
 
+// =========================================================
+// COMPONENTE: SELECCIONAR Y SUBIR LA FOTO DE PERFIL
+// =========================================================
+@Composable
+fun ProfileImagePicker(
+    currentPhotoUrl: String,
+    userId: String? = null,
+    onPhotoUploaded: (String) -> Unit
+) {
+    val context = LocalContext.current
+    var isUploading by remember { mutableStateOf(false) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val nombreArchivo = userId ?: java.util.UUID.randomUUID().toString()
+
+            uploadToCloudinary(
+                uri = it,
+                fileName = nombreArchivo,
+                onStart = { isUploading = true },
+                onSuccess = { secureUrl ->
+                    isUploading = false
+                    onPhotoUploaded(secureUrl)
+                },
+                onError = { error ->
+                    isUploading = false
+                    Toast.makeText(context, "Error al subir: $error", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .clickable(enabled = !isUploading) { photoPickerLauncher.launch("image/*") },
+        contentAlignment = Alignment.Center
+    ) {
+        // Fondo / Imagen del usuario
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(primaryColor.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (currentPhotoUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = currentPhotoUrl,
+                    contentDescription = "Foto de perfil",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(Icons.Outlined.Person, contentDescription = null, modifier = Modifier.size(50.dp), tint = primaryColor)
+            }
+        }
+
+        // Icono de Lápiz / Edición
+        if (!isUploading) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(primaryColor)
+                    .border(2.dp, backgroundColor, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.Edit, contentDescription = "Editar foto", tint = backgroundColor, modifier = Modifier.size(16.dp))
+            }
+        }
+
+        // Capa oscura de carga
+        if (isUploading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(32.dp))
+            }
+        }
+    }
+}
+
 // ==========================================
 // TARJETAS CORREGIDAS (Layout Bounds Fix)
 // ==========================================
@@ -219,7 +320,6 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // AÑADIDO: weight(1f) arregla el problema de los textos largos
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = recordatorio.titulo, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
                 Spacer(modifier = Modifier.height(2.dp))
@@ -238,7 +338,6 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
                 }
             }
 
-            // AÑADIDO: Spacer con ancho fijo en lugar de weight
             Spacer(modifier = Modifier.width(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -273,7 +372,6 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit ) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // AÑADIDO: weight(1f) evita que la descripción aplaste a los demás componentes
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = asignatura.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = iconColor)
                 Spacer(modifier = Modifier.height(2.dp))
@@ -292,7 +390,6 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit ) {
                 }
             }
 
-            // AÑADIDO: Espacio fijo para asegurar que el icono a la derecha tenga sitio
             Spacer(modifier = Modifier.width(16.dp))
 
             Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
@@ -310,7 +407,6 @@ fun EvaluacionCard(evaluacion: Evaluacion) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // AÑADIDO: weight(1f) por seguridad en caso de que el nombre de la evaluación sea muy largo
             Column(modifier = Modifier.weight(1f)) {
                 TypeChip(option = evaluacion.tipoEvaluacion)
                 Spacer(modifier = Modifier.height(6.dp))
@@ -333,8 +429,7 @@ fun CustomTextField(
     readOnly: Boolean,
     isClickable: Boolean,
     onClick: (() -> Unit)? = null
-)
-{
+) {
     var showPassword by remember { mutableStateOf(false) }
 
     Box (modifier = Modifier.clip(RoundedCornerShape(16.dp))){
@@ -361,35 +456,29 @@ fun CustomTextField(
                     Icon(icon, null, tint = Color.Gray)
                 }
             },
-            trailingIcon = when (label)
-            {
-                "Contraseña" , "Confirmar contraseña" ->
-                { { if (value.isNotBlank())
-                {
-                    IconButton(onClick = { showPassword = !showPassword }
-                    ) {
-                        if (!showPassword)
-                            Icon(Icons.Default.Visibility,
-                                contentDescription = "Limpiar",
-                                tint = MaterialTheme.colorScheme.inversePrimary)
-                        else
-                            Icon(Icons.Default.VisibilityOff,
-                                contentDescription = "Limpiar",
-                                tint = MaterialTheme.colorScheme.inversePrimary)
+            trailingIcon = when (label) {
+                "Contraseña" , "Confirmar contraseña" -> {
+                    {
+                        if (value.isNotBlank()) {
+                            IconButton(onClick = { showPassword = !showPassword }) {
+                                if (!showPassword)
+                                    Icon(Icons.Default.Visibility, contentDescription = "Mostrar", tint = MaterialTheme.colorScheme.inversePrimary)
+                                else
+                                    Icon(Icons.Default.VisibilityOff, contentDescription = "Ocultar", tint = MaterialTheme.colorScheme.inversePrimary)
+                            }
+                        }
                     }
-                } } }
+                }
                 else -> { { } }
             },
-            visualTransformation = when (label)
-            {
-                "Contraseña" , "Confirmar contraseña" ->
-                { if (!showPassword) PasswordVisualTransformation() else VisualTransformation.None }
+            visualTransformation = when (label) {
+                "Contraseña" , "Confirmar contraseña" -> {
+                    if (!showPassword) PasswordVisualTransformation() else VisualTransformation.None
+                }
                 else -> { VisualTransformation.None }
             },
-            keyboardOptions = when (label)
-            {
-                "Contraseña" , "Confirmar contraseña" ->
-                {
+            keyboardOptions = when (label) {
+                "Contraseña" , "Confirmar contraseña" -> {
                     KeyboardOptions(keyboardType = KeyboardType.Password)
                 }
                 else -> { KeyboardOptions.Default }
@@ -416,8 +505,7 @@ fun CustomOptionsTextField(
     opciones: List<String>,
     icon: ImageVector? = null,
     label: String
-)
-{
+) {
     TextField(
         value = texto,
         onValueChange = onValueChange,
@@ -439,10 +527,11 @@ fun CustomOptionsTextField(
             CustomDropDownMenu(
                 baseIcon = Icons.Default.FilterList,
                 optionList = opciones,
-                onOptionSelected = {
-                        opcionSeleccionada ->
+                onOptionSelected = { opcionSeleccionada ->
                     onValueChange(opcionSeleccionada)
-                }) },
+                }
+            )
+        },
         leadingIcon = {
             if (icon != null) {
                 Icon(icon, null, tint = Color.Gray)
@@ -452,8 +541,7 @@ fun CustomOptionsTextField(
 }
 
 @Composable
-fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit)
-{
+fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(
         value = textoBusqueda,
         onValueChange = onValueChange,
@@ -653,8 +741,7 @@ fun CustomTimeField(
 }
 
 @Composable
-fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOptionSelected: (String) -> Unit)
-{
+fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOptionSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
@@ -675,8 +762,7 @@ fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOption
             offset = DpOffset(x = 0.dp, y = 0.dp),
             containerColor = backgroundColor,
         ) {
-            optionList.forEach {
-                    option ->
+            optionList.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = { onOptionSelected(option); expanded = false })
@@ -687,6 +773,7 @@ fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOption
         }
     }
 }
+
 
 @Composable
 fun TypeChip(option: ChipOption) {
@@ -723,15 +810,14 @@ fun MensajeVacio() {
 }
 
 @Composable
-fun AccBox(name: String, role: String, curso: String, onClick: () -> Unit) {
+fun AccBox(name: String, role: String, curso: String, imgUrl: String = "", onClick: () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-    )
-    {
-        AccImg(onClick = onClick)
+    ) {
+        AccImg(imgUrl = imgUrl, onClick = onClick)
         Spacer(modifier = Modifier.width(16.dp))
-        Column{
+        Column {
             Text("Hola, $name", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
             Text("$role - $curso", fontSize = 12.sp, color = surfaceDimColor)
         }
@@ -739,7 +825,7 @@ fun AccBox(name: String, role: String, curso: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun AccImg(onClick: () -> Unit = {}) {
+fun AccImg(imgUrl: String = "", onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .size(48.dp)
@@ -748,12 +834,21 @@ fun AccImg(onClick: () -> Unit = {}) {
             .background(Color.Blue),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Person,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(24.dp)
-        )
+        if (imgUrl.isNotEmpty()) {
+            AsyncImage(
+                model = imgUrl,
+                contentDescription = "Foto de perfil",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Outlined.Person,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
