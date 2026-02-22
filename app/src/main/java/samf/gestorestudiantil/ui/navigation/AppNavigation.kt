@@ -12,6 +12,7 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.screens.AuthScreen
 import samf.gestorestudiantil.ui.screens.GoogleSetupScreen
 import samf.gestorestudiantil.ui.screens.HomeScreen
+import samf.gestorestudiantil.ui.screens.PendingApprovalScreen
 import samf.gestorestudiantil.ui.screens.ProfileScreen
 import samf.gestorestudiantil.ui.screens.SettingsScreen
 
@@ -22,22 +23,34 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = "auth") {
 
-        // 1. PANTALLA DE AUTENTICACIÓN
         composable("auth") {
             AuthScreen(
                 onAuthSuccess = { user ->
                     currentUser = user
-                    navController.navigate("home") {
+                    // AQUÍ INTERCEPTAMOS EL ESTADO DEL USUARIO
+                    val destination = if (user.estado == "PENDIENTE") "pending" else "home"
+
+                    navController.navigate(destination) {
                         popUpTo("auth") { inclusive = true }
                     }
                 },
-                // Atrapamos cuando el ViewModel nos dice que es un nuevo usuario de Google
                 onRequireGoogleSetup = {
-                    navController.navigate("google_setup") {
-                        popUpTo("auth") { inclusive = true }
-                    }
+                    navController.navigate("google_setup") { popUpTo("auth") { inclusive = true } }
                 }
             )
+        }
+
+        // NUEVA RUTA PARA USUARIOS PENDIENTES
+        composable("pending") {
+            if (currentUser != null) {
+                PendingApprovalScreen(
+                    usuario = currentUser!!,
+                    onLogout = {
+                        currentUser = null
+                        navController.navigate("auth") { popUpTo(0) }
+                    }
+                )
+            }
         }
 
         // 2. PANTALLA AUXILIAR: CONFIGURACIÓN DE GOOGLE
