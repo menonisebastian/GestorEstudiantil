@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,12 +13,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.User
 
-// Estado de la pantalla de autenticación
+// Estado actualizado para manejar el flujo de Google
 data class AuthState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val user: User? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val requireGooglePasswordSetup: Boolean = false // <-- NUEVO: Bandera de primera vez con Google
 )
 
 class AuthViewModel : ViewModel() {
@@ -30,7 +31,6 @@ class AuthViewModel : ViewModel() {
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     init {
-        // Comprobar si ya hay una sesión iniciada al abrir la app
         checkCurrentUser()
     }
 
@@ -60,6 +60,7 @@ class AuthViewModel : ViewModel() {
                     fetchUserFromFirestore(uid)
                 } ?: throw Exception("Error al obtener ID de usuario")
             } catch (e: Exception) {
+                e.printStackTrace()
                 _authState.value = AuthState(errorMessage = "Error de inicio de sesión: Revisa tus credenciales")
             }
         }
@@ -77,26 +78,23 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                // 1. Crear usuario en Auth
                 val result = auth.createUserWithEmailAndPassword(email, pass).await()
                 val uid = result.user?.uid ?: throw Exception("Error al crear usuario")
 
-                // 2. Crear documento en Firestore
                 val newUser = User(
                     id = uid,
                     nombre = name,
                     email = email,
-                    rol = "ESTUDIANTE", // Por defecto al registrarse
+                    rol = "ESTUDIANTE",
                     cursoOArea = "Sin asignar",
                     centroId = ""
                 )
 
                 db.collection("usuarios").document(uid).set(newUser).await()
-
                 _authState.value = AuthState(isSuccess = true, user = newUser)
 
             } catch (e: FirebaseAuthUserCollisionException) {
-                // Si el usuario ya existe (ej. Entró con Google antes)
+                e.printStackTrace()
                 _authState.value = AuthState(errorMessage = "Este correo ya está registrado. Si usaste Google antes, inicia sesión con Google.")
             } catch (e: Exception) {
                 _authState.value = AuthState(errorMessage = e.localizedMessage ?: "Error en el registro")
@@ -105,7 +103,7 @@ class AuthViewModel : ViewModel() {
     }
 
     // ====================================================================
-    // 3. INICIO DE SESIÓN CON GOOGLE (Recibe el token de la UI)
+    // 3. INICIO DE SESIÓN CON GOOGLE
     // ====================================================================
     fun loginWithGoogleToken(idToken: String) {
         _authState.value = AuthState(isLoading = true)
@@ -115,25 +113,15 @@ class AuthViewModel : ViewModel() {
                 val result = auth.signInWithCredential(credential).await()
                 val firebaseUser = result.user ?: throw Exception("No se pudo obtener el usuario")
 
-                // Comprobamos si el usuario ya existe en nuestra base de datos
                 val doc = db.collection("usuarios").document(firebaseUser.uid).get().await()
 
                 if (doc.exists()) {
-                    // Si existe, lo descargamos (NO SOBREESCRIBIMOS LOS DATOS)
+                    // Ya existía en Firestore -> Login normal
                     val user = doc.toObject(User::class.java)
                     _authState.value = AuthState(isSuccess = true, user = user)
                 } else {
-                    // Si es la primera vez que entra con Google, lo registramos en Firestore
-                    val newUser = User(
-                        id = firebaseUser.uid,
-                        nombre = firebaseUser.displayName ?: "Usuario de Google",
-                        email = firebaseUser.email ?: "",
-                        rol = "ESTUDIANTE",
-                        cursoOArea = "Sin asignar",
-                        centroId = ""
-                    )
-                    db.collection("usuarios").document(firebaseUser.uid).set(newUser).await()
-                    _authState.value = AuthState(isSuccess = true, user = newUser)
+                    // Es la primera vez -> Pedimos contraseña
+                    _authState.value = AuthState(requireGooglePasswordSetup = true)
                 }
             } catch (e: Exception) {
                 _authState.value = AuthState(errorMessage = e.localizedMessage ?: "Error con Google Sign-In")
@@ -142,31 +130,33 @@ class AuthViewModel : ViewModel() {
     }
 
     // ====================================================================
-    // 4. UNIFICAR CUENTA: AÑADIR CONTRASEÑA A UN USUARIO DE GOOGLE
+    // 4. COMPLETAR REGISTRO DE GOOGLE (Nueva función)
     // ====================================================================
-    /**
-     * Si un usuario se registró solo con Google, no tiene contraseña.
-     * Llamando a esta función desde la pantalla de "Mi Cuenta/Preferencias",
-     * podrá establecer una contraseña y acceder también mediante Email/Contraseña.
-     */
-    fun addPasswordToGoogleAccount(newPassword: String) {
-        val user = auth.currentUser
-        if (user != null) {
-            _authState.value = _authState.value.copy(isLoading = true)
-            viewModelScope.launch {
-                try {
-                    user.updatePassword(newPassword).await()
-                    // Si es exitoso, Firebase añade el proveedor Email/Password automáticamente.
-                    _authState.value = _authState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Contraseña configurada. Ya puedes iniciar sesión con tu email y esta contraseña."
-                    )
-                } catch (e: Exception) {
-                    _authState.value = _authState.value.copy(
-                        isLoading = false,
-                        errorMessage = "Error al configurar la contraseña. Es posible que debas cerrar sesión y volver a entrar."
-                    )
-                }
+    fun completeGoogleSetup(password: String) {
+        val firebaseUser = auth.currentUser ?: return
+
+        _authState.value = AuthState(isLoading = true)
+        viewModelScope.launch {
+            try {
+                // 1. Asignamos la contraseña para que pueda entrar por Email en el futuro
+                firebaseUser.updatePassword(password).await()
+
+                // 2. Creamos su perfil oficial en Firestore
+                val newUser = User(
+                    id = firebaseUser.uid,
+                    nombre = firebaseUser.displayName ?: "Usuario de Google",
+                    email = firebaseUser.email ?: "",
+                    rol = "ESTUDIANTE",
+                    cursoOArea = "Sin asignar",
+                    centroId = ""
+                )
+                db.collection("usuarios").document(firebaseUser.uid).set(newUser).await()
+
+                // 3. Éxito final
+                _authState.value = AuthState(isSuccess = true, user = newUser)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _authState.value = AuthState(errorMessage = "Error al guardar contraseña: ${e.localizedMessage}")
             }
         }
     }
@@ -181,9 +171,12 @@ class AuthViewModel : ViewModel() {
             if (user != null) {
                 _authState.value = AuthState(isSuccess = true, user = user)
             } else {
-                _authState.value = AuthState(errorMessage = "El usuario no existe en la base de datos")
+                // Si existe en Auth pero NO en Firestore, es porque abandonó la app
+                // antes de poner la contraseña. Lo mandamos a terminar el proceso.
+                _authState.value = AuthState(requireGooglePasswordSetup = true)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             _authState.value = AuthState(errorMessage = "Error al leer datos del usuario")
         }
     }

@@ -1,28 +1,23 @@
 package samf.gestorestudiantil.ui.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.screens.AuthScreen
+import samf.gestorestudiantil.ui.screens.GoogleSetupScreen
 import samf.gestorestudiantil.ui.screens.HomeScreen
 import samf.gestorestudiantil.ui.screens.ProfileScreen
 import samf.gestorestudiantil.ui.screens.SettingsScreen
 
-
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-
-    // Estado temporal para simular la sesión.
-    // En el futuro, esto se conectará a FirebaseAuth.getInstance().currentUser
     var currentUser by remember { mutableStateOf<User?>(null) }
 
     NavHost(navController = navController, startDestination = "auth") {
@@ -32,15 +27,32 @@ fun AppNavigation() {
             AuthScreen(
                 onAuthSuccess = { user ->
                     currentUser = user
-                    // Navegamos al Home y limpiamos la pila para que el botón "Atrás" no vuelva al Login
                     navController.navigate("home") {
+                        popUpTo("auth") { inclusive = true }
+                    }
+                },
+                // Atrapamos cuando el ViewModel nos dice que es un nuevo usuario de Google
+                onRequireGoogleSetup = {
+                    navController.navigate("google_setup") {
                         popUpTo("auth") { inclusive = true }
                     }
                 }
             )
         }
 
-        // 2. PANTALLA PRINCIPAL (Unificada por roles)
+        // 2. PANTALLA AUXILIAR: CONFIGURACIÓN DE GOOGLE
+        composable("google_setup") {
+            GoogleSetupScreen(
+                onSetupComplete = { user ->
+                    currentUser = user
+                    navController.navigate("home") {
+                        popUpTo("google_setup") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 3. PANTALLA PRINCIPAL
         composable("home") {
             if (currentUser != null) {
                 HomeScreen(
@@ -48,7 +60,6 @@ fun AppNavigation() {
                     navController = navController,
                     onLogout = {
                         currentUser = null
-                        // Volvemos al Login y limpiamos toda la pila de navegación
                         navController.navigate("auth") {
                             popUpTo(0)
                         }
@@ -57,19 +68,12 @@ fun AppNavigation() {
             }
         }
 
-        // 3. PANTALLA DE CUENTA
+        // 4. PANTALLAS SECUNDARIAS
         composable("profile") {
-            ProfileScreen(
-                usuario = currentUser,
-                onBack = { navController.popBackStack() }
-            )
+            ProfileScreen(usuario = currentUser, onBack = { navController.popBackStack() })
         }
-
-        // 4. PANTALLA DE CONFIGURACIÓN
         composable("settings") {
-            SettingsScreen(
-                onBack = { navController.popBackStack() }
-            )
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }

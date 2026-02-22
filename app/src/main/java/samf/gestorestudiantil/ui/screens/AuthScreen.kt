@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.filled.AppRegistration
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,20 +40,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
-import samf.gestorestudiantil.domain.AuthViewModel
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.SocialMediaButton
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
-import java.time.LocalDate
+import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
 val itemsAuth: Map<String, ImageVector> = mapOf(
     "Ingresar" to Icons.AutoMirrored.Filled.Login,
@@ -61,25 +67,28 @@ val itemsAuth: Map<String, ImageVector> = mapOf(
 @Composable
 fun AuthScreen(
     onAuthSuccess: (User) -> Unit,
-    authViewModel: AuthViewModel = viewModel() // Instanciamos el ViewModel
+    onRequireGoogleSetup: () -> Unit, // Callback para navegar
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val tabs = remember { itemsAuth.keys.toList() }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
     val centro = "IES Comercio"
+    val token = stringResource(R.string.id_token)
     val context = LocalContext.current
-
-    // Observamos el estado del ViewModel
     val authState by authViewModel.authState.collectAsState()
 
-    // Escuchamos si hay éxito o errores
-    LaunchedEffect(authState.isSuccess, authState.errorMessage) {
+    // Escuchamos los cambios de estado
+    LaunchedEffect(authState) {
         if (authState.isSuccess && authState.user != null) {
             onAuthSuccess(authState.user!!)
         }
+        if (authState.requireGooglePasswordSetup) {
+            onRequireGoogleSetup()
+        }
         if (authState.errorMessage != null) {
             Toast.makeText(context, authState.errorMessage, Toast.LENGTH_LONG).show()
-            authViewModel.clearError() // Limpiamos el error después de mostrarlo
+            authViewModel.clearError()
         }
     }
 
@@ -113,14 +122,14 @@ fun AuthScreen(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = !authState.isLoading // Bloqueamos scroll si está cargando
+                userScrollEnabled = !authState.isLoading
             ) { page ->
                 when (tabs[page]) {
                     "Ingresar" -> LoginPanel(
                         paddingValues = paddingValues,
                         isLoading = authState.isLoading,
                         onLoginClick = { email, pass -> authViewModel.loginWithEmail(email, pass) },
-                        onGoogleClick = { authViewModel.loginWithGoogleToken(R.string.id_token.toString()) }
+                        onGoogleClick = { authViewModel.loginWithGoogleToken(token) }
                     )
                     "Registrarse" -> RegistroPanel(
                         paddingValues = paddingValues,
@@ -130,16 +139,11 @@ fun AuthScreen(
                 }
             }
 
-            // Overlay de Carga (Spinner)
             if (authState.isLoading) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize().padding(paddingValues),
                     contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                ) { CircularProgressIndicator() }
             }
         }
     }
@@ -259,6 +263,8 @@ fun RegistroPanel(
                     onClick = {
                         if (password != confirmPassword) {
                             Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                        } else if (password.length < 6) {
+                            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
                         } else {
                             onRegisterClick(email, password, name)
                         }
@@ -268,6 +274,101 @@ fun RegistroPanel(
                 ) {
                     Text("Registrarme")
                 }
+            }
+        }
+    }
+}
+
+// =========================================================
+// PANTALLA AUXILIAR: COMPLETAR PERFIL DE GOOGLE
+// =========================================================
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GoogleSetupScreen(
+    onSetupComplete: (User) -> Unit,
+    authViewModel: AuthViewModel = viewModel()
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val authState by authViewModel.authState.collectAsState()
+
+    LaunchedEffect(authState) {
+        if (authState.isSuccess && authState.user != null) {
+            onSetupComplete(authState.user!!)
+        }
+        if (authState.errorMessage != null) {
+            Toast.makeText(context, authState.errorMessage, Toast.LENGTH_LONG).show()
+            authViewModel.clearError()
+        }
+    }
+
+    Scaffold(
+        containerColor = backgroundColor,
+        topBar = {
+            TopAppBar(
+                title = { Text("Completar Registro", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+            )
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(64.dp), tint = primaryColor)
+                Text("¡Casi terminamos!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textColor)
+
+                Text(
+                    "Como es tu primera vez iniciando con Google, establece una contraseña para tu cuenta. Así podrás iniciar sesión de ambas formas en el futuro.",
+                    color = surfaceDimColor,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CustomTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    icon = Icons.Outlined.Lock,
+                    label = "Contraseña",
+                    readOnly = authState.isLoading,
+                    isClickable = !authState.isLoading
+                )
+
+                CustomTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    icon = Icons.Outlined.Lock,
+                    label = "Confirmar contraseña",
+                    readOnly = authState.isLoading,
+                    isClickable = !authState.isLoading
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        if (password != confirmPassword) {
+                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                        } else if (password.length < 6) {
+                            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                        } else {
+                            authViewModel.completeGoogleSetup(password)
+                        }
+                    },
+                    enabled = !authState.isLoading,
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Text("Guardar y Continuar")
+                }
+            }
+
+            if (authState.isLoading) {
+                CircularProgressIndicator()
             }
         }
     }

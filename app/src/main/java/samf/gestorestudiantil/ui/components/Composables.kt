@@ -73,7 +73,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -330,7 +329,6 @@ fun CustomTextField(
     value: String,
     onValueChange: (String) -> Unit,
     icon: ImageVector? = null,
-    trailingIcon: ImageVector? = null,
     label: String,
     readOnly: Boolean,
     isClickable: Boolean,
