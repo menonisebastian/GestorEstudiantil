@@ -52,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
+import samf.gestorestudiantil.ui.dialogs.ConfirmDialog
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
@@ -69,6 +70,7 @@ fun UsuariosAdminPanel(
     var textoBusqueda by remember { mutableStateOf("") }
     var selectedTabIndex by remember { mutableIntStateOf(0) } // 0: Pendientes, 1: Activos
     val tabs = listOf("Pendientes", "Activos")
+    var confirmDialogVisible by remember { mutableStateOf(false) }
 
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
@@ -151,7 +153,9 @@ fun UsuariosAdminPanel(
             ) {
                 if (usuariosFiltrados.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp), contentAlignment = Alignment.Center) {
                             Text("No hay usuarios en esta lista", color = surfaceDimColor)
                         }
                     }
@@ -163,13 +167,25 @@ fun UsuariosAdminPanel(
                             // CONDICIÓN: Un admin no puede eliminarse a sí mismo
                             canDelete = usuario.id != usuarioActual.id,
                             onAprobar = { adminViewModel.aprobarUsuario(usuario.id) },
-                            onRechazar = { adminViewModel.rechazarOEliminarUsuario(usuario.id) }
+                            onRechazar = { confirmDialogVisible = true }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }
+    }
+
+    if (confirmDialogVisible) {
+        ConfirmDialog(
+            title = "Eliminar Usuario",
+            content = "Desea eliminar al usuario seleccionado? \nEsta accion no se puede deshacer.",
+            onConfirm = {
+                adminViewModel.rechazarOEliminarUsuario(usuarioActual.id)
+                confirmDialogVisible = false
+            },
+            onDismissRequest = { confirmDialogVisible = false }
+        )
     }
 }
 
@@ -233,7 +249,9 @@ fun UsuarioCardAdmin(
                     Button(
                         onClick = onRechazar,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEBEE), contentColor = Color(0xFFD32F2F)),
-                        modifier = Modifier.weight(1f).height(40.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -244,7 +262,9 @@ fun UsuarioCardAdmin(
                     Button(
                         onClick = onAprobar,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE8F5E9), contentColor = Color(0xFF2E7D32)),
-                        modifier = Modifier.weight(1f).height(40.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))

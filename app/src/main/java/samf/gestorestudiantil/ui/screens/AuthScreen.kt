@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.AppRegistration
@@ -60,6 +61,7 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
+import samf.gestorestudiantil.ui.components.CustomPasswordTextField
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.SocialMediaButton
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -153,7 +155,9 @@ fun AuthScreen(
 
             if (authState.isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
             }
@@ -171,8 +175,11 @@ fun LoginPanel(
     val buttonSize = 60.dp
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val passwordState = rememberTextFieldState()
 
-    Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(paddingValues), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -189,20 +196,27 @@ fun LoginPanel(
                 isClickable = !isLoading
             )
 
-            CustomTextField(
-                value = password,
-                onValueChange = { password = it },
-                icon = Icons.Outlined.Lock,
-                label = "Contraseña",
-                readOnly = isLoading,
-                isClickable = !isLoading
-            )
+            CustomPasswordTextField(state = passwordState)
+
+//            CustomTextField(
+//                value = password,
+//                onValueChange = { password = it },
+//                icon = Icons.Outlined.Lock,
+//                label = "Contraseña",
+//                readOnly = isLoading,
+//                isClickable = !isLoading
+//            )
 
             Button(
-                onClick = { onLoginClick(email, password) },
+                onClick = {
+                    password = passwordState.text.toString()
+                    onLoginClick(email, password)
+                },
                 shape = RoundedCornerShape(16.dp),
                 enabled = !isLoading,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
             ) {
                 Text("Entrar")
             }
@@ -233,9 +247,11 @@ fun RegistroPanel(
     // Paso 1: Datos Personales y Foto
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    val passwordState = rememberTextFieldState()
+    val confirmPasswordState = rememberTextFieldState()
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var fotoUrl by remember { mutableStateOf("") } // <-- ESTADO PARA LA FOTO
+    var fotoUrl by remember { mutableStateOf("") }
 
     // Paso 2: Selectores Dinámicos
     var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
@@ -252,7 +268,9 @@ fun RegistroPanel(
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(paddingValues), contentAlignment = Alignment.Center) {
         Crossfade(targetState = currentStep, label = "RegistroSteps") { step ->
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -273,8 +291,11 @@ fun RegistroPanel(
 
                     CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
                     CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
-                    CustomTextField(value = password, onValueChange = { password = it }, icon = Icons.Outlined.Lock, label = "Contraseña", readOnly = isLoading, isClickable = !isLoading)
-                    CustomTextField(value = confirmPassword, onValueChange = { confirmPassword = it }, icon = Icons.Outlined.Lock, label = "Confirmar contraseña", readOnly = isLoading, isClickable = !isLoading)
+                    CustomPasswordTextField(state = passwordState)
+                    CustomPasswordTextField(state = confirmPasswordState)
+
+                    password = passwordState.text.toString()
+                    confirmPassword = confirmPasswordState.text.toString()
 
                     Button(
                         onClick = {
@@ -288,7 +309,9 @@ fun RegistroPanel(
                                 currentStep = 2 // Avanzar al siguiente paso
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Text("Siguiente")
@@ -348,7 +371,9 @@ fun RegistroPanel(
                     ) {
                         OutlinedButton(
                             onClick = { currentStep = 1 },
-                            modifier = Modifier.weight(1f).height(50.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
                             shape = RoundedCornerShape(16.dp),
                             enabled = !isLoading
                         ) {
@@ -367,7 +392,9 @@ fun RegistroPanel(
                             },
                             enabled = !isLoading,
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.weight(1f).height(50.dp)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
                         ) {
                             Text(
                                 if (rolSeleccionado == "ESTUDIANTE")
@@ -416,7 +443,9 @@ fun GoogleSetupScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues), contentAlignment = Alignment.Center) {
             Column(
                 modifier = Modifier.padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -465,7 +494,9 @@ fun GoogleSetupScreen(
                         }
                     },
                     enabled = !authState.isLoading,
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
                 ) {
                     Text("Guardar y Continuar")
                 }

@@ -24,11 +24,15 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.TextObfuscationMode
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -37,6 +41,7 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -59,6 +64,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -303,7 +309,7 @@ fun ProfileImagePicker(
 }
 
 // ==========================================
-// TARJETAS CORREGIDAS (Layout Bounds Fix)
+// TARJETAS DE RECORDATORIOS
 // ==========================================
 
 @Composable
@@ -496,6 +502,48 @@ fun CustomTextField(
             )
         }
     }
+}
+
+@Composable
+fun CustomPasswordTextField(state: TextFieldState) {
+
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
+    SecureTextField(
+        state = state,
+        shape = RoundedCornerShape(16.dp),
+        label = { Text("Contraseña") },
+        // Alternamos entre texto visible y ofuscado
+        textObfuscationMode = if (isPasswordVisible) {
+            TextObfuscationMode.Visible
+        } else {
+            TextObfuscationMode.RevealLastTyped // O TextObfuscationMode.Hidden
+        },
+        leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = null, tint = surfaceDimColor) },
+        trailingIcon = {
+            if (state.text.isNotEmpty()) { // Solo dibuja si hay texto
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        // Corregido lógicamente: si no es visible, el icono debe invitar a "ver" (Visibility)
+                        imageVector = if (!isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = if (!isPasswordVisible) "Mostrar contraseña" else "Ocultar contraseña"
+                    )
+                }
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = surfaceColor,
+            unfocusedContainerColor = surfaceColor,
+            disabledContainerColor = surfaceColor,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedLabelColor = surfaceDimColor,
+            unfocusedLabelColor = surfaceDimColor,
+        )
+    )
 }
 
 @Composable
