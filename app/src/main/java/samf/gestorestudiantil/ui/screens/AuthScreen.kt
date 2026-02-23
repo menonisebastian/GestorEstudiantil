@@ -43,6 +43,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -242,7 +243,7 @@ fun RegistroPanel(
     onRegisterClick: (email: String, pass: String, nombre: String, rol: String, centroId: String, cursoId: String, cursoNombre: String, fotoUrl: String) -> Unit
 ) {
     // Control de paso (Wizzard)
-    var currentStep by remember { mutableIntStateOf(1) }
+    var currentStep by rememberSaveable { mutableIntStateOf(1) }
 
     // Paso 1: Datos Personales y Foto
     var name by remember { mutableStateOf("") }
