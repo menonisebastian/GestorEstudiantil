@@ -40,6 +40,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,7 +70,7 @@ fun UsuariosAdminPanel(
 ) {
     val context = LocalContext.current
     var textoBusqueda by remember { mutableStateOf("") }
-    var selectedTabIndex by remember { mutableIntStateOf(0) } // 0: Pendientes, 1: Activos
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Pendientes, 1: Activos
     val tabs = listOf("Pendientes", "Activos")
     var confirmDialogVisible by remember { mutableStateOf(false) }
 
@@ -197,6 +199,7 @@ fun UsuarioCardAdmin(
     onAprobar: () -> Unit,
     onRechazar: () -> Unit
 ) {
+    val softRed = Color(0xFFD74132)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -232,7 +235,7 @@ fun UsuarioCardAdmin(
                         // MOSTRAR SOLO SI NO ES ÉL MISMO
                         if (canDelete) {
                             IconButton(onClick = onRechazar, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Eliminar", tint = Color.Red, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Outlined.Delete, contentDescription = "Eliminar", tint = softRed, modifier = Modifier.size(20.dp))
                             }
                         }
                     }
