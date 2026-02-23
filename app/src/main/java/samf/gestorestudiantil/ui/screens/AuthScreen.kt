@@ -369,7 +369,12 @@ fun RegistroPanel(
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.weight(1f).height(50.dp)
                         ) {
-                            Text("Finalizar")
+                            Text(
+                                if (rolSeleccionado == "ESTUDIANTE")
+                                    "Matricularme"
+                                else
+                                    "Finalizar"
+                            )
                         }
                     }
                 }
