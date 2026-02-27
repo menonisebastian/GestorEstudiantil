@@ -79,7 +79,8 @@ fun AppNavigation() {
     // ====================================================================
     // NAVHOST TYPE-SAFE
     // ====================================================================
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(navController = navController, startDestination = startDestination)
+    {
 
         composable<Routes.Auth> {
             AuthScreen(
