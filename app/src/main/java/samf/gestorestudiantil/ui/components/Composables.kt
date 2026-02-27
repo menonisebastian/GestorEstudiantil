@@ -81,6 +81,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -143,8 +144,13 @@ fun BottomNavBar(
     onItemSelected: (String) -> Unit
 ) {
     NavigationBar(
-        containerColor = backgroundColor,
-        contentColor = textColor
+        containerColor = surfaceColor,
+        contentColor = textColor,
+        modifier = Modifier
+            .graphicsLayer(
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            clip = true
+        )
     ) {
         items.forEach { (label, icon) ->
             val isSelected = selectedItem == label
@@ -318,6 +324,8 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
         .size(16.dp)
         .padding(end = 4.dp)
 
+    val softRed = Color(0xDDD23B3B)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -352,7 +360,7 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Outlined.Delete, "Eliminar", tint = Color.Red, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.Delete, "Eliminar", tint = softRed, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -452,6 +460,8 @@ fun CustomTextField(
                 focusedContainerColor = surfaceColor,
                 unfocusedContainerColor = surfaceColor,
                 disabledContainerColor = surfaceColor,
+                focusedLabelColor = surfaceDimColor,
+                unfocusedLabelColor = surfaceDimColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
             ),

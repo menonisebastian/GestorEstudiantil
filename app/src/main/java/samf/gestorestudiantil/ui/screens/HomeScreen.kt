@@ -2,7 +2,6 @@ package samf.gestorestudiantil.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -44,6 +43,7 @@ import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.AddRecordatorioDialog
+import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
@@ -113,8 +113,8 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
                         role = usuario.rol,
                         curso = usuario.cursoOArea,
                         imgUrl = usuario.imgUrl,
-                        onNavigateProfile = { navController.navigate("profile") },
-                        onNavigateSettings = { navController.navigate("settings") },
+                        onNavigateProfile = { navController.navigate(Routes.Profile) },
+                        onNavigateSettings = { navController.navigate(Routes.Settings) },
                         onLogout = onLogout
                     )
                 },
@@ -128,20 +128,18 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                BottomNavBar(
-                    items = currentNavItems,
-                    selectedItem = tabs[pagerState.currentPage],
-                    onItemSelected = { selectedKey ->
-                        val index = tabs.indexOf(selectedKey)
-                        if (index != -1) {
-                            scope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
+            BottomNavBar(
+                items = currentNavItems,
+                selectedItem = tabs[pagerState.currentPage],
+                onItemSelected = { selectedKey ->
+                    val index = tabs.indexOf(selectedKey)
+                    if (index != -1) {
+                        scope.launch {
+                            pagerState.animateScrollToPage(index)
                         }
                     }
-                )
-            }
+                }
+            )
         },
         floatingActionButton = {
             if (showFab) {

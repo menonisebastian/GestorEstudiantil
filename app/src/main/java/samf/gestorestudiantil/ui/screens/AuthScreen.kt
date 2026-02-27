@@ -116,18 +116,17 @@ fun AuthScreen(
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                BottomNavBar(
-                    items = itemsAuth,
-                    selectedItem = tabs[pagerState.currentPage],
-                    onItemSelected = { selectedKey ->
-                        val index = tabs.indexOf(selectedKey)
-                        if (index != -1) {
-                            scope.launch { pagerState.animateScrollToPage(index) }
-                        }
+
+            BottomNavBar(
+                items = itemsAuth,
+                selectedItem = tabs[pagerState.currentPage],
+                onItemSelected = { selectedKey ->
+                    val index = tabs.indexOf(selectedKey)
+                    if (index != -1) {
+                        scope.launch { pagerState.animateScrollToPage(index) }
                     }
-                )
-            }
+                }
+            )
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -198,15 +197,6 @@ fun LoginPanel(
             )
 
             CustomPasswordTextField(state = passwordState)
-
-//            CustomTextField(
-//                value = password,
-//                onValueChange = { password = it },
-//                icon = Icons.Outlined.Lock,
-//                label = "Contraseña",
-//                readOnly = isLoading,
-//                isClickable = !isLoading
-//            )
 
             Button(
                 onClick = {

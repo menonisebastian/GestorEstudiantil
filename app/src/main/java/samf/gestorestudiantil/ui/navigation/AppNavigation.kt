@@ -32,111 +32,83 @@ fun AppNavigation() {
     val navController = rememberNavController()
     var currentUser by remember { mutableStateOf<User?>(null) }
 
-    // Estados para controlar la verificación inicial
     var isCheckingSession by remember { mutableStateOf(true) }
     var needsGoogleSetup by remember { mutableStateOf(false) }
 
     // ====================================================================
-    // 1. VERIFICACIÓN INICIAL ANTES DE CARGAR LA INTERFAZ
+    // VERIFICACIÓN INICIAL
     // ====================================================================
     LaunchedEffect(Unit) {
         val authUser = FirebaseAuth.getInstance().currentUser
         if (authUser != null) {
             try {
-                // Si hay token, descargamos su perfil de Firestore
                 val doc = FirebaseFirestore.getInstance().collection("usuarios").document(authUser.uid).get().await()
                 if (doc.exists()) {
                     currentUser = doc.toObject(User::class.java)
                 } else {
-                    // Existe en Auth (Google) pero abandonó la app antes de poner contraseña
                     needsGoogleSetup = true
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-        // Hemos terminado de revisar, quitamos la pantalla de carga
         isCheckingSession = false
     }
 
-    // ====================================================================
-    // 2. PANTALLA DE CARGA (SPLASH SCREEN INVISIBLE)
-    // ====================================================================
     if (isCheckingSession) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(backgroundColor),
+            modifier = Modifier.fillMaxSize().background(backgroundColor),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
         }
-        return // <- CRUCIAL: Detenemos la ejecución aquí hasta que termine de cargar
+        return
     }
 
     // ====================================================================
-    // 3. DETERMINAMOS EL DESTINO INICIAL SIN PARPADEOS
+    // DETERMINAMOS EL DESTINO INICIAL (Usando los Objetos)
     // ====================================================================
-    val startDestination = when {
-        needsGoogleSetup -> "google_setup"
-        currentUser?.estado == "PENDIENTE" -> "pending"
-        currentUser != null -> "home"
-        else -> "auth"
+    // El tipo de startDestination ahora es Any (cualquier objeto serializable)
+    val startDestination: Any = when {
+        needsGoogleSetup -> Routes.GoogleSetup
+        currentUser?.estado == "PENDIENTE" -> Routes.Pending
+        currentUser != null -> Routes.Home
+        else -> Routes.Auth
     }
 
     // ====================================================================
-    // 4. NAVHOST (Ahora arranca en la pantalla exacta)
+    // NAVHOST TYPE-SAFE
     // ====================================================================
     NavHost(navController = navController, startDestination = startDestination) {
 
-        composable("auth") {
+        composable<Routes.Auth> {
             AuthScreen(
                 onAuthSuccess = { user ->
                     currentUser = user
-                    val destination = if (user.estado == "PENDIENTE") "pending" else "home"
+                    val destination = if (user.estado == "PENDIENTE") Routes.Pending else Routes.Home
+
                     navController.navigate(destination) {
-                        popUpTo("auth") { inclusive = true }
+                        // Para limpiar el backstack, usamos el tipo genérico también
+                        popUpTo<Routes.Auth> { inclusive = true }
                     }
                 },
                 onRequireGoogleSetup = {
-                    navController.navigate("google_setup") { popUpTo("auth") { inclusive = true } }
+                    navController.navigate(Routes.GoogleSetup) {
+                        popUpTo<Routes.Auth> { inclusive = true }
+                    }
                 }
             )
         }
 
-        composable("pending") {
+        composable<Routes.Pending> {
             if (currentUser != null) {
                 PendingApprovalScreen(
                     usuario = currentUser!!,
                     onLogout = {
                         FirebaseAuth.getInstance().signOut()
                         currentUser = null
-                        navController.navigate("auth") { popUpTo(0) }
-                    }
-                )
-            }
-        }
-
-        composable("google_setup") {
-            GoogleSetupScreen(
-                onSetupComplete = { user ->
-                    currentUser = user
-                    navController.navigate("home") {
-                        popUpTo("google_setup") { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable("home") {
-            if (currentUser != null) {
-                HomeScreen(
-                    usuario = currentUser!!,
-                    navController = navController,
-                    onLogout = {
-                        FirebaseAuth.getInstance().signOut()
-                        currentUser = null
-                        navController.navigate("auth") {
+                        navController.navigate(Routes.Auth) {
+                            // popUpTo(0) no cambia, limpia todo el stack
                             popUpTo(0)
                         }
                     }
@@ -144,10 +116,38 @@ fun AppNavigation() {
             }
         }
 
-        composable("profile") {
+        composable<Routes.GoogleSetup> {
+            GoogleSetupScreen(
+                onSetupComplete = { user ->
+                    currentUser = user
+                    navController.navigate(Routes.Home) {
+                        popUpTo<Routes.GoogleSetup> { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<Routes.Home> {
+            if (currentUser != null) {
+                HomeScreen(
+                    usuario = currentUser!!,
+                    navController = navController,
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        currentUser = null
+                        navController.navigate(Routes.Auth) {
+                            popUpTo(0)
+                        }
+                    }
+                )
+            }
+        }
+
+        composable<Routes.Profile> {
             ProfileScreen(usuario = currentUser, onBack = { navController.popBackStack() })
         }
-        composable("settings") {
+
+        composable<Routes.Settings> {
             SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
