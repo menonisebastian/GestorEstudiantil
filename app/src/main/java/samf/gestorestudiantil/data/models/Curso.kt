@@ -28,5 +28,7 @@ val listaCursos = listOf(
     Curso("2", "DAW", "", "ies_comercio", "Web", "#FFF0D0", "#F5A623"),
     Curso("3", "ASIR", "", "ies_comercio", "Wifi", "#D0F5E1", "#27AE60"),
     Curso("4", "CS", "", "ies_comercio", "Security", "#F5D0FF", "#9B51E0"),
-    Curso("5", "Big Data", "", "ies_comercio", "Storage", "#FFFFD0D0", "#E53935")
+    Curso("5", "Big Data", "", "ies_comercio", "Storage", "#FFFFD0D0", "#E53935"),
+    Curso("6", "MRK", "", "ies_comercio", "Storage", "#FFFFD0D0", "#E53935"),
+    Curso("7", "A&F", "", "ies_comercio", "Storage", "#FFFFD0D0", "#E53935")
 )
