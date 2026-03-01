@@ -24,9 +24,9 @@ data class Curso(
 
 // Datos de ejemplo
 val listaCursos = listOf(
-    Curso("1", "DAM", "", "centro_1", "Laptop", "#D0E1FF", "#4A90E2"),
-    Curso("2", "DAW", "", "centro_1", "Web", "#FFF0D0", "#F5A623"),
-    Curso("3", "ASIR", "", "centro_1", "Wifi", "#D0F5E1", "#27AE60"),
-    Curso("4", "CS", "", "centro_1", "Security", "#F5D0FF", "#9B51E0"),
-    Curso("5", "Big Data", "", "centro_1", "Storage", "#FFFFD0D0", "#E53935")
+    Curso("1", "DAM", "", "ies_comercio", "Laptop", "#D0E1FF", "#4A90E2"),
+    Curso("2", "DAW", "", "ies_comercio", "Web", "#FFF0D0", "#F5A623"),
+    Curso("3", "ASIR", "", "ies_comercio", "Wifi", "#D0F5E1", "#27AE60"),
+    Curso("4", "CS", "", "ies_comercio", "Security", "#F5D0FF", "#9B51E0"),
+    Curso("5", "Big Data", "", "ies_comercio", "Storage", "#FFFFD0D0", "#E53935")
 )

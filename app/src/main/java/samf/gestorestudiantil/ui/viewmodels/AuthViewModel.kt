@@ -15,6 +15,7 @@ import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.listaCentros
+import samf.gestorestudiantil.data.models.listaCursos
 
 data class AuthState(
     val isLoading: Boolean = false,
@@ -63,17 +64,18 @@ class AuthViewModel : ViewModel() {
     }
 
     fun loadCursosPorCentro(centroId: String) {
-        viewModelScope.launch {
-            try {
-                val snapshot = db.collection("cursos")
-                    .whereEqualTo("centroId", centroId)
-                    .get().await()
-                val lista = snapshot.toObjects(Curso::class.java)
-                _cursos.value = lista
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        _cursos.value = listaCursos.filter { it.centroId == centroId }
+//        viewModelScope.launch {
+//            try {
+//                val snapshot = db.collection("cursos")
+//                    .whereEqualTo("centroId", centroId)
+//                    .get().await()
+//                val lista = snapshot.toObjects(Curso::class.java)
+//                _cursos.value = lista
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
     }
 
     // ====================================================================
