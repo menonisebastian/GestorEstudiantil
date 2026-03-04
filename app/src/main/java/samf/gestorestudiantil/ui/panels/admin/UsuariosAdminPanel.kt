@@ -117,7 +117,7 @@ fun UsuariosAdminPanel(
                 modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
             )
 
-            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it })
+            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it }, onFilterClick = {})
         }
 
         // Pestañas modernas de Material 3

@@ -66,7 +66,7 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
 
             // Barra de Búsqueda (ya no necesita padding individual)
 
-            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it })
+            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it }, onFilterClick = {})
         }
 
         // BLOQUE 2: Contenido Borde a Borde (Fuera del bloque con padding)

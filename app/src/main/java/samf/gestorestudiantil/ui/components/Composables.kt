@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -601,7 +602,7 @@ fun CustomOptionsTextField(
 }
 
 @Composable
-fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit) {
+fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit, onFilterClick: () -> Unit) {
     OutlinedTextField(
         value = textoBusqueda,
         onValueChange = onValueChange,
@@ -610,7 +611,20 @@ fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit) {
             .height(56.dp),
         placeholder = { Text("Buscar", color = surfaceDimColor) },
         leadingIcon = { Icon(Icons.Default.Search, "Buscar", tint = Color.Gray) },
-        trailingIcon = { Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray) },
+        trailingIcon = {
+            Row (verticalAlignment = Alignment.CenterVertically) {
+
+                if (textoBusqueda.isNotEmpty()) {
+                    IconButton(onClick = { textoBusqueda.takeIf { it.isNotEmpty() }?.let { onValueChange("") } }) {
+                        Icon(Icons.Outlined.Close, "Cerrar", tint = Color.Gray)
+                    }
+                }
+
+                IconButton(onClick = { onFilterClick() }) {
+                    Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray)
+                }
+            }
+        },
         shape = RoundedCornerShape(16.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = surfaceColor,

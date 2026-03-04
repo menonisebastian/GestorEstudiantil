@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
+import samf.gestorestudiantil.ui.dialogs.FilterByDialog
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
@@ -30,6 +31,7 @@ import samf.gestorestudiantil.ui.theme.textColor
 fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
 {
     var textoBusqueda by remember { mutableStateOf("") }
+    var showFilterDialog by remember { mutableStateOf(false) }
 
 
     val recordatoriosFiltrados = remember(textoBusqueda) {
@@ -62,7 +64,7 @@ fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
 
             // Barra de Búsqueda (ya no necesita padding individual)
 
-            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it })
+            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it }, onFilterClick = {showFilterDialog = true})
 
             if (recordatoriosFiltrados.isEmpty()) Text(
                 text = "No hay recordatorios",
@@ -83,5 +85,9 @@ fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
                 }
             }
         }
+    }
+
+    if (showFilterDialog) {
+        FilterByDialog(tipo = "Recordatorio",onDismissRequest = { showFilterDialog = false })
     }
 }
