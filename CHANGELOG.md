@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ## [v0.1.5] - 2026-03-04
 - Bugfix: Fixed Google OAuth login.
 - Improvement: Encapsulated Google OAuth login.
+- Improvement: Google Screen now also asks for school data.
 - Change: Updated third-party dependencies.
 - Change: Form Screens are now ConstraintLayout.
 

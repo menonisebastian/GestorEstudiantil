@@ -185,30 +185,63 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun completeGoogleSetup(password: String) {
+    // En AuthViewModel.kt
+
+    fun completeGoogleSetup(
+        password: String,
+        rolSeleccionado: String,
+        centroId: String,
+        cursoId: String,
+        cursoNombre: String
+    ) {
         val firebaseUser = auth.currentUser ?: return
 
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
+                // 1. Actualizar contraseña
                 firebaseUser.updatePassword(password).await()
 
+                // 2. Lógica de Roles y Estados (Igual que en registerWithEmail)
+                var finalRol = rolSeleccionado
+                var estadoInicial = "ACTIVO"
+                var areaOCurso = cursoNombre
+
+                if (rolSeleccionado == "ESTUDIANTE") {
+                    estadoInicial = "PENDIENTE"
+                } else if (rolSeleccionado == "PROFESOR") {
+                    areaOCurso = "Sin asignar"
+                    // Verificar si es el primer profesor del centro para hacerlo ADMIN
+                    val admins = db.collection("usuarios")
+                        .whereEqualTo("centroId", centroId)
+                        .whereEqualTo("rol", "ADMIN")
+                        .get().await()
+
+                    if (admins.isEmpty) {
+                        finalRol = "ADMIN"
+                    }
+                }
+
+                // 3. Crear objeto Usuario
                 val newUser = User(
                     id = firebaseUser.uid,
                     nombre = firebaseUser.displayName ?: "Usuario de Google",
                     email = firebaseUser.email ?: "",
-                    rol = "ESTUDIANTE",
-                    cursoOArea = "Sin asignar",
-                    centroId = "",
-                    estado = "PENDIENTE",
-                    imgUrl = firebaseUser.photoUrl?.toString() ?: "" // Aprovechamos la foto de Google si la tiene
+                    rol = finalRol,
+                    cursoId = if (rolSeleccionado == "ESTUDIANTE") cursoId else "",
+                    cursoOArea = areaOCurso,
+                    centroId = centroId,
+                    estado = estadoInicial,
+                    imgUrl = firebaseUser.photoUrl?.toString() ?: ""
                 )
+
+                // 4. Guardar en Firestore
                 db.collection("usuarios").document(firebaseUser.uid).set(newUser).await()
 
                 _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _authState.value = AuthState(errorMessage = "Error al guardar contraseña: ${e.localizedMessage}")
+                _authState.value = AuthState(errorMessage = "Error al completar registro: ${e.localizedMessage}")
             }
         }
     }

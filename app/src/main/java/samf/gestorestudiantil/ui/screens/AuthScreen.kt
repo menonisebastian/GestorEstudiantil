@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.AppRegistration
@@ -146,7 +148,7 @@ fun AuthScreen(
                         onLoginClick = { email, pass -> authViewModel.loginWithEmail(email, pass) },
                         onGoogleClick = {
                             scope.launch {
-                                // lógica compleja  encapsulada
+                                // lógica compleja encapsulada
                                 val googleToken = signInWithGoogle(
                                     context = context,
                                     credentialManager = credentialManager,
@@ -295,7 +297,7 @@ fun RegistroPanel(
     authViewModel: AuthViewModel,
     onRegisterClick: (email: String, pass: String, nombre: String, rol: String, centroId: String, cursoId: String, cursoNombre: String, fotoUrl: String) -> Unit
 ) {
-    // Control de paso (Wizzard)
+    // Control de paso (Wizard)
     var currentStep by rememberSaveable { mutableIntStateOf(1) }
 
     // Paso 1: Datos Personales y Foto
@@ -329,7 +331,7 @@ fun RegistroPanel(
     ) {
         Crossfade(targetState = currentStep, label = "RegistroSteps") { step ->
 
-            // AQUI EMPIEZA EL CAMBIO: Usamos ConstraintLayout para cada paso
+            // AQUÍ EMPIEZA EL CAMBIO: Usamos ConstraintLayout para cada paso
             ConstraintLayout(
                 modifier = Modifier
                     .fillMaxSize()
@@ -532,18 +534,37 @@ fun RegistroPanel(
 // =========================================================
 // PANTALLA AUXILIAR: COMPLETAR PERFIL DE GOOGLE
 // =========================================================
+// En AuthScreen.kt
+
+// TODO: El usuario puede entrar directamente sin aprobacion del admin, revisar
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoogleSetupScreen(
     onSetupComplete: (User) -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
-    // Usamos TextFieldState para ser consistentes con LoginPanel y RegistroPanel
+    val context = LocalContext.current
+    val authState by authViewModel.authState.collectAsState()
+
+    // Estados para contraseña
     val passwordState = rememberTextFieldState()
     val confirmPasswordState = rememberTextFieldState()
 
-    val context = LocalContext.current
-    val authState by authViewModel.authState.collectAsState()
+    // --- NUEVOS ESTADOS PARA DATOS ACADÉMICOS ---
+    var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
+    val roles = listOf("ESTUDIANTE", "PROFESOR")
+
+    var centroNombre by remember { mutableStateOf("Seleccionar Instituto...") }
+    var centroId by remember { mutableStateOf("") }
+
+    var cursoNombre by remember { mutableStateOf("Seleccionar Curso...") }
+    var cursoId by remember { mutableStateOf("") }
+
+    // Observamos los datos del ViewModel
+    val centrosList by authViewModel.centros.collectAsState()
+    val cursosList by authViewModel.cursos.collectAsState()
+    // ---------------------------------------------
 
     LaunchedEffect(authState) {
         if (authState.isSuccess && authState.user != null) {
@@ -565,68 +586,110 @@ fun GoogleSetupScreen(
         }
     ) { paddingValues ->
 
-        // CAMBIO PRINCIPAL: ConstraintLayout
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
+                // Añadimos scroll por si la pantalla es pequeña para tantos campos
+                .verticalScroll(rememberScrollState())
         ) {
             val (headerRef, inputsRef, footerRef) = createRefs()
 
-            // 1. INPUTS (Centro absoluto)
-            Column(
-                modifier = Modifier
-                    .constrainAs(inputsRef) {
-                        centerTo(parent)
-                    }
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Usamos el componente específico de contraseña
-                CustomPasswordTextField(state = passwordState)
-
-                CustomPasswordTextField(state = confirmPasswordState, isLast = true)
-            }
-
-            // 2. HEADER (Icono y Textos) - Arriba de los inputs
+            // 1. HEADER
             Column(
                 modifier = Modifier
                     .constrainAs(headerRef) {
-                        bottom.linkTo(inputsRef.top, margin = 32.dp)
+                        top.linkTo(parent.top, margin = 16.dp) // Cambiado a top para dar espacio
                         centerHorizontallyTo(parent)
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Lock,
                     contentDescription = null,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(48.dp),
                     tint = primaryColor
                 )
-
                 Text(
-                    text = "¡Casi terminamos!",
-                    fontSize = 24.sp,
+                    text = "Configuración Final",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
                 )
-
                 Text(
-                    text = "Como es tu primera vez iniciando con Google, establece una contraseña para tu cuenta.",
+                    text = "Establece tu contraseña y datos académicos.",
                     color = surfaceDimColor,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
             }
 
-            // 3. FOOTER (Botón Guardar) - Debajo de los inputs
+            // 2. INPUTS (Contraseñas + Selectores)
+            Column(
+                modifier = Modifier
+                    .constrainAs(inputsRef) {
+                        top.linkTo(headerRef.bottom, margin = 24.dp)
+                        centerHorizontallyTo(parent)
+                    }
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // --- SECCIÓN CONTRASEÑA ---
+                CustomPasswordTextField(state = passwordState)
+                CustomPasswordTextField(state = confirmPasswordState)
+
+                // --- SECCIÓN ACADÉMICA (NUEVO) ---
+                CustomOptionsTextField(
+                    texto = rolSeleccionado,
+                    onValueChange = { rolSeleccionado = it },
+                    opciones = roles,
+                    icon = Icons.Outlined.Person,
+                    label = "¿Eres Estudiante o Profesor?"
+                )
+
+                CustomOptionsTextField(
+                    texto = centroNombre,
+                    onValueChange = { nombreSeleccionado ->
+                        centroNombre = nombreSeleccionado
+                        val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
+                        if (centroSel != null) {
+                            centroId = centroSel.id
+                            authViewModel.loadCursosPorCentro(centroSel.id)
+                            // Resetear curso al cambiar centro
+                            cursoNombre = "Seleccionar Curso..."
+                            cursoId = ""
+                        }
+                    },
+                    opciones = centrosList.map { it.nombre },
+                    icon = Icons.Default.Business,
+                    label = "Instituto"
+                )
+
+                // Mostrar curso solo si es estudiante y ya eligió centro
+                if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
+                    CustomOptionsTextField(
+                        texto = cursoNombre,
+                        onValueChange = { nombreSeleccionado ->
+                            cursoNombre = nombreSeleccionado
+                            val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
+                            if (cursoSel != null) cursoId = cursoSel.id
+                        },
+                        opciones = cursosList.map { it.nombre },
+                        icon = Icons.Default.Class,
+                        label = "Curso a matricular"
+                    )
+                }
+            }
+
+            // 3. FOOTER (Botón)
             Column(
                 modifier = Modifier
                     .constrainAs(footerRef) {
                         top.linkTo(inputsRef.bottom, margin = 32.dp)
+                        bottom.linkTo(parent.bottom, margin = 16.dp) // Anclado abajo también
                         centerHorizontallyTo(parent)
                     }
                     .fillMaxWidth()
@@ -636,12 +699,24 @@ fun GoogleSetupScreen(
                         val password = passwordState.text.toString()
                         val confirmPassword = confirmPasswordState.text.toString()
 
+                        // Validaciones
                         if (password != confirmPassword) {
                             Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                         } else if (password.length < 6) {
                             Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                        } else if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
+                            Toast.makeText(context, "Selecciona tu rol e instituto", Toast.LENGTH_SHORT).show()
+                        } else if (rolSeleccionado == "ESTUDIANTE" && cursoId.isEmpty()) {
+                            Toast.makeText(context, "Debes seleccionar un curso", Toast.LENGTH_SHORT).show()
                         } else {
-                            authViewModel.completeGoogleSetup(password)
+                            // Llamada actualizada al ViewModel
+                            authViewModel.completeGoogleSetup(
+                                password = password,
+                                rolSeleccionado = rolSeleccionado,
+                                centroId = centroId,
+                                cursoId = cursoId,
+                                cursoNombre = cursoNombre
+                            )
                         }
                     },
                     enabled = !authState.isLoading,
@@ -650,16 +725,13 @@ fun GoogleSetupScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Guardar y Continuar")
+                    Text("Finalizar Registro")
                 }
             }
 
-            // Indicador de carga superpuesto (opcional, centrado en toda la pantalla)
             if (authState.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.constrainAs(createRef()) {
-                        centerTo(parent)
-                    }
+                    modifier = Modifier.constrainAs(createRef()) { centerTo(parent) }
                 )
             }
         }
