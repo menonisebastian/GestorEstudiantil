@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.TextObfuscationMode
@@ -80,13 +81,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -442,9 +446,11 @@ fun CustomTextField(
     label: String,
     readOnly: Boolean,
     isClickable: Boolean,
+    isLast: Boolean? = false,
     onClick: (() -> Unit)? = null
 ) {
-    var showPassword by remember { mutableStateOf(false) }
+
+    val focusManager = LocalFocusManager.current
 
     Box (modifier = Modifier.clip(RoundedCornerShape(16.dp))){
         TextField(
@@ -472,32 +478,21 @@ fun CustomTextField(
                     Icon(icon, null, tint = Color.Gray)
                 }
             },
-            trailingIcon = when (label) {
-                "Contraseña" , "Confirmar contraseña" -> {
-                    {
-                        if (value.isNotBlank()) {
-                            IconButton(onClick = { showPassword = !showPassword }) {
-                                if (!showPassword)
-                                    Icon(Icons.Default.Visibility, contentDescription = "Mostrar", tint = MaterialTheme.colorScheme.inversePrimary)
-                                else
-                                    Icon(Icons.Default.VisibilityOff, contentDescription = "Ocultar", tint = MaterialTheme.colorScheme.inversePrimary)
-                            }
-                        }
+            keyboardOptions = KeyboardOptions(
+                imeAction = if (isLast == true) ImeAction.Done else ImeAction.Next
+            ),
+            keyboardActions = if (isLast == true) {
+                KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
                     }
-                }
-                else -> { { } }
-            },
-            visualTransformation = when (label) {
-                "Contraseña" , "Confirmar contraseña" -> {
-                    if (!showPassword) PasswordVisualTransformation() else VisualTransformation.None
-                }
-                else -> { VisualTransformation.None }
-            },
-            keyboardOptions = when (label) {
-                "Contraseña" , "Confirmar contraseña" -> {
-                    KeyboardOptions(keyboardType = KeyboardType.Password)
-                }
-                else -> { KeyboardOptions.Default }
+                )
+            } else {
+                KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                )
             }
         )
         if (readOnly && isClickable) {
@@ -515,9 +510,11 @@ fun CustomTextField(
 }
 
 @Composable
-fun CustomPasswordTextField(state: TextFieldState) {
+fun CustomPasswordTextField(state: TextFieldState, isLast: Boolean? = false) {
 
     var isPasswordVisible by remember { mutableStateOf(false) }
+
+    val focusManager = LocalFocusManager.current
 
     SecureTextField(
         state = state,
@@ -552,7 +549,17 @@ fun CustomPasswordTextField(state: TextFieldState) {
             unfocusedIndicatorColor = Color.Transparent,
             focusedLabelColor = surfaceDimColor,
             unfocusedLabelColor = surfaceDimColor,
-        )
+        ),
+        keyboardOptions = KeyboardOptions(
+            imeAction = if (isLast == true) ImeAction.Done else ImeAction.Next
+        ),
+        onKeyboardAction = {
+            if (isLast == true) {
+                focusManager.clearFocus()
+            } else {
+                focusManager.moveFocus(FocusDirection.Down)
+            }
+        }
     )
 }
 

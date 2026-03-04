@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,10 +54,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.signInWithGoogle
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
@@ -90,6 +92,8 @@ fun AuthScreen(
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
     val token = stringResource(R.string.id_token)
+
+    val credentialManager = remember { CredentialManager.create(context) }
 
     LaunchedEffect(authState) {
         if (authState.isSuccess && authState.user != null) {
@@ -140,7 +144,23 @@ fun AuthScreen(
                         paddingValues = paddingValues,
                         isLoading = authState.isLoading,
                         onLoginClick = { email, pass -> authViewModel.loginWithEmail(email, pass) },
-                        onGoogleClick = { authViewModel.loginWithGoogleToken(idToken = token) }
+                        onGoogleClick = {
+                            scope.launch {
+                                // lógica compleja  encapsulada
+                                val googleToken = signInWithGoogle(
+                                    context = context,
+                                    credentialManager = credentialManager,
+                                    serverClientId = token
+                                )
+
+                                // Si obtenemos token, el ViewModel hace el resto (backend/firebase)
+                                if (googleToken != null) {
+                                    authViewModel.loginWithGoogleToken(googleToken)
+                                } else {
+                                    Toast.makeText(context, "No se pudo iniciar sesión con Google", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
                     )
                     "Registrarse" -> RegistroPanel(
                         paddingValues = paddingValues,
@@ -165,6 +185,7 @@ fun AuthScreen(
     }
 }
 
+
 @Composable
 fun LoginPanel(
     paddingValues: PaddingValues,
@@ -177,16 +198,27 @@ fun LoginPanel(
     var password by remember { mutableStateOf("") }
     val passwordState = rememberTextFieldState()
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(paddingValues), contentAlignment = Alignment.Center) {
+    // Usamos ConstraintLayout para posicionamiento relativo preciso
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(horizontal = 16.dp) // Margen lateral general
+    ) {
+        // Creamos las referencias para los 3 bloques principales
+        val (headerRef, inputsRef, footerRef) = createRefs()
+
+        // 1. BLOQUE DE INPUTS (El centro de todo)
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier
+                .constrainAs(inputsRef) {
+                    // Esto centra este bloque vertical y horizontalmente en la pantalla
+                    centerTo(parent)
+                }
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Iniciar Sesión", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-
             CustomTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -196,8 +228,38 @@ fun LoginPanel(
                 isClickable = !isLoading
             )
 
-            CustomPasswordTextField(state = passwordState)
+            CustomPasswordTextField(state = passwordState, isLast = true)
+        }
 
+        // 2. HEADER (Título) - Se posiciona ENCIMA de los inputs
+        Column(
+            modifier = Modifier.constrainAs(headerRef) {
+                // La parte inferior del título se ancla a la parte superior de los inputs
+                bottom.linkTo(inputsRef.top, margin = 32.dp)
+                centerHorizontallyTo(parent)
+            },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Iniciar Sesión",
+                color = textColor,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // 3. FOOTER (Botones) - Se posiciona DEBAJO de los inputs
+        Column(
+            modifier = Modifier
+                .constrainAs(footerRef) {
+                    // La parte superior de los botones se ancla a la parte inferior de los inputs
+                    top.linkTo(inputsRef.bottom, margin = 32.dp)
+                    centerHorizontallyTo(parent)
+                }
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Button(
                 onClick = {
                     password = passwordState.text.toString()
@@ -224,6 +286,7 @@ fun LoginPanel(
         }
     }
 }
+
 
 @Composable
 fun RegistroPanel(
@@ -259,105 +322,170 @@ fun RegistroPanel(
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(paddingValues), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
         Crossfade(targetState = currentStep, label = "RegistroSteps") { step ->
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+
+            // AQUI EMPIEZA EL CAMBIO: Usamos ConstraintLayout para cada paso
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
             ) {
+                val (headerRef, inputsRef, footerRef) = createRefs()
+
                 if (step == 1) {
                     // ==========================================
                     // PASO 1: DATOS PERSONALES Y FOTO
                     // ==========================================
-                    Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
-                    // COMPONENTE PARA ELEGIR FOTO
-                    ProfileImagePicker(
-                        currentPhotoUrl = fotoUrl,
-                        onPhotoUploaded = { urlSegura -> fotoUrl = urlSegura }
-                    )
-
-                    CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
-                    CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
-                    CustomPasswordTextField(state = passwordState)
-                    CustomPasswordTextField(state = confirmPasswordState)
-
-                    password = passwordState.text.toString()
-                    confirmPassword = confirmPasswordState.text.toString()
-
-                    Button(
-                        onClick = {
-                            if (name.isBlank() || email.isBlank() || password.isBlank()) {
-                                Toast.makeText(context, "Por favor rellena todos los campos", Toast.LENGTH_SHORT).show()
-                            } else if (password != confirmPassword) {
-                                Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
-                            } else if (password.length < 6) {
-                                Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
-                            } else {
-                                currentStep = 2 // Avanzar al siguiente paso
-                            }
-                        },
+                    // 1. INPUTS (Centro absoluto)
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(16.dp)
+                            .constrainAs(inputsRef) {
+                                centerTo(parent)
+                            }
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text("Siguiente")
+                        CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
+                        CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
+                        CustomPasswordTextField(state = passwordState)
+                        CustomPasswordTextField(state = confirmPasswordState, isLast = true)
                     }
+
+                    // 2. HEADER (Título y Foto) - Arriba de los inputs
+                    Column(
+                        modifier = Modifier
+                            .constrainAs(headerRef) {
+                                bottom.linkTo(inputsRef.top, margin = 24.dp)
+                                centerHorizontallyTo(parent)
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
+                        // Ponemos la foto en el header para que los inputs de texto sean el centro matemático
+                        ProfileImagePicker(
+                            currentPhotoUrl = fotoUrl,
+                            onPhotoUploaded = { urlSegura -> fotoUrl = urlSegura }
+                        )
+                    }
+
+                    // 3. FOOTER (Botón Siguiente) - Debajo de los inputs
+                    Column(
+                        modifier = Modifier
+                            .constrainAs(footerRef) {
+                                top.linkTo(inputsRef.bottom, margin = 24.dp)
+                                centerHorizontallyTo(parent)
+                            }
+                            .fillMaxWidth()
+                    ) {
+                        password = passwordState.text.toString()
+                        confirmPassword = confirmPasswordState.text.toString()
+
+                        Button(
+                            onClick = {
+                                if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                                    Toast.makeText(context, "Por favor rellena todos los campos", Toast.LENGTH_SHORT).show()
+                                } else if (password != confirmPassword) {
+                                    Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                                } else if (password.length < 6) {
+                                    Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    currentStep = 2
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Siguiente")
+                        }
+                    }
+
                 } else {
                     // ==========================================
                     // PASO 2: DATOS ACADÉMICOS
                     // ==========================================
-                    Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("Paso 2 de 2: Datos académicos", color = surfaceDimColor, fontSize = 14.sp)
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    CustomOptionsTextField(
-                        texto = rolSeleccionado,
-                        onValueChange = { rolSeleccionado = it },
-                        opciones = roles,
-                        icon = Icons.Outlined.Person,
-                        label = "¿Eres Estudiante o Profesor?"
-                    )
-
-                    CustomOptionsTextField(
-                        texto = centroNombre,
-                        onValueChange = { nombreSeleccionado ->
-                            centroNombre = nombreSeleccionado
-                            val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
-                            if (centroSel != null) {
-                                centroId = centroSel.id
-                                authViewModel.loadCursosPorCentro(centroSel.id)
-                                cursoNombre = "Seleccionar Curso..."
-                                cursoId = ""
+                    // 1. INPUTS (Selectores) - Centro absoluto
+                    Column(
+                        modifier = Modifier
+                            .constrainAs(inputsRef) {
+                                centerTo(parent)
                             }
-                        },
-                        opciones = centrosList.map { it.nombre },
-                        icon = Icons.Default.Business,
-                        label = "Instituto"
-                    )
-
-                    if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         CustomOptionsTextField(
-                            texto = cursoNombre,
-                            onValueChange = { nombreSeleccionado ->
-                                cursoNombre = nombreSeleccionado
-                                val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
-                                if (cursoSel != null) cursoId = cursoSel.id
-                            },
-                            opciones = cursosList.map { it.nombre },
-                            icon = Icons.Default.Class,
-                            label = "Curso a matricular"
+                            texto = rolSeleccionado,
+                            onValueChange = { rolSeleccionado = it },
+                            opciones = roles,
+                            icon = Icons.Outlined.Person,
+                            label = "¿Eres Estudiante o Profesor?"
                         )
+
+                        CustomOptionsTextField(
+                            texto = centroNombre,
+                            onValueChange = { nombreSeleccionado ->
+                                centroNombre = nombreSeleccionado
+                                val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
+                                if (centroSel != null) {
+                                    centroId = centroSel.id
+                                    authViewModel.loadCursosPorCentro(centroSel.id)
+                                    cursoNombre = "Seleccionar Curso..."
+                                    cursoId = ""
+                                }
+                            },
+                            opciones = centrosList.map { it.nombre },
+                            icon = Icons.Default.Business,
+                            label = "Instituto"
+                        )
+
+                        if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
+                            CustomOptionsTextField(
+                                texto = cursoNombre,
+                                onValueChange = { nombreSeleccionado ->
+                                    cursoNombre = nombreSeleccionado
+                                    val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
+                                    if (cursoSel != null) cursoId = cursoSel.id
+                                },
+                                opciones = cursosList.map { it.nombre },
+                                icon = Icons.Default.Class,
+                                label = "Curso a matricular"
+                            )
+                        }
                     }
 
-                    // Fila de Botones: Atrás y Registrarse
+                    // 2. HEADER (Títulos) - Arriba de los inputs
+                    Column(
+                        modifier = Modifier
+                            .constrainAs(headerRef) {
+                                bottom.linkTo(inputsRef.top, margin = 32.dp)
+                                centerHorizontallyTo(parent)
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("Paso 2 de 2: Datos académicos", color = surfaceDimColor, fontSize = 14.sp)
+                    }
+
+                    // 3. FOOTER (Botones Acción) - Debajo de los inputs
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .constrainAs(footerRef) {
+                                top.linkTo(inputsRef.bottom, margin = 32.dp)
+                                centerHorizontallyTo(parent)
+                            }
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         OutlinedButton(
@@ -410,8 +538,10 @@ fun GoogleSetupScreen(
     onSetupComplete: (User) -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    // Usamos TextFieldState para ser consistentes con LoginPanel y RegistroPanel
+    val passwordState = rememberTextFieldState()
+    val confirmPasswordState = rememberTextFieldState()
+
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
 
@@ -434,48 +564,78 @@ fun GoogleSetupScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues), contentAlignment = Alignment.Center) {
+
+        // CAMBIO PRINCIPAL: ConstraintLayout
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp)
+        ) {
+            val (headerRef, inputsRef, footerRef) = createRefs()
+
+            // 1. INPUTS (Centro absoluto)
             Column(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .constrainAs(inputsRef) {
+                        centerTo(parent)
+                    }
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(64.dp), tint = primaryColor)
-                Text("¡Casi terminamos!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textColor)
+                // Usamos el componente específico de contraseña
+                CustomPasswordTextField(state = passwordState)
+
+                CustomPasswordTextField(state = confirmPasswordState, isLast = true)
+            }
+
+            // 2. HEADER (Icono y Textos) - Arriba de los inputs
+            Column(
+                modifier = Modifier
+                    .constrainAs(headerRef) {
+                        bottom.linkTo(inputsRef.top, margin = 32.dp)
+                        centerHorizontallyTo(parent)
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = primaryColor
+                )
 
                 Text(
-                    "Como es tu primera vez iniciando con Google, establece una contraseña para tu cuenta. Así podrás iniciar sesión de ambas formas en el futuro.",
+                    text = "¡Casi terminamos!",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+
+                Text(
+                    text = "Como es tu primera vez iniciando con Google, establece una contraseña para tu cuenta.",
                     color = surfaceDimColor,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                CustomTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    icon = Icons.Outlined.Lock,
-                    label = "Contraseña",
-                    readOnly = authState.isLoading,
-                    isClickable = !authState.isLoading
-                )
-
-                CustomTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    icon = Icons.Outlined.Lock,
-                    label = "Confirmar contraseña",
-                    readOnly = authState.isLoading,
-                    isClickable = !authState.isLoading
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+            // 3. FOOTER (Botón Guardar) - Debajo de los inputs
+            Column(
+                modifier = Modifier
+                    .constrainAs(footerRef) {
+                        top.linkTo(inputsRef.bottom, margin = 32.dp)
+                        centerHorizontallyTo(parent)
+                    }
+                    .fillMaxWidth()
+            ) {
                 Button(
                     onClick = {
+                        val password = passwordState.text.toString()
+                        val confirmPassword = confirmPasswordState.text.toString()
+
                         if (password != confirmPassword) {
                             Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                         } else if (password.length < 6) {
@@ -487,14 +647,20 @@ fun GoogleSetupScreen(
                     enabled = !authState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text("Guardar y Continuar")
                 }
             }
 
+            // Indicador de carga superpuesto (opcional, centrado en toda la pantalla)
             if (authState.isLoading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    modifier = Modifier.constrainAs(createRef()) {
+                        centerTo(parent)
+                    }
+                )
             }
         }
     }
