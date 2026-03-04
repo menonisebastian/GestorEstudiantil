@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.1.5] - 2026-03-04
+- Bugfix: Fixed Google OAuth login.
+- Improvement: Encapsulated Google OAuth login.
+- Change: Updated third-party dependencies.
+- Change: Form Screens are now ConstraintLayout.
+
 ## [v0.1.3] - 2026-03-01
 - Feature: Added user authentication.
 - Bugfix: Fixed layout issues on the dashboard.
