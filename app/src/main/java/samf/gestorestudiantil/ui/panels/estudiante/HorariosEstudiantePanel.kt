@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.ui.components.WeekNavBar
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
 // Definimos los colores aproximados de la imagen
@@ -99,24 +100,28 @@ fun HorariosEstudiantePanel(paddingValues: PaddingValues) {
 fun HorarioDelDia(dia: String) {
     val clases = getClasesPorDia(dia)
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .verticalScroll(rememberScrollState()), // Scroll por si hay muchas clases
+            .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (clases.isEmpty()) {
-            Text(
-                text = "No hay clases programadas",
-                color = samf.gestorestudiantil.ui.theme.surfaceDimColor,
-                modifier = Modifier.padding(top = 32.dp)
-            )
+            item {
+                Text(
+                    text = "No hay clases programadas",
+                    color = surfaceDimColor,
+                    modifier = Modifier.padding(top = 32.dp)
+                )
+            }
         } else {
-            clases.forEach { clase ->
+            items(clases) { clase ->
                 ItemHorario(clase)
             }
-            Spacer(modifier = Modifier.height(20.dp)) // Espacio final
+
+            item {
+                Spacer(modifier = Modifier.height(20.dp)) // Espacio final
+            }
         }
     }
 }
