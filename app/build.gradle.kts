@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,8 +72,9 @@ dependencies {
     // Librería para Google Sign-In
     implementation(libs.play.services.auth)
 
-    // Navegación en Compose
-    implementation(libs.androidx.navigation.compose)
+    // Navegación en Compose (Navigation 3)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
     implementation(libs.kotlinx.serialization.json)
 
     // Cloudinary para Android

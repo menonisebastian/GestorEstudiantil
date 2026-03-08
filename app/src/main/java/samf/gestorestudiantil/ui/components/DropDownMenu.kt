@@ -29,8 +29,11 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 
 @Composable
-fun DropDownMenu(onNavigateSettings: () -> Unit, onLogout: () -> Unit, onNavigateProfile: () -> Unit = {})
-{
+fun DropDownMenu(
+    onNavigateSettings: () -> Unit,
+    onLogout: () -> Unit,
+    onNavigateProfile: () -> Unit = {}
+) {
     var expanded by remember { mutableStateOf(false) }
 
     // Box es el ancla. wrapContentSize asegura que sea del tamaño del icono.
@@ -57,8 +60,8 @@ fun DropDownMenu(onNavigateSettings: () -> Unit, onLogout: () -> Unit, onNavigat
                 text = { Text("Cuenta") },
                 leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null, tint = textColor) },
                 onClick = {
-                    onNavigateProfile()
                     expanded = false
+                    onNavigateProfile()
                 }
             )
             HorizontalDivider()
@@ -67,8 +70,8 @@ fun DropDownMenu(onNavigateSettings: () -> Unit, onLogout: () -> Unit, onNavigat
                 text = { Text("Preferencias") },
                 leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null, tint = textColor) },
                 onClick = {
-                    onNavigateSettings()
                     expanded = false
+                    onNavigateSettings()
                 }
             )
             HorizontalDivider()
@@ -77,7 +80,6 @@ fun DropDownMenu(onNavigateSettings: () -> Unit, onLogout: () -> Unit, onNavigat
                 text = { Text("Ayuda") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = textColor) },
                 onClick = {
-
                     expanded = false
                 }
             )
@@ -87,8 +89,8 @@ fun DropDownMenu(onNavigateSettings: () -> Unit, onLogout: () -> Unit, onNavigat
                 text = { Text("Cerrar sesión") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = textColor) },
                 onClick = {
-                    onLogout()
                     expanded = false
+                    onLogout()
                 }
             )
         }

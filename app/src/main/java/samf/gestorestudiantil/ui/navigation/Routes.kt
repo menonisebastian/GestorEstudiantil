@@ -1,24 +1,25 @@
 package samf.gestorestudiantil.ui.navigation
 
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 // Definición de rutas Type-Safe
 sealed interface Routes {
     @Serializable
-    data object Auth : Routes
+    data object Auth : Routes, NavKey
 
     @Serializable
-    data object Pending : Routes
+    data object Pending : Routes, NavKey
 
     @Serializable
-    data object GoogleSetup : Routes
+    data object GoogleSetup : Routes, NavKey
 
     @Serializable
-    data object Home : Routes
+    data object Home : Routes, NavKey
 
     @Serializable
-    data object Profile : Routes
+    data object Profile : Routes, NavKey
 
     @Serializable
-    data object Settings : Routes
+    data object Settings : Routes, NavKey
 }

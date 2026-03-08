@@ -78,7 +78,13 @@ val itemsAdmin: Map<String, ImageVector> = mapOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit) {
+fun HomeScreen(
+    usuario: User,
+    navController: NavController?, // Made nullable to support Nav3 migration
+    onLogout: () -> Unit,
+    onNavigateProfile: () -> Unit = {},
+    onNavigateSettings: () -> Unit = {}
+) {
 
     // 2. Seleccionamos el mapa de navegación adecuado según el rol
     val currentNavItems = remember(usuario.rol) {
@@ -95,7 +101,7 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
     val scope = rememberCoroutineScope()
 
     // Solo mostramos el FAB de añadir en la pestaña "Recordatorios" o "Notificaciones"
-    val showFab = tabs[pagerState.currentPage] == "Recordatorios" || tabs[pagerState.currentPage] == "Notificaciones"
+    val showFab = tabs.getOrNull(pagerState.currentPage).let { it == "Recordatorios" || it == "Notificaciones" }
     var showRecordatorioDialog by remember { mutableStateOf(false) }
 
     // Estados para las vistas compartidas o específicas
@@ -113,8 +119,12 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
                         role = usuario.rol,
                         curso = usuario.cursoOArea,
                         imgUrl = usuario.imgUrl,
-                        onNavigateProfile = { navController.navigate(Routes.Profile) },
-                        onNavigateSettings = { navController.navigate(Routes.Settings) },
+                        onNavigateProfile = {
+                            if (navController != null) navController.navigate(Routes.Profile) else onNavigateProfile()
+                        },
+                        onNavigateSettings = {
+                            if (navController != null) navController.navigate(Routes.Settings) else onNavigateSettings()
+                        },
                         onLogout = onLogout
                     )
                 },
@@ -130,7 +140,7 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
         bottomBar = {
             BottomNavBar(
                 items = currentNavItems,
-                selectedItem = tabs[pagerState.currentPage],
+                selectedItem = tabs.getOrNull(pagerState.currentPage) ?: "",
                 onItemSelected = { selectedKey ->
                     val index = tabs.indexOf(selectedKey)
                     if (index != -1) {
@@ -165,7 +175,7 @@ fun HomeScreen(usuario: User, navController: NavController, onLogout: () -> Unit
         ) { page ->
 
             // 3. Renderizamos el panel correspondiente al Tab seleccionado
-            when (tabs[page]) {
+            when (tabs.getOrNull(page)) {
                 "Materias" -> {
                     // Aquí podrías bifurcar: if (usuario.rol == "PROFESOR") ProfesorMateriasPanel() else AsignaturasEstudiantePanel()
                     AsignaturasEstudiantePanel(PaddingValues(0.dp))

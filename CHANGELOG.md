@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.1.7] - 2026-03-08
+- Improvement: NavHost is now NavDisplay using Navigation 3.
+
 ## [v0.1.6] - 2026-03-04
 - Improvement: Search bar filter dialog implemented.
 
