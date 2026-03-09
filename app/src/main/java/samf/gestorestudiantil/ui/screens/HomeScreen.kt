@@ -45,6 +45,7 @@ import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
+import samf.gestorestudiantil.ui.panels.admin.CentrosAdminPanel
 import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
@@ -73,8 +74,7 @@ val itemsProfesor: Map<String, ImageVector> = mapOf(
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
-    "Cursos" to Icons.AutoMirrored.Filled.List,
-    "Notificaciones" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -219,8 +219,7 @@ fun HomeScreen(
                         onOpenDialog = { newState -> dialogState = newState }
                     )
                 }
-                "Centros" -> PlaceholderPanel("Gestión de Centros")
-                "Cursos" -> PlaceholderPanel("Gestión de Cursos")
+                "Centros" -> CentrosAdminPanel(paddingValues = PaddingValues(0.dp))
             }
         }
     }

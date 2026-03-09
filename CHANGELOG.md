@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.1.9] - 2026-03-09
+- Improvement: Added a new data provider for IES Comercio.
+- Improvement: Added CentrosAdminPanel.
+
 ## [v0.1.8] - 2026-03-09
 - Improvement: Dialogs are now managed by DialogState and DialogOrchestrator.
 - Improvement: CustomOptionsTextField now using the ExposedDropdownMenu library.
