@@ -23,15 +23,18 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
-import samf.gestorestudiantil.ui.dialogs.FilterByDialog
+import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
+fun RecordatoriosEstudiantePanel(
+    paddingValues: PaddingValues,
+    onOpenDialog: (DialogState) -> Unit
+)
 {
     var textoBusqueda by remember { mutableStateOf("") }
-    var showFilterDialog by remember { mutableStateOf(false) }
+    //var showFilterDialog by remember { mutableStateOf(false) }
 
 
     val recordatoriosFiltrados = remember(textoBusqueda) {
@@ -41,19 +44,13 @@ fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
     }
     Column(modifier = Modifier
         .padding(paddingValues)
-        .fillMaxSize()
-    ) {
-
-        // BLOQUE 1: Contenido con márgenes (Agrupado)
-        // Aquí metemos todo lo que SÍ necesita márgenes
+        .fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp), // <--- Un solo padding para todo este bloque
+                .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // Título (ya no necesita padding individual)
             Text(
                 text = "Mis Recordatorios",
                 fontSize = 22.sp,
@@ -62,32 +59,34 @@ fun RecordatoriosEstudiantePanel(paddingValues: PaddingValues)
                 modifier = Modifier.padding(top = 16.dp)
             )
 
-            // Barra de Búsqueda (ya no necesita padding individual)
-
-            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it }, onFilterClick = {showFilterDialog = true})
-
-            if (recordatoriosFiltrados.isEmpty()) Text(
-                text = "No hay recordatorios",
-                color = surfaceDimColor,
-                fontSize = 16.sp
+            CustomSearchBar(
+                textoBusqueda,
+                onValueChange = { textoBusqueda = it },
+                onFilterClick = {
+                    // ABRIR DIÁLOGO DE FILTRO
+                    onOpenDialog(
+                        DialogState.Filter(
+                            tipo = "Recordatorio",
+                            onApply = { filtroSeleccionado ->
+                                // Aquí implementarías la lógica real de filtrado
+                                // Por ahora solo actualizamos la búsqueda como ejemplo
+                                textoBusqueda = filtroSeleccionado
+                            }
+                        )
+                    )
+                }
             )
-            else
-            {
+
+            if (recordatoriosFiltrados.isEmpty()) {
+                Text(text = "No hay recordatorios", color = surfaceDimColor, fontSize = 16.sp)
+            } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    items(recordatoriosFiltrados){ notificacion ->
+                    items(recordatoriosFiltrados) { notificacion ->
                         CustomNotificationCard(notificacion)
                     }
-                    item{Spacer(modifier = Modifier.height(16.dp))}
-                    if (recordatoriosFiltrados.lastIndex == recordatoriosFiltrados.size)
-                    item{
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }
-    }
-
-    if (showFilterDialog) {
-        FilterByDialog(tipo = "Recordatorio",onDismissRequest = { showFilterDialog = false })
     }
 }

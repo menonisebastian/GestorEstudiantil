@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.1.8] - 2026-03-09
+- Improvement: Dialogs are now managed by DialogState and DialogOrchestrator.
+- Improvement: CustomOptionsTextField now using the ExposedDropdownMenu library.
+
 ## [v0.1.7] - 2026-03-08
 - Improvement: NavHost is now NavDisplay using Navigation 3.
 
@@ -26,7 +30,7 @@ All notable changes to this project will be documented in this file.
 - Change: Updated third-party dependencies.
 
 ## [v0.1.1] - 2026-02-01
-- Feature: Implemented new UI design for user profile.
+- Feature: Implemented a new UI design for user profile.
 
 ## [v0.0.1] - 2026-01-01
 - Initial release with core features.

@@ -31,7 +31,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -53,6 +52,9 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -559,6 +561,7 @@ fun CustomPasswordTextField(state: TextFieldState, isLast: Boolean? = false) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomOptionsTextField(
     texto: String,
@@ -567,38 +570,65 @@ fun CustomOptionsTextField(
     icon: ImageVector? = null,
     label: String
 ) {
-    TextField(
-        value = texto,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = surfaceColor,
-            unfocusedContainerColor = surfaceColor,
-            disabledContainerColor = surfaceColor,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-        ),
-        singleLine = true,
-        readOnly = true,
-        trailingIcon = {
-            CustomDropDownMenu(
-                baseIcon = Icons.Default.FilterList,
-                optionList = opciones,
-                onOptionSelected = { opcionSeleccionada ->
-                    onValueChange(opcionSeleccionada)
+    var expanded by remember { mutableStateOf(false) }
+
+    // ExposedDropdownMenuBox gestiona el estado de expansión y el ancho del menú
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = texto,
+            onValueChange = {}, // ReadOnly, el cambio se hace vía menú
+            readOnly = true,
+            label = { Text(label) },
+            modifier = Modifier
+                // Updated: Specify the anchor type and enabled state
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = surfaceColor,
+                unfocusedContainerColor = surfaceColor,
+                disabledContainerColor = surfaceColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            singleLine = true,
+            leadingIcon = if (icon != null) {
+                { Icon(icon, contentDescription = null, tint = Color.Gray) }
+            } else null,
+            trailingIcon = {
+                // Este componente rota la flecha automáticamente según el estado 'expanded'
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = backgroundColor, // Mantiene tu tema actual
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            opciones.forEach { opcion ->
+                DropdownMenuItem(
+                    text = { Text(opcion) },
+                    onClick = {
+                        onValueChange(opcion)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+
+                // Mantenemos tu divisor visual
+                if (opcion != opciones.last()) {
+                    HorizontalDivider()
                 }
-            )
-        },
-        leadingIcon = {
-            if (icon != null) {
-                Icon(icon, null, tint = Color.Gray)
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -847,7 +877,6 @@ fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOption
         }
     }
 }
-
 
 @Composable
 fun TypeChip(option: ChipOption) {

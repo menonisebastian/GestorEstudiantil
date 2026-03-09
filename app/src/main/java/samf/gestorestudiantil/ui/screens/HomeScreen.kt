@@ -42,7 +42,8 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.TopBarRow
-import samf.gestorestudiantil.ui.dialogs.AddRecordatorioDialog
+import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
+import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
@@ -102,11 +103,13 @@ fun HomeScreen(
 
     // Solo mostramos el FAB de añadir en la pestaña "Recordatorios" o "Notificaciones"
     val showFab = tabs.getOrNull(pagerState.currentPage).let { it == "Recordatorios" || it == "Notificaciones" }
-    var showRecordatorioDialog by remember { mutableStateOf(false) }
 
     // Estados para las vistas compartidas o específicas
     var asignaturaSeleccionada by remember { mutableStateOf<Asignatura?>(null) }
     var recordatorios by remember { mutableStateOf(listaRecordatorios) }
+
+    // 1. ESTADO CENTRALIZADO DE DIÁLOGOS
+    var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
 
     Scaffold(
         containerColor = backgroundColor,
@@ -154,38 +157,44 @@ fun HomeScreen(
         floatingActionButton = {
             if (showFab) {
                 FloatingActionButton(
-                    onClick = { showRecordatorioDialog = true },
+                    onClick = {
+                        // 2. ABRIR DIÁLOGO DE AÑADIR
+                        dialogState = DialogState.AddRecordatorio(
+                            onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                val nuevoRecordatorio = Recordatorio(
+                                    id = UUID.randomUUID().toString(),
+                                    usuarioId = usuario.id,
+                                    titulo = titulo,
+                                    descripcion = descripcion,
+                                    fecha = fecha,
+                                    hora = hora,
+                                    tipo = tipo
+                                )
+                                recordatorios = recordatorios + nuevoRecordatorio
+                            }
+                        )
+                    },
                     containerColor = primaryColor
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Añadir Recordatorio",
-                        tint = textColor,
-                    )
+                    Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
                 }
             }
         }
     ) { paddingValues ->
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
             userScrollEnabled = true
         ) { page ->
-
-            // 3. Renderizamos el panel correspondiente al Tab seleccionado
             when (tabs.getOrNull(page)) {
-                "Materias" -> {
-                    // Aquí podrías bifurcar: if (usuario.rol == "PROFESOR") ProfesorMateriasPanel() else AsignaturasEstudiantePanel()
-                    AsignaturasEstudiantePanel(PaddingValues(0.dp))
-                }
-                "Horarios" -> {
-                    // Misma lógica de reutilización. El panel puede recibir el rol para mostrar diferentes cosas
-                    HorariosEstudiantePanel(PaddingValues(0.dp))
-                }
+                "Materias" -> AsignaturasEstudiantePanel(PaddingValues(0.dp))
+                "Horarios" -> HorariosEstudiantePanel(PaddingValues(0.dp))
                 "Recordatorios", "Notificaciones" -> {
-                    RecordatoriosEstudiantePanel(PaddingValues(0.dp))
+                    RecordatoriosEstudiantePanel(
+                        paddingValues = PaddingValues(0.dp),
+                        // 3. PASAR CALLBACK PARA ABRIR FILTROS
+                        onOpenDialog = { newState -> dialogState = newState }
+                    )
                 }
                 "Calificaciones" -> {
                     if (asignaturaSeleccionada != null) {
@@ -198,42 +207,29 @@ fun HomeScreen(
                     } else {
                         CalificacionesEstudiantePanel(
                             paddingValues = PaddingValues(0.dp),
-                            onAsignaturaClick = { asignatura ->
-                                asignaturaSeleccionada = asignatura
-                            }
+                            onAsignaturaClick = { asignaturaSeleccionada = it }
                         )
                     }
                 }
-                // --- PLACEHOLDERS PARA PANELES DE ADMIN ---
-                "Usuarios" -> UsuariosAdminPanel(
-                    paddingValues = PaddingValues(0.dp),
-                    usuarioActual = usuario
-                )
-                "Centros" -> PlaceholderPanel("Panel de Gestión de Centros")
-                "Cursos" -> PlaceholderPanel("Panel de Gestión de Cursos")
+                "Usuarios" -> {
+                    UsuariosAdminPanel(
+                        paddingValues = PaddingValues(0.dp),
+                        usuarioActual = usuario,
+                        // 4. PASAR CALLBACK PARA CONFIRMACIONES
+                        onOpenDialog = { newState -> dialogState = newState }
+                    )
+                }
+                "Centros" -> PlaceholderPanel("Gestión de Centros")
+                "Cursos" -> PlaceholderPanel("Gestión de Cursos")
             }
         }
     }
 
-    if (showRecordatorioDialog) {
-        AddRecordatorioDialog(
-            onDismissRequest = { showRecordatorioDialog = false },
-            onAddRecordatorio = { titulo, descripcion, fecha, hora, tipo ->
-                // Actualizado para usar el nuevo modelo Recordatorio
-                val nuevoRecordatorio = Recordatorio(
-                    id = UUID.randomUUID().toString(), // ID temporal para la UI
-                    usuarioId = usuario.id,
-                    titulo = titulo,
-                    descripcion = descripcion,
-                    fecha = fecha,
-                    hora = hora,
-                    tipo = tipo
-                )
-                recordatorios = recordatorios + nuevoRecordatorio
-                showRecordatorioDialog = false
-            }
-        )
-    }
+    // 5. EL ORQUESTADOR MANEJA TODO
+    DialogOrchestrator(
+        state = dialogState,
+        onDismiss = { dialogState = DialogState.None }
+    )
 }
 
 // Composable de relleno para las pantallas que aún no están creadas

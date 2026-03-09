@@ -36,31 +36,32 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun AddRecordatorioDialog(
-    onDismissRequest: () -> Unit,
-    onAddRecordatorio: (String, String, String, String, tipoRecordatorio) -> Unit,
-)
-{
+    state: DialogState.AddRecordatorio, // <-- CAMBIO AQUÍ
+    onDismissRequest: () -> Unit
+) {
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("") }
     var hora by remember { mutableStateOf("") }
-    val radioOptions = remember { tipoRecordatorio.entries.map { it -> it.name.lowercase().replaceFirstChar { it.titlecaseChar() } } }
 
-    // CORRECCIÓN 2: Sintaxis correcta de estado (var ... by ...)
+    val radioOptions = remember {
+        tipoRecordatorio.entries.map { it.name.lowercase().replaceFirstChar { c -> c.titlecaseChar() } }
+    }
     var tipo by remember { mutableStateOf(radioOptions[0]) }
 
-
-    Dialog(onDismissRequest = onDismissRequest)
-    {
+    Dialog(onDismissRequest = onDismissRequest) {
         Column(
-            modifier = Modifier.background(backgroundColor, RoundedCornerShape(16.dp)).padding(16.dp),
+            modifier = Modifier
+                .background(backgroundColor, RoundedCornerShape(16.dp))
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
-            Text("Añadir Recordatorio",
+        ) {
+            Text(
+                "Añadir Recordatorio",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor)
+                color = textColor
+            )
 
             CustomTextField(
                 value = titulo,
@@ -96,7 +97,6 @@ fun AddRecordatorioDialog(
                 icon = Icons.Default.FormatListNumbered
             )
 
-            // Botones de confirmar/cancelar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -107,17 +107,17 @@ fun AddRecordatorioDialog(
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
                     onClick = {
-                        // Lógica para recuperar el Enum original a partir del String seleccionado
                         val selectedEnum = tipoRecordatorio.entries.firstOrNull { enumEntry ->
                             val formattedName = enumEntry.name.lowercase()
                                 .replaceFirstChar { char -> char.titlecaseChar() }
                             formattedName == tipo
-                        } ?: tipoRecordatorio.entries.first() // Fallback por seguridad
+                        } ?: tipoRecordatorio.entries.first()
 
-                        // Pasamos el Enum recuperado, no el String
-                        onAddRecordatorio(titulo, descripcion, fecha, hora, selectedEnum)
-                    onDismissRequest()
-                }) { Text("Guardar", color = textColor) }
+                        // Usamos el callback del estado
+                        state.onSave(titulo, descripcion, fecha, hora, selectedEnum)
+                        onDismissRequest()
+                    }
+                ) { Text("Guardar", color = textColor) }
             }
         }
     }

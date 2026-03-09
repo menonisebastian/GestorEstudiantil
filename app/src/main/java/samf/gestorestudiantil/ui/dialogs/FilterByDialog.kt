@@ -32,84 +32,58 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun FilterByDialog(
-    tipo: String,
+    state: DialogState.Filter, // <-- CAMBIO AQUÍ
     onDismissRequest: () -> Unit
-)
-{
-    var tipoUsuario by remember { mutableStateOf("") }
+) {
+    // Variables locales para manejar la selección temporal
+    var seleccionActual by remember { mutableStateOf("") }
+
+    // Datos estáticos (podrías pasarlos en el state si quisieras hacerlos dinámicos en el futuro)
     val userOptions = listOf("Estudiante", "Admin", "Profesor")
-
-    var tipoAsignatura by remember { mutableStateOf("") }
     val asignaturaOptions = listaAsignaturas.map { it.nombre }
-
-    var tipoRecordatorios by remember { mutableStateOf("") }
     val recordatorioOptions = listOf("Examen", "Tarea", "Evento")
-
-    var tipoCurso by remember { mutableStateOf("") }
     val cursoOptions = listaCursos.map { it.nombre }
 
-    Dialog(onDismissRequest = onDismissRequest)
-    {
+    Dialog(onDismissRequest = onDismissRequest) {
         Column(
-            modifier = Modifier.background(backgroundColor, RoundedCornerShape(16.dp)).padding(16.dp),
+            modifier = Modifier
+                .background(backgroundColor, RoundedCornerShape(16.dp))
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
-            Text("Filtrar búsqueda",
+        ) {
+            Text(
+                "Filtrar búsqueda",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor)
+                color = textColor
+            )
 
-            when(tipo)
-            {
-                "Usuario" ->
-                CustomOptionsTextField(
-                    texto = tipoUsuario,
-                    label = "Tipo",
-                    onValueChange = { tipoUsuario = it },
+            // Lógica simplificada usando el state.tipo
+            when (state.tipo) {
+                "Usuario" -> CustomOptionsTextField(
+                    texto = seleccionActual,
+                    label = "Tipo de Usuario",
+                    onValueChange = { seleccionActual = it },
                     opciones = userOptions,
                     icon = Icons.Default.FormatListNumbered
                 )
-
-                "Asignatura" ->
-                CustomOptionsTextField(
-                    texto = tipoAsignatura,
+                "Asignatura" -> CustomOptionsTextField(
+                    texto = seleccionActual,
                     label = "Asignatura",
-                    onValueChange = { tipoAsignatura = it },
+                    onValueChange = { seleccionActual = it },
                     opciones = asignaturaOptions,
                     icon = Icons.Default.FormatListNumbered
                 )
-
-                "Recordatorio" ->
-                CustomOptionsTextField(
-                    texto = tipoRecordatorios,
-                    label = "Tipo",
-                    onValueChange = { tipoRecordatorios = it },
+                "Recordatorio" -> CustomOptionsTextField(
+                    texto = seleccionActual,
+                    label = "Tipo de Recordatorio",
+                    onValueChange = { seleccionActual = it },
                     opciones = recordatorioOptions,
                     icon = Icons.Default.FormatListNumbered
                 )
-
-                "Estudiante" ->
-                Column{
-                    CustomOptionsTextField(
-                        texto = tipoAsignatura,
-                        label = "Asignatura",
-                        onValueChange = { tipoAsignatura = it },
-                        opciones = asignaturaOptions,
-                        icon = Icons.Default.FormatListNumbered
-                    )
-
-                    CustomOptionsTextField(
-                        texto = tipoCurso,
-                        label = "Curso",
-                        onValueChange = { tipoCurso = it },
-                        opciones = cursoOptions,
-                        icon = Icons.Default.FormatListNumbered
-                    )
-                }
+                // Puedes agregar más casos aquí
             }
 
-            // Botones de confirmar/cancelar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,9 +94,10 @@ fun FilterByDialog(
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
                     onClick = {
-
+                        state.onApply(seleccionActual) // Devolvemos el valor
                         onDismissRequest()
-                    }) { Text("Filtrar", color = textColor) }
+                    }
+                ) { Text("Filtrar", color = textColor) }
             }
         }
     }

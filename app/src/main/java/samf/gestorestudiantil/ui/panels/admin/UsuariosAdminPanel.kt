@@ -53,7 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
-import samf.gestorestudiantil.ui.dialogs.ConfirmDialog
+import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
@@ -65,13 +65,14 @@ import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 fun UsuariosAdminPanel(
     paddingValues: PaddingValues,
     usuarioActual: User,
-    adminViewModel: AdminViewModel = viewModel()
+    adminViewModel: AdminViewModel = viewModel(),
+    onOpenDialog: (DialogState) -> Unit // <-- NUEVO PARÁMETRO
 ) {
     val context = LocalContext.current
     var textoBusqueda by remember { mutableStateOf("") }
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Pendientes, 1: Activos
     val tabs = listOf("Pendientes", "Activos")
-    var confirmDialogVisible by remember { mutableStateOf(false) }
+    //var confirmDialogVisible by remember { mutableStateOf(false) }
 
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
@@ -165,28 +166,26 @@ fun UsuariosAdminPanel(
                         UsuarioCardAdmin(
                             usuario = usuario,
                             isPending = selectedTabIndex == 0,
-                            // CONDICIÓN: Un admin no puede eliminarse a sí mismo
                             canDelete = usuario.id != usuarioActual.id,
                             onAprobar = { adminViewModel.aprobarUsuario(usuario.id) },
-                            onRechazar = { confirmDialogVisible = true }
+                            onRechazar = {
+                                // USAMOS EL CALLBACK PARA ABRIR EL DIÁLOGO
+                                onOpenDialog(
+                                    DialogState.Confirmation(
+                                        title = "Eliminar Usuario",
+                                        content = "¿Desea eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.",
+                                        onConfirm = {
+                                            adminViewModel.rechazarOEliminarUsuario(usuario.id)
+                                        }
+                                    )
+                                )
+                            }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }
-    }
-
-    if (confirmDialogVisible) {
-        ConfirmDialog(
-            title = "Eliminar Usuario",
-            content = "Desea eliminar al usuario seleccionado? \nEsta accion no se puede deshacer.",
-            onConfirm = {
-                adminViewModel.rechazarOEliminarUsuario(usuarioActual.id)
-                confirmDialogVisible = false
-            },
-            onDismissRequest = { confirmDialogVisible = false }
-        )
     }
 }
 

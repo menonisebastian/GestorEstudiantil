@@ -8,21 +8,18 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun ConfirmDialog(
-    title: String,
-    content: String,
-    onConfirm: () -> Unit,
+    state: DialogState.Confirmation, // <-- Recibe el estado
     onDismissRequest: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = {
-            Text(text = title)
-        },
-        text = {
-            Text(text = content)
-        },
+        title = { Text(text = state.title) },
+        text = { Text(text = state.content) },
         confirmButton = {
-            Button(onClick = onConfirm) {
+            Button(onClick = {
+                state.onConfirm()
+                onDismissRequest()
+            }) {
                 Text("Confirmar")
             }
         },
