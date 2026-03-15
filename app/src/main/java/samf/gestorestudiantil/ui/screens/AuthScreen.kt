@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.AppRegistration
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -33,13 +32,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,15 +47,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.credentials.CredentialManager
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.authRouteToTab
+import samf.gestorestudiantil.domain.authTabToRoute
 import samf.gestorestudiantil.domain.signInWithGoogle
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.SocialMediaButton
+import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
@@ -81,8 +85,32 @@ fun AuthScreen(
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
     val token = stringResource(R.string.id_token)
-
     val credentialManager = remember { CredentialManager.create(context) }
+
+    // ✅ Back stack interno de AuthScreen
+    val authBackStack = remember {
+        mutableStateListOf<Any>(Routes.AuthRoutes.Login)
+    }
+
+    // ✅ Pager → authBackStack
+    LaunchedEffect(pagerState.currentPage) {
+        val newRoute = authTabToRoute(tabs[pagerState.currentPage])
+        val currentTop = authBackStack.lastOrNull()
+        if (currentTop == null || newRoute::class != currentTop::class) {
+            authBackStack.clear()
+            authBackStack.add(newRoute)
+        }
+    }
+
+    // ✅ authBackStack → Pager
+    LaunchedEffect(authBackStack.toList()) {
+        val topRoute = authBackStack.lastOrNull() ?: return@LaunchedEffect
+        val targetTab = authRouteToTab(topRoute)
+        val index = tabs.indexOf(targetTab)
+        if (index != -1 && index != pagerState.currentPage) {
+            scope.launch { pagerState.animateScrollToPage(index) }
+        }
+    }
 
     LaunchedEffect(authState) {
         if (authState.isSuccess && authState.user != null) {
@@ -128,32 +156,59 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxSize(),
                 userScrollEnabled = !authState.isLoading
             ) { page ->
-                when (tabs[page]) {
-                    "Ingresar" -> LoginPanel(
-                        paddingValues = paddingValues,
-                        isLoading = authState.isLoading,
-                        onLoginClick = { email, pass -> authViewModel.loginWithEmail(email, pass) },
-                        onGoogleClick = {
-                            scope.launch {
-                                val googleToken = signInWithGoogle(
-                                    context = context,
-                                    credentialManager = credentialManager,
-                                    serverClientId = token
-                                )
-                                if (googleToken != null) {
-                                    authViewModel.loginWithGoogleToken(googleToken)
-                                } else {
-                                    Toast.makeText(context, "No se pudo iniciar sesión con Google", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                    )
-                    "Registrarse" -> RegistroPanelStep1(
-                        paddingValues = paddingValues,
-                        isLoading = authState.isLoading,
-                        onNextClick = onNavigateToRegisterStep2
-                    )
+
+                // ✅ NavDisplay por página (igual que HomeScreen)
+                val pageRoute = authTabToRoute(tabs.getOrNull(page) ?: "Ingresar")
+                val pageBackStack = remember(pageRoute) {
+                    mutableStateListOf<Any>(pageRoute)
                 }
+
+                NavDisplay(
+                    backStack = pageBackStack,
+                    onBack = { pageBackStack.removeLastOrNull() },
+                    entryProvider = entryProvider {
+
+                        entry<Routes.AuthRoutes.Login> {
+                            LoginPanel(
+                                paddingValues = paddingValues,
+                                isLoading = authState.isLoading,
+                                onLoginClick = { email, pass ->
+                                    authViewModel.loginWithEmail(email, pass)
+                                },
+                                onGoogleClick = {
+                                    scope.launch {
+                                        val googleToken = signInWithGoogle(
+                                            context = context,
+                                            credentialManager = credentialManager,
+                                            serverClientId = token
+                                        )
+                                        if (googleToken != null) {
+                                            authViewModel.loginWithGoogleToken(googleToken)
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "No se pudo iniciar sesión con Google",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                },
+                                onForgotPassword = {
+                                    //TODO
+                                    //pageBackStack.add(Routes.AuthRoutes.ForgotPasswordScreen)
+                                }
+                            )
+                        }
+
+                        entry<Routes.AuthRoutes.Register> {
+                            RegistroPanelStep1(
+                                paddingValues = paddingValues,
+                                isLoading = authState.isLoading,
+                                onNextClick = onNavigateToRegisterStep2
+                            )
+                        }
+                    }
+                )
             }
 
             if (authState.isLoading) {
@@ -173,7 +228,8 @@ fun LoginPanel(
     paddingValues: PaddingValues,
     isLoading: Boolean,
     onLoginClick: (String, String) -> Unit,
-    onGoogleClick: () -> Unit
+    onGoogleClick: () -> Unit,
+    onForgotPassword: () -> Unit
 ) {
     val buttonSize = 60.dp
     var email by remember { mutableStateOf("") }
@@ -249,7 +305,7 @@ fun LoginPanel(
             }
 
             TextButton(
-                onClick = { }
+                onClick = { onForgotPassword() },
             ) {
                 Text("Recordar contraseña")
             }

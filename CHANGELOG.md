@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.1] - 2026-03-15
+- Improvement: Reestructured NavigationBar to be a nested navigation with backstacks.
+
 ## [v0.2.0] - 2026-03-15
 - Fixed: Fixed a bug in the Google OAuth login when the user's role was Student.
 - Improvement: Reestructured NavDisplay & Routes.

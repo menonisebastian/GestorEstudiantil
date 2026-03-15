@@ -183,7 +183,6 @@ fun AppNavigation() {
                 if (currentUser != null) {
                     HomeScreen(
                         usuario = currentUser!!,
-                        navController = null,
                         onLogout = {
                             FirebaseAuth.getInstance().signOut()
                         },
