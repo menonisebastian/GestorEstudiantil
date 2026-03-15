@@ -15,7 +15,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation3.runtime.NavEntry
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,8 +28,10 @@ import samf.gestorestudiantil.ui.screens.GoogleSetupScreen
 import samf.gestorestudiantil.ui.screens.HomeScreen
 import samf.gestorestudiantil.ui.screens.PendingApprovalScreen
 import samf.gestorestudiantil.ui.screens.ProfileScreen
+import samf.gestorestudiantil.ui.screens.RegisterStep2Screen
 import samf.gestorestudiantil.ui.screens.SettingsScreen
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
 @Composable
 fun AppNavigation() {
@@ -38,6 +41,8 @@ fun AppNavigation() {
 
     val scope = rememberCoroutineScope()
     val backStack = remember { mutableStateListOf<Any>() }
+    
+    val authViewModel: AuthViewModel = viewModel()
 
     // 1. LISTENER DE SESIÓN
     DisposableEffect(Unit) {
@@ -57,7 +62,13 @@ fun AppNavigation() {
                             .await()
 
                         if (doc.exists()) {
-                            currentUser = doc.toObject(User::class.java)
+                            val user = doc.toObject(User::class.java)
+                            // Validar que el usuario tenga los datos mínimos, sino enviarlo al setup
+                            if (user != null && user.rol.isNotBlank()) {
+                                currentUser = user
+                            } else {
+                                needsGoogleSetup = true
+                            }
                         } else {
                             needsGoogleSetup = true
                         }
@@ -77,41 +88,44 @@ fun AppNavigation() {
 
     // 2. GESTIÓN DE NAVEGACIÓN AUTOMÁTICA
     LaunchedEffect(currentUser, isCheckingSession, needsGoogleSetup) {
-        // Si estamos cargando, no hacemos nada aún
         if (isCheckingSession) return@LaunchedEffect
 
         val currentDestination = backStack.lastOrNull()
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
 
-        if (currentUser == null) {
+        if (firebaseUser == null) {
             // Caso: No logueado -> Ir a Auth
-            if (currentDestination !is Routes.Auth) {
+            if (currentDestination !is Routes.Auth && currentDestination !is Routes.RegisterStep2) {
                 backStack.clear()
                 backStack.add(Routes.Auth)
             }
         } else {
             // Caso: Logueado -> Decidir destino
-            val targetDestination = when {
-                needsGoogleSetup -> Routes.GoogleSetup
-                currentUser?.estado == "PENDIENTE" -> Routes.Pending
-                else -> Routes.Home
-            }
+            if (needsGoogleSetup) {
+                if (currentDestination !is Routes.GoogleSetup) {
+                    backStack.clear()
+                    backStack.add(Routes.GoogleSetup)
+                }
+            } else if (currentUser != null) {
+                val targetDestination = if (currentUser?.estado == "PENDIENTE") {
+                    Routes.Pending
+                } else {
+                    Routes.Home
+                }
 
-            // Navegar solo si el destino es diferente (evita recargas innecesarias)
-            // y respetamos si el usuario navegó manualmente a Perfil o Ajustes
-            if (currentDestination != targetDestination &&
-                currentDestination !is Routes.Profile &&
-                currentDestination !is Routes.Settings) {
+                // Navegar solo si el destino es diferente (evita recargas innecesarias)
+                if (currentDestination != targetDestination &&
+                    currentDestination !is Routes.Profile &&
+                    currentDestination !is Routes.Settings) {
 
-                // Limpiamos el stack para que no pueda volver atrás al login/loading
-                backStack.clear()
-                backStack.add(targetDestination)
+                    backStack.clear()
+                    backStack.add(targetDestination)
+                }
             }
         }
     }
 
-    // 3. PANTALLA DE CARGA (CORREGIDO)
-    // El problema era aquí: NavDisplay no debe ejecutarse si backStack está vacío.
-    // Mantenemos el spinner si estamos verificando sesión O si el backstack aún no tiene la primera pantalla.
+    // 3. PANTALLA DE CARGA
     if (isCheckingSession || backStack.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize().background(backgroundColor),
@@ -126,62 +140,69 @@ fun AppNavigation() {
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
-        entryProvider = { key ->
-            when (key) {
-                is Routes.Auth -> NavEntry(key) {
-                    AuthScreen(
-                        onAuthSuccess = { /* El listener maneja esto */ },
-                        onRequireGoogleSetup = { needsGoogleSetup = true }
+        entryProvider = entryProvider {
+            entry<Routes.Auth> {
+                AuthScreen(
+                    authViewModel = authViewModel,
+                    onAuthSuccess = { /* El listener maneja esto */ },
+                    onRequireGoogleSetup = { needsGoogleSetup = true },
+                    onNavigateToRegisterStep2 = { name, email, pass, fotoUrl ->
+                        backStack.add(Routes.RegisterStep2(name, email, pass, fotoUrl))
+                    }
+                )
+            }
+
+            entry<Routes.RegisterStep2> { route ->
+                RegisterStep2Screen(
+                    route = route,
+                    authViewModel = authViewModel,
+                    onBack = { backStack.removeLastOrNull() }
+                )
+            }
+
+            entry<Routes.Pending> {
+                if (currentUser != null) {
+                    PendingApprovalScreen(
+                        usuario = currentUser!!,
+                        onLogout = { FirebaseAuth.getInstance().signOut() }
                     )
                 }
+            }
 
-                is Routes.Pending -> NavEntry(key) {
-                    if (currentUser != null) {
-                        PendingApprovalScreen(
-                            usuario = currentUser!!,
-                            onLogout = { FirebaseAuth.getInstance().signOut() }
-                        )
+            entry<Routes.GoogleSetup> {
+                GoogleSetupScreen(
+                    authViewModel = authViewModel,
+                    onSetupComplete = { user ->
+                        currentUser = user
+                        needsGoogleSetup = false
                     }
-                }
+                )
+            }
 
-                is Routes.GoogleSetup -> NavEntry(key) {
-                    GoogleSetupScreen(
-                        onSetupComplete = { user ->
-                            currentUser = user
-                            needsGoogleSetup = false
-                        }
+            entry<Routes.Home> {
+                if (currentUser != null) {
+                    HomeScreen(
+                        usuario = currentUser!!,
+                        navController = null,
+                        onLogout = {
+                            FirebaseAuth.getInstance().signOut()
+                        },
+                        onNavigateProfile = { backStack.add(Routes.Profile) },
+                        onNavigateSettings = { backStack.add(Routes.Settings) }
                     )
-                }
-
-                is Routes.Home -> NavEntry(key) {
-                    // Verificación de seguridad extra
-                    if (currentUser != null) {
-                        HomeScreen(
-                            usuario = currentUser!!,
-                            navController = null, // Ya no usas NavController clásico
-                            onLogout = {
-                                FirebaseAuth.getInstance().signOut()
-                            },
-                            onNavigateProfile = { backStack.add(Routes.Profile) },
-                            onNavigateSettings = { backStack.add(Routes.Settings) }
-                        )
-                    } else {
-                        // Fallback por si acaso (evita pantalla blanca si hay desincronización)
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator()
-                        }
+                } else {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
+            }
 
-                is Routes.Profile -> NavEntry(key) {
-                    ProfileScreen(usuario = currentUser, onBack = { backStack.removeLastOrNull() })
-                }
+            entry<Routes.Profile> {
+                ProfileScreen(usuario = currentUser, onBack = { backStack.removeLastOrNull() })
+            }
 
-                is Routes.Settings -> NavEntry(key) {
-                    SettingsScreen(onBack = { backStack.removeLastOrNull() })
-                }
-
-                else -> NavEntry(key) { }
+            entry<Routes.Settings> {
+                SettingsScreen(onBack = { backStack.removeLastOrNull() })
             }
         }
     )

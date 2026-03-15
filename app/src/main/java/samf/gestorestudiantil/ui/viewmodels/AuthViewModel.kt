@@ -109,7 +109,7 @@ class AuthViewModel : ViewModel() {
     // ====================================================================
     fun registerWithEmail(
         email: String, pass: String, name: String,
-        rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String,
+        rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String, turno: String,
         imgUrl: String // <-- NUEVO PARÁMETRO DE CLOUDINARY
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
@@ -145,7 +145,7 @@ class AuthViewModel : ViewModel() {
                 val newUser = User(
                     id = uid, nombre = name, email = email,
                     rol = finalRol, cursoId = cursoId, cursoOArea = areaOCurso,
-                    centroId = centroId, estado = estadoInicial,
+                    centroId = centroId, estado = estadoInicial, turno = turno,
                     imgUrl = imgUrl // <-- GUARDADO EN FIRESTORE
                 )
 
@@ -175,7 +175,12 @@ class AuthViewModel : ViewModel() {
 
                 if (doc.exists()) {
                     val user = doc.toObject(User::class.java)
-                    _authState.value = AuthState(isSuccess = true, user = user)
+                    if (user != null && user.rol.isNotBlank()) { // Ensure the user actually finished setup
+                        _authState.value = AuthState(isSuccess = true, user = user)
+                    } else {
+                        // User exists but might be incomplete (e.g. they logged in with Google but never finished step 2)
+                        _authState.value = AuthState(requireGooglePasswordSetup = true)
+                    }
                 } else {
                     _authState.value = AuthState(requireGooglePasswordSetup = true)
                 }
@@ -192,7 +197,8 @@ class AuthViewModel : ViewModel() {
         rolSeleccionado: String,
         centroId: String,
         cursoId: String,
-        cursoNombre: String
+        cursoNombre: String,
+        turno: String
     ) {
         val firebaseUser = auth.currentUser ?: return
 
@@ -232,6 +238,7 @@ class AuthViewModel : ViewModel() {
                     cursoOArea = areaOCurso,
                     centroId = centroId,
                     estado = estadoInicial,
+                    turno = turno,
                     imgUrl = firebaseUser.photoUrl?.toString() ?: ""
                 )
 
@@ -250,7 +257,7 @@ class AuthViewModel : ViewModel() {
         try {
             val doc = db.collection("usuarios").document(uid).get().await()
             val user = doc.toObject(User::class.java)
-            if (user != null) {
+            if (user != null && user.rol.isNotBlank()) {
                 _authState.value = AuthState(isSuccess = true, user = user)
             } else {
                 _authState.value = AuthState(requireGooglePasswordSetup = true)

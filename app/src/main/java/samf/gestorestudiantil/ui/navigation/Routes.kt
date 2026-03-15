@@ -9,6 +9,14 @@ sealed interface Routes {
     data object Auth : Routes, NavKey
 
     @Serializable
+    data class RegisterStep2(
+        val name: String,
+        val email: String,
+        val pass: String,
+        val fotoUrl: String
+    ) : Routes, NavKey
+
+    @Serializable
     data object Pending : Routes, NavKey
 
     @Serializable

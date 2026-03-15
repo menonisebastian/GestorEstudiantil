@@ -966,9 +966,7 @@ fun SocialMediaButton(
         onClick = onClick,
         elevation = CardDefaults.cardElevation(5.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier
-            .padding(15.dp) // Espacio entre tarjetas
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Image(
             painter = painterResource(iconRes),

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.0] - 2026-03-15
+- Fixed: Fixed a bug in the Google OAuth login when the user's role was Student.
+- Improvement: Reestructured NavDisplay & Routes.
+
 ## [v0.1.9] - 2026-03-09
 - Improvement: Added a new data provider for IES Comercio.
 - Improvement: Added CentrosAdminPanel.
