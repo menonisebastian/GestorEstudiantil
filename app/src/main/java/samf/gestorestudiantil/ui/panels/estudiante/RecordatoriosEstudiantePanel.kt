@@ -34,13 +34,18 @@ fun RecordatoriosEstudiantePanel(
 )
 {
     var textoBusqueda by remember { mutableStateOf("") }
+    var filtroTipo by remember { mutableStateOf("") }
     //var showFilterDialog by remember { mutableStateOf(false) }
 
 
-    val recordatoriosFiltrados = remember(textoBusqueda) {
-        if (textoBusqueda.isBlank())
-            listaRecordatorios
-        else listaRecordatorios.filter { it.titulo.contains(textoBusqueda, ignoreCase = true) }
+    val recordatoriosFiltrados = remember(textoBusqueda, filtroTipo) {
+        listaRecordatorios.filter {
+            val coincideTexto = it.titulo.contains(textoBusqueda, ignoreCase = true) ||
+                    it.descripcion.contains(textoBusqueda, ignoreCase = true)
+            val coincideTipo = if (filtroTipo.isEmpty()) true else it.tipo.name.equals(filtroTipo, ignoreCase = true)
+            
+            coincideTexto && coincideTipo
+        }
     }
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -60,21 +65,19 @@ fun RecordatoriosEstudiantePanel(
             )
 
             CustomSearchBar(
-                textoBusqueda,
+                textoBusqueda = textoBusqueda,
                 onValueChange = { textoBusqueda = it },
                 onFilterClick = {
-                    // ABRIR DIÁLOGO DE FILTRO
                     onOpenDialog(
                         DialogState.Filter(
                             tipo = "Recordatorio",
-                            onApply = { filtroSeleccionado ->
-                                // Aquí implementarías la lógica real de filtrado
-                                // Por ahora solo actualizamos la búsqueda como ejemplo
-                                textoBusqueda = filtroSeleccionado
-                            }
+                            currentFilters = if (filtroTipo.isNotEmpty()) mapOf("tipo" to filtroTipo) else emptyMap(),
+                            onApply = { seleccion -> filtroTipo = seleccion["tipo"] ?: "" }
                         )
                     )
-                }
+                },
+                filters = if (filtroTipo.isNotEmpty()) mapOf("tipo" to filtroTipo) else emptyMap(),
+                onRemoveFilter = { _ -> filtroTipo = "" }
             )
 
             if (recordatoriosFiltrados.isEmpty()) {

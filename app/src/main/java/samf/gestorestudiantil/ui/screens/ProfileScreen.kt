@@ -40,7 +40,12 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(usuario: User?, onBack: () -> Unit) {
+fun ProfileScreen(
+    usuario: User?,
+    onBack: () -> Unit,
+    onProfileUpdated: (User) -> Unit = {}
+)
+{
     val context = LocalContext.current
 
     // Estado local para actualizar la UI inmediatamente tras la subida
@@ -68,19 +73,24 @@ fun ProfileScreen(usuario: User?, onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // === AVATAR REUTILIZANDO EL COMPONENTE DEL REGISTRO ===
-            // Al estar en el mismo paquete (ui.screens), podemos llamar a ProfileImagePicker directamente
+            // === AVATAR ===
             ProfileImagePicker(
                 currentPhotoUrl = currentPhotoUrl,
+                userId = usuario?.id, // Importante pasar el ID
                 onPhotoUploaded = { secureUrl ->
+                    // 1. Actualizamos la imagen localmente (lo que ya hacías)
                     currentPhotoUrl = secureUrl
 
-                    // Guardar la URL en el perfil de Firestore del usuario
+                    // 2. Guardar en Firestore
                     usuario?.id?.let { uid ->
                         FirebaseFirestore.getInstance().collection("usuarios").document(uid)
                             .update("imgUrl", secureUrl)
                             .addOnSuccessListener {
                                 Toast.makeText(context, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
+
+                                // 3. CLAVE: Notificar a la App del cambio para que el Home se entere
+                                val usuarioActualizado = usuario.copy(imgUrl = secureUrl)
+                                onProfileUpdated(usuarioActualizado)
                             }
                     }
                 }

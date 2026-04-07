@@ -67,6 +67,7 @@ fun RegisterStep2Screen(
 
     var cursoNombre by remember { mutableStateOf("Seleccionar Curso...") }
     var cursoId by remember { mutableStateOf("") }
+    var cursoAcronimo by remember { mutableStateOf("") }
 
     var turno by remember { mutableStateOf("Seleccionar Turno...") }
 
@@ -74,7 +75,7 @@ fun RegisterStep2Screen(
     val cursosList by authViewModel.cursos.collectAsState()
 
     val turnosDisponibles = remember(cursoId, cursosList) {
-        cursosList.find { it.id == cursoId }?.turnos ?: emptyList()
+        cursosList.find { it.id == cursoId }?.turnosDisponibles ?: emptyList()
     }
 
     Scaffold(
@@ -141,29 +142,40 @@ fun RegisterStep2Screen(
                         label = "Instituto"
                     )
 
-                    if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
-                        CustomOptionsTextField(
-                            texto = cursoNombre,
-                            onValueChange = { nombreSeleccionado ->
-                                cursoNombre = nombreSeleccionado
-                                val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
-                                if (cursoSel != null) {
-                                    cursoId = cursoSel.id
-                                    turno = "Seleccionar Turno..."
-                                }
-                            },
-                            opciones = cursosList.map { it.nombre },
-                            icon = Icons.Default.Class,
-                            label = "Curso a matricular"
-                        )
+                    if (centroId.isNotEmpty()) {
+                        if (rolSeleccionado == "ESTUDIANTE") {
+                            CustomOptionsTextField(
+                                texto = cursoNombre,
+                                onValueChange = { nombreSeleccionado ->
+                                    cursoNombre = nombreSeleccionado
+                                    val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
+                                    if (cursoSel != null) {
+                                        cursoId = cursoSel.id
+                                        cursoAcronimo = cursoSel.acronimo
+                                        turno = "Seleccionar Turno..."
+                                    }
+                                },
+                                opciones = cursosList.map { it.nombre },
+                                icon = Icons.Default.Class,
+                                label = "Curso a matricular"
+                            )
 
-                        if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
+                            if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
+                                CustomOptionsTextField(
+                                    texto = turno,
+                                    onValueChange = { turno = it },
+                                    opciones = turnosDisponibles,
+                                    icon = Icons.Default.Schedule,
+                                    label = "Turno"
+                                )
+                            }
+                        } else if (rolSeleccionado == "PROFESOR") {
                             CustomOptionsTextField(
                                 texto = turno,
                                 onValueChange = { turno = it },
-                                opciones = turnosDisponibles,
+                                opciones = listOf("matutino", "vespertino"),
                                 icon = Icons.Default.Schedule,
-                                label = "Turno"
+                                label = "Turno de trabajo"
                             )
                         }
                     }
@@ -218,23 +230,27 @@ fun RegisterStep2Screen(
                                         rolSeleccionado = rolSeleccionado,
                                         centroId = centroId,
                                         cursoId = cursoId,
-                                        cursoNombre = cursoNombre,
+                                        cursoNombre = cursoAcronimo,
                                         turno = turno,
                                         imgUrl = route.fotoUrl
                                     )
                                 }
-                            } else {
-                                authViewModel.registerWithEmail(
-                                    email = route.email,
-                                    pass = route.pass,
-                                    name = route.name,
-                                    rolSeleccionado = rolSeleccionado,
-                                    centroId = centroId,
-                                    cursoId = cursoId,
-                                    cursoNombre = cursoNombre,
-                                    turno = turno,
-                                    imgUrl = route.fotoUrl
-                                )
+                            } else if (rolSeleccionado == "PROFESOR") {
+                                if (turno == "Seleccionar Turno...") {
+                                    Toast.makeText(context, "Debes seleccionar un turno de trabajo", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    authViewModel.registerWithEmail(
+                                        email = route.email,
+                                        pass = route.pass,
+                                        name = route.name,
+                                        rolSeleccionado = rolSeleccionado,
+                                        centroId = centroId,
+                                        cursoId = "",
+                                        cursoNombre = "Docente",
+                                        turno = turno,
+                                        imgUrl = route.fotoUrl
+                                    )
+                                }
                             }
                         },
                         enabled = !isLoading,

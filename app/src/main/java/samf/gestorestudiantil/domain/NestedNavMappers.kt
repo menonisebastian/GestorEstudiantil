@@ -23,6 +23,7 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
     "Notificaciones"  -> Routes.HomeRoutes.Recordatorios
     "Usuarios"        -> Routes.HomeRoutes.Usuarios
     "Centros"         -> Routes.HomeRoutes.Centros
+    "Asignación"      -> Routes.HomeRoutes.AsignarProfesor
     else              -> Routes.HomeRoutes.Materias
 }
 
@@ -34,6 +35,7 @@ fun routeToTab(route: Any, rol: String): String = when (route) {
     is Routes.HomeRoutes.Recordatorios   -> "Recordatorios"
     is Routes.HomeRoutes.Usuarios        -> "Usuarios"
     is Routes.HomeRoutes.Centros         -> "Centros"
+    is Routes.HomeRoutes.AsignarProfesor -> "Asignación"
     else                                  -> ""
 }
 

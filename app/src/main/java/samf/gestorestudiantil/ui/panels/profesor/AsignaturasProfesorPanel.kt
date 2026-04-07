@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.panels.estudiante
+package samf.gestorestudiantil.ui.panels.profesor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,22 +20,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.data.models.listaAsignaturas
+import androidx.lifecycle.viewmodel.compose.viewModel
+import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.ui.components.CardItem
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.components.MensajeVacio
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @Composable
-fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
-{
+fun AsignaturasProfesorPanel(
+    profesor: User,
+    paddingValues: PaddingValues
+) {
+    val viewModel: ProfesorViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
     var textoBusqueda by remember { mutableStateOf("") }
 
-    val asignaturasFiltradas = remember(textoBusqueda) {
-        if (textoBusqueda.isBlank()) listaAsignaturas
-        else listaAsignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
+    LaunchedEffect(profesor.id) {
+        viewModel.cargarAsignaturas(profesor.id)
+    }
+
+    val asignaturasFiltradas = remember(textoBusqueda, state.asignaturas) {
+        if (textoBusqueda.isBlank()) state.asignaturas
+        else state.asignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
     }
 
     Column(
@@ -42,18 +54,11 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
             .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-
-        // BLOQUE 1: Contenido con márgenes (Agrupado)
-        // Aquí metemos todo lo que SÍ necesita márgenes
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
+                .padding(horizontal = 20.dp)
         ) {
-
-
-            // Título (ya no necesita padding individual)
             Text(
                 text = "Mis Asignaturas",
                 fontSize = 22.sp,
@@ -62,31 +67,27 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
                 modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
             )
 
-            // Barra de Búsqueda (ya no necesita padding individual)
-
             CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it }, onFilterClick = {})
         }
 
-        // BLOQUE 2: Contenido Borde a Borde (Fuera del bloque con padding)
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 20.dp), // Mantiene el alineamiento visual
+            contentPadding = PaddingValues(horizontal = 20.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             items(asignaturasFiltradas) { materia ->
-                CardItem(item = materia,
+                CardItem(
+                    item = materia,
                     getIcono = { it.iconoName.toComposeIcon() },
-                    getAcron = {it.acronimo},
-                    getNombre = {it.nombre},
-                    getColorFondo = {it.colorFondoHex.toComposeColor()},
-                    getColorIcono = {it.colorIconoHex.toComposeColor()}
+                    getAcron = { it.acronimo },
+                    getNombre = { it.nombre },
+                    getColorFondo = { it.colorFondoHex.toComposeColor() },
+                    getColorIcono = { it.colorIconoHex.toComposeColor() }
                 )
             }
         }
 
-        // Mensaje vacío (reutilizando el padding del bloque 1 si quisiéramos,
-        // o aplicándolo aquí si es un caso especial)
-        if (asignaturasFiltradas.isEmpty()) {
+        if (asignaturasFiltradas.isEmpty() && !state.isLoading) {
             MensajeVacio()
         }
     }

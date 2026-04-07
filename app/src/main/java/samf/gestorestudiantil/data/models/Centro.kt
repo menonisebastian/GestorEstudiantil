@@ -3,7 +3,8 @@ package samf.gestorestudiantil.data.models
 data class Centro(
     var id: String = "",
     var nombre: String = "",
-    var direccion: String = ""
+    var direccion: String = "",
+    var tipo: String = ""
 )
 
 // Datos de ejemplo para pruebas en UI

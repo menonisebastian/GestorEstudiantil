@@ -15,6 +15,7 @@ import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.ScrapedCiclo
 import samf.gestorestudiantil.data.models.ScrapedCourse
 import samf.gestorestudiantil.data.models.User
 
@@ -48,7 +49,6 @@ class AdminViewModel : ViewModel() {
         return texto.replace(Regex("\\D"), "").toIntOrNull() ?: 0
     }
 
-    // Convierte el campo "ciclo" del JSONL a Int para Firestore
     // "1" -> 1, "2" -> 2, "2 (DAW)" -> 2, "2 (DAM)" -> 2, "único" -> 1
     private fun cicloAInt(cicloStr: String?): Int {
         if (cicloStr.isNullOrEmpty()) return 1
@@ -65,74 +65,92 @@ class AdminViewModel : ViewModel() {
 
                 Log.d("DataSeeder", "Se encontraron ${lines.size} cursos para procesar.")
 
-                // 1. Crear o verificar el Centro principal (solo se hace una vez)
                 val idCentro = "ies_comercio"
                 val centroRef = db.collection("centros").document(idCentro)
-                val centroData = hashMapOf(
-                    "id" to idCentro,
-                    "nombre" to "I.E.S Comercio",
-                    "tipo" to "Instituto de Educación Secundaria"
-                )
-                centroRef.set(centroData).await()
+                centroRef.set(
+                    hashMapOf(
+                        "id" to idCentro,
+                        "nombre" to "I.E.S Comercio",
+                        "tipo" to "Instituto de Educación Secundaria"
+                    )
+                ).await()
 
-                // 2. Procesar cada curso scrapeado
+                // INICIALIZAMOS EL BATCH
+                var batch = db.batch()
+                var operationCount = 0
+
                 for (line in lines) {
                     if (line.trim().isEmpty()) continue
 
-                    val scrapedCourse = gson.fromJson(line, ScrapedCourse::class.java)
-                    if (scrapedCourse._status != "ok") continue
+                    val sc = gson.fromJson(line, ScrapedCourse::class.java)
+                    if (sc._status != "ok") continue
 
-                    val nombreBase = scrapedCourse.nombre_curso
-                        .replace("FPGS – ", "")
-                        .replace("FPGM – ", "")
+                    val cursoRef = db.collection("cursos").document()
+                    // PROTEGEMOS CONTRA NULOS (?: "") para evitar Crashes al leer
+                    val cursoData = hashMapOf(
+                        "id"                to cursoRef.id,
+                        "centroId"          to idCentro,
+                        "acronimo"          to sc.acronimo,
+                        "nombre"            to sc.nombre_curso,
+                        "tipo"              to sc.tipo,
+                        "modalidad"         to (sc.modalidad ?: "presencial"),
+                        "turnosDisponibles" to (sc.turnos_disponibles ?: emptyList<String>()),
+                        "urlInfo"           to (sc.url ?: ""),
+                        "horasTotalesCurso" to extraerNumero(sc.horas_totales_curso),
+                        "iconoName"         to (sc.iconoName ?: "School"),
+                        "colorFondoHex"     to (sc.colorFondoHex ?: "#D0E1FF"),
+                        "colorIconoHex"     to (sc.colorIconoHex ?: "#2563EB")
+                    )
 
-                    val materias = scrapedCourse.materias ?: emptyList()
+                    batch.set(cursoRef, cursoData)
+                    operationCount++
 
-                    // Agrupar materias por el valor normalizado del campo "ciclo"
-                    val materiasPorCiclo = materias.groupBy { it.ciclo ?: "único" }
+                    val ciclos = sc.ciclos ?: emptyList()
+                    val turnos = sc.turnos_disponibles ?: listOf("matutino") // Por defecto matutino si no hay
 
-                    for ((cicloRaw, materiasCiclo) in materiasPorCiclo) {
-                        val cursoRef = db.collection("cursos").document()
+                    for (turno in turnos) {
+                        for (cicloBloque in ciclos) {
+                            val cicloRaw = cicloBloque.ciclo ?: ""
+                            val cicloNum = cicloAInt(cicloRaw)
 
-                        // Nombre del curso: incluye el ciclo si hay más de uno
-                        val nombreCurso = if (materiasPorCiclo.size > 1)
-                            "$nombreBase ($cicloRaw)"
-                        else
-                            nombreBase
+                            val asignaturasList = cicloBloque.asignaturas ?: emptyList()
+                            for (asig in asignaturasList) {
+                                val asigRef = db.collection("asignaturas").document()
+                                val asigData = hashMapOf(
+                                    "id"             to asigRef.id,
+                                    "cursoId"        to cursoRef.id,
+                                    "centroId"       to idCentro,
+                                    "acronimo"       to asig.acronimo,
+                                    "nombre"         to asig.nombre,
+                                    "ciclo"          to cicloRaw,
+                                    "cicloNum"       to cicloNum,
+                                    "turno"          to turno,
+                                    "horasTotales"   to extraerNumero(asig.horas_totales),
+                                    "horasSemanales" to extraerNumero(asig.horas_semanales),
+                                    "profesorId"     to "",
+                                    "iconoName"      to (asig.iconoName ?: "Class"),
+                                    "colorFondoHex"  to (asig.colorFondoHex ?: "#E8E8E8"),
+                                    "colorIconoHex"  to (asig.colorIconoHex ?: "#6B7280")
+                                )
 
-                        val cursoData = hashMapOf(
-                            "id" to cursoRef.id,
-                            "centroId" to idCentro,
-                            "nombre" to nombreCurso,
-                            "tipo" to scrapedCourse.tipo,
-                            "modalidad" to (scrapedCourse.modalidad ?: "presencial"),
-                            "ciclo" to cicloRaw,
-                            "cicloNum" to cicloAInt(cicloRaw),
-                            "horasTotalesCurso" to extraerNumero(scrapedCourse.horas_totales_curso),
-                            "urlInfo" to (scrapedCourse.url ?: ""),
-                            "turnos" to (scrapedCourse.turnos_disponibles ?: emptyList())
-                        )
-                        cursoRef.set(cursoData).await()
+                                batch.set(asigRef, asigData)
+                                operationCount++
 
-                        // Crear las Asignaturas para este ciclo
-                        for (materia in materiasCiclo) {
-                            val asignaturaRef = db.collection("asignaturas").document()
-
-                            val asignaturaData = hashMapOf(
-                                "id" to asignaturaRef.id,
-                                "cursoId" to cursoRef.id,
-                                "nombre" to materia.materia,
-                                "ciclo" to cicloRaw,
-                                "cicloNum" to cicloAInt(cicloRaw),
-                                "horasTotales" to extraerNumero(materia.horas_totales),
-                                "horasSemanales" to extraerNumero(materia.horas_semanales),
-                                "profesorId" to ""
-                            )
-                            asignaturaRef.set(asignaturaData).await()
+                                if (operationCount >= 400) {
+                                    batch.commit().await()
+                                    batch = db.batch()
+                                    operationCount = 0
+                                }
+                            }
                         }
-                        Log.d("DataSeeder", "Curso subido: $nombreCurso")
                     }
                 }
+
+                // Subimos lo que haya quedado pendiente
+                if (operationCount > 0) {
+                    batch.commit().await()
+                }
+
                 Log.d("DataSeeder", "¡Proceso de carga finalizado con éxito!")
 
             } catch (e: Exception) {
@@ -270,11 +288,107 @@ class AdminViewModel : ViewModel() {
             }
     }
 
-    fun cargarAsignaturasPorCurso(cursoId: String) {
+    fun cargarAsignaturasSinProfesor(turno: String) {
+        _adminState.value = _adminState.value.copy(isLoading = true)
+        asignaturasListener?.remove()
+        asignaturasListener = db.collection("asignaturas")
+            .whereEqualTo("profesorId", "")
+            .whereEqualTo("turno", turno)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _adminState.value = _adminState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Error al cargar asignaturas: ${error.localizedMessage}"
+                    )
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val lista = snapshot.toObjects(Asignatura::class.java)
+                    _adminState.value = _adminState.value.copy(
+                        isLoading = false,
+                        asignaturas = lista
+                    )
+                }
+            }
+    }
+
+    fun asignarAsignaturaAProfesor(asignaturaId: String, profesorId: String) {
+        viewModelScope.launch {
+            try {
+                // 1. Obtener el nombre del profesor desde la colección de usuarios
+                val userDoc = db.collection("usuarios").document(profesorId).get().await()
+                val nombreProfesor = userDoc.getString("nombre") ?: "Profesor desconocido"
+
+                // 2. Actualizar ID y Nombre en la asignatura
+                val updates = mapOf(
+                    "profesorId" to profesorId,
+                    "profesorNombre" to nombreProfesor
+                )
+                db.collection("asignaturas").document(asignaturaId).update(updates).await()
+                
+                // Actualizar los acrónimos en el perfil del profesor
+                actualizarAcronimosProfesor(profesorId)
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(
+                    errorMessage = "Error al asignar asignatura: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
+
+    fun desasignarAsignatura(asignaturaId: String, profesorId: String) {
+        viewModelScope.launch {
+            try {
+                val updates = mapOf(
+                    "profesorId" to "",
+                    "profesorNombre" to ""
+                )
+                db.collection("asignaturas").document(asignaturaId)
+                    .update(updates).await()
+                
+                // Actualizar los acrónimos en el perfil del profesor
+                actualizarAcronimosProfesor(profesorId)
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(
+                    errorMessage = "Error al desasignar asignatura: ${e.localizedMessage}"
+                )
+            }
+        }
+    }
+
+    private suspend fun actualizarAcronimosProfesor(profesorId: String) {
+        try {
+            // 1. Obtener todas las asignaturas actuales del profesor
+            val snapshot = db.collection("asignaturas")
+                .whereEqualTo("profesorId", profesorId)
+                .get()
+                .await()
+
+            val asignaturas = snapshot.toObjects(Asignatura::class.java)
+
+            // 2. Unir acrónimos (ej: "SGE, PMDM, AD")
+            val nuevoCursoOArea = asignaturas
+                .map { it.acronimo }
+                .distinct()
+                .joinToString(", ")
+
+            // 3. Actualizar el documento del usuario
+            db.collection("usuarios").document(profesorId)
+                .update("cursoOArea", nuevoCursoOArea)
+                .await()
+
+            Log.d("AdminViewModel", "Acrónimos actualizados para $profesorId: $nuevoCursoOArea")
+        } catch (e: Exception) {
+            Log.e("AdminViewModel", "Error al actualizar acrónimos: ${e.message}")
+        }
+    }
+
+    fun cargarAsignaturasPorCurso(cursoId: String, turno: String) {
         _adminState.value = _adminState.value.copy(isLoading = true)
         asignaturasListener?.remove()
         asignaturasListener = db.collection("asignaturas")
             .whereEqualTo("cursoId", cursoId)
+            .whereEqualTo("turno", turno)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     _adminState.value = _adminState.value.copy(
@@ -295,6 +409,78 @@ class AdminViewModel : ViewModel() {
 
     fun clearError() {
         _adminState.value = _adminState.value.copy(errorMessage = null)
+    }
+
+    // --- CRUD OPERACIONES ---
+
+    fun guardarCentro(centro: Centro) {
+        viewModelScope.launch {
+            try {
+                val collection = db.collection("centros")
+                val ref = if (centro.id.isEmpty()) collection.document() else collection.document(centro.id)
+                if (centro.id.isEmpty()) centro.id = ref.id
+                ref.set(centro, com.google.firebase.firestore.SetOptions.merge()).await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al guardar centro: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun eliminarCentro(centroId: String) {
+        viewModelScope.launch {
+            try {
+                db.collection("centros").document(centroId).delete().await()
+                // Nota: Idealmente deberías eliminar cursos y asignaturas asociadas o advertir al usuario
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al eliminar centro: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun guardarCurso(curso: Curso) {
+        viewModelScope.launch {
+            try {
+                val collection = db.collection("cursos")
+                val ref = if (curso.id.isEmpty()) collection.document() else collection.document(curso.id)
+                if (curso.id.isEmpty()) curso.id = ref.id
+                ref.set(curso, com.google.firebase.firestore.SetOptions.merge()).await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al guardar curso: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun eliminarCurso(cursoId: String) {
+        viewModelScope.launch {
+            try {
+                db.collection("cursos").document(cursoId).delete().await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al eliminar curso: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun guardarAsignatura(asignatura: Asignatura) {
+        viewModelScope.launch {
+            try {
+                val collection = db.collection("asignaturas")
+                val ref = if (asignatura.id.isEmpty()) collection.document() else collection.document(asignatura.id)
+                if (asignatura.id.isEmpty()) asignatura.id = ref.id
+                ref.set(asignatura, com.google.firebase.firestore.SetOptions.merge()).await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al guardar asignatura: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun eliminarAsignatura(asignaturaId: String) {
+        viewModelScope.launch {
+            try {
+                db.collection("asignaturas").document(asignaturaId).delete().await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al eliminar asignatura: ${e.localizedMessage}")
+            }
+        }
     }
 
     override fun onCleared() {

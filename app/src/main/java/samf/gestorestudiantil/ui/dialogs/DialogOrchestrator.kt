@@ -30,5 +30,47 @@ fun DialogOrchestrator(
                 onDismissRequest = onDismiss
             )
         }
+
+        is DialogState.UserProfile -> {
+            UserProfileDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
+        is DialogState.EditCentro -> {
+            EditCentroDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
+        is DialogState.EditCurso -> {
+            EditCursoDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
+        is DialogState.EditAsignatura -> {
+            EditAsignaturaDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
+        is DialogState.AsignarAsignaturas -> {
+            AsignarAsignaturasDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
+        is DialogState.AsignarProfesor -> {
+            AsignarProfesorDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
     }
 }

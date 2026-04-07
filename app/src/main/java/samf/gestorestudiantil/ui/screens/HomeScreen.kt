@@ -50,6 +50,7 @@ import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
+import samf.gestorestudiantil.ui.panels.admin.AsignarProfesorPanel
 import samf.gestorestudiantil.ui.panels.admin.CentrosAdminPanel
 import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
@@ -57,6 +58,8 @@ import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.HorariosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
+import samf.gestorestudiantil.ui.panels.profesor.AsignaturasProfesorPanel
+import samf.gestorestudiantil.ui.panels.profesor.CalificacionesProfesorPanel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -74,12 +77,14 @@ val itemsEstudiante: Map<String, ImageVector> = mapOf(
 val itemsProfesor: Map<String, ImageVector> = mapOf(
     "Materias" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
+    "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
     "Recordatorios" to Icons.Outlined.Notifications
 )
 
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
+    "Asignación" to Icons.Outlined.Class,
     "Recordatorios" to Icons.Outlined.Notifications
 )
 
@@ -239,19 +244,33 @@ fun HomeScreen(
                 entryProvider = entryProvider {
                     // Estudiante / Profesor
                     entry<Routes.HomeRoutes.Materias> {
-                        AsignaturasEstudiantePanel(PaddingValues(0.dp))
+                        if (usuario.rol == "PROFESOR") {
+                            AsignaturasProfesorPanel(
+                                profesor = usuario,
+                                paddingValues = PaddingValues(0.dp)
+                            )
+                        } else {
+                            AsignaturasEstudiantePanel(PaddingValues(0.dp))
+                        }
                     }
                     entry<Routes.HomeRoutes.Horarios> {
                         HorariosEstudiantePanel(PaddingValues(0.dp))
                     }
                     // HomeScreen.kt — al navegar
                     entry<Routes.HomeRoutes.Calificaciones> {
-                        CalificacionesEstudiantePanel(
-                            paddingValues = PaddingValues(0.dp),
-                            onAsignaturaClick = { asignatura ->
-                                pageBackStack.add(Routes.HomeRoutes.CalificacionesDetalle(asignatura))
-                            }
-                        )
+                        if (usuario.rol == "PROFESOR") {
+                            CalificacionesProfesorPanel(
+                                profesor = usuario,
+                                paddingValues = PaddingValues(0.dp)
+                            )
+                        } else {
+                            CalificacionesEstudiantePanel(
+                                paddingValues = PaddingValues(0.dp),
+                                onAsignaturaClick = { asignatura ->
+                                    pageBackStack.add(Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                                }
+                            )
+                        }
                     }
                     entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
                         CalificacionesAsignaturaPanel(
@@ -290,7 +309,16 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.Centros> {
-                        CentrosAdminPanel(paddingValues = PaddingValues(0.dp))
+                        CentrosAdminPanel(
+                            paddingValues = PaddingValues(0.dp),
+                            onOpenDialog = { newState -> dialogState = newState }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.AsignarProfesor> {
+                        AsignarProfesorPanel(
+                            paddingValues = PaddingValues(0.dp),
+                            onOpenDialog = { newState -> dialogState = newState }
+                        )
                     }
                 }
             )

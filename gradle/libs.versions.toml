@@ -22,6 +22,7 @@ googleid = "1.2.0"
 nav3Core = "1.0.1"
 navigationRuntimeKtx = "2.9.7"
 gson = "2.13.2"
+godaddy-colorpicker = "0.7.0"
 
 [libraries]
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
@@ -57,6 +58,8 @@ androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runt
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+godaddy-colorpicker = { module = "com.godaddy.android.colorpicker:compose-color-picker", version.ref = "godaddy-colorpicker" }
+godaddy-colorpicker-android = { module = "com.godaddy.android.colorpicker:compose-color-picker-android", version.ref = "godaddy-colorpicker" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

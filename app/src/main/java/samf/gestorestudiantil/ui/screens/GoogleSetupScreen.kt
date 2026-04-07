@@ -52,18 +52,90 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoogleSetupScreen(
+fun GooglePasswordSetupScreen(
+    onNext: (String) -> Unit,
+    authViewModel: AuthViewModel
+) {
+    val context = LocalContext.current
+    val passwordState = rememberTextFieldState()
+    val confirmPasswordState = rememberTextFieldState()
+
+    Scaffold(
+        containerColor = backgroundColor,
+        topBar = {
+            TopAppBar(
+                title = { Text("Seguridad", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = primaryColor
+            )
+            Text(
+                text = "Crea una contraseña",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            Text(
+                text = "Para poder iniciar sesión con tu email en el futuro.",
+                color = surfaceDimColor,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+
+            CustomPasswordTextField(state = passwordState)
+            Spacer(Modifier.height(16.dp))
+            CustomPasswordTextField(state = confirmPasswordState)
+
+            Button(
+                onClick = {
+                    val password = passwordState.text.toString()
+                    val confirm = confirmPasswordState.text.toString()
+                    if (password.length < 6) {
+                        Toast.makeText(context, "Mínimo 6 caracteres", Toast.LENGTH_SHORT).show()
+                    } else if (password != confirm) {
+                        Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                    } else {
+                        onNext(password)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("Siguiente")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GoogleAcademicSetupScreen(
+    passwordValue: String,
     onSetupComplete: (User) -> Unit,
     authViewModel: AuthViewModel
 ) {
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
 
-    // Estados para contraseña
-    val passwordState = rememberTextFieldState()
-    val confirmPasswordState = rememberTextFieldState()
-
-    // --- NUEVOS ESTADOS PARA DATOS ACADÉMICOS ---
     var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
     val roles = listOf("ESTUDIANTE", "PROFESOR")
 
@@ -75,14 +147,12 @@ fun GoogleSetupScreen(
 
     var turno by remember { mutableStateOf("Seleccionar Turno...") }
 
-    // Observamos los datos del ViewModel
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
     
     val turnosDisponibles = remember(cursoId, cursosList) {
-        cursosList.find { it.id == cursoId }?.turnos ?: emptyList()
+        cursosList.find { it.id == cursoId }?.turnosDisponibles ?: emptyList()
     }
-    // ---------------------------------------------
 
     LaunchedEffect(authState) {
         if (authState.isSuccess && authState.user != null) {
@@ -98,53 +168,42 @@ fun GoogleSetupScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Completar Registro", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                title = { Text("Datos Académicos", fontWeight = FontWeight.ExtraBold, color = textColor) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         }
     ) { paddingValues ->
-
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
-                // Añadimos scroll por si la pantalla es pequeña para tantos campos
                 .verticalScroll(rememberScrollState())
         ) {
             val (headerRef, inputsRef, footerRef) = createRefs()
 
-            // 1. HEADER
             Column(
                 modifier = Modifier
                     .constrainAs(headerRef) {
-                        top.linkTo(parent.top, margin = 16.dp) // Cambiado a top para dar espacio
+                        top.linkTo(parent.top, margin = 16.dp)
                         centerHorizontallyTo(parent)
                     },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Lock,
+                    imageVector = Icons.Outlined.Person,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = primaryColor
                 )
                 Text(
-                    text = "Configuración Final",
+                    text = "Casi terminamos",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
                 )
-                Text(
-                    text = "Establece tu contraseña y datos académicos.",
-                    color = surfaceDimColor,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center
-                )
             }
 
-            // 2. INPUTS (Contraseñas + Selectores)
             Column(
                 modifier = Modifier
                     .constrainAs(inputsRef) {
@@ -152,14 +211,8 @@ fun GoogleSetupScreen(
                         centerHorizontallyTo(parent)
                     }
                     .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // --- SECCIÓN CONTRASEÑA ---
-                CustomPasswordTextField(state = passwordState)
-                CustomPasswordTextField(state = confirmPasswordState)
-
-                // --- SECCIÓN ACADÉMICA (NUEVO) ---
                 CustomOptionsTextField(
                     texto = rolSeleccionado,
                     onValueChange = { rolSeleccionado = it },
@@ -176,7 +229,6 @@ fun GoogleSetupScreen(
                         if (centroSel != null) {
                             centroId = centroSel.id
                             authViewModel.loadCursosPorCentro(centroSel.id)
-                            // Resetear curso al cambiar centro
                             cursoNombre = "Seleccionar Curso..."
                             cursoId = ""
                             turno = "Seleccionar Turno..."
@@ -187,7 +239,6 @@ fun GoogleSetupScreen(
                     label = "Instituto"
                 )
 
-                // Mostrar curso solo si es estudiante y ya eligió centro
                 if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
                     CustomOptionsTextField(
                         texto = cursoNombre,
@@ -216,52 +267,27 @@ fun GoogleSetupScreen(
                 }
             }
 
-            // 3. FOOTER (Botón)
             Column(
                 modifier = Modifier
                     .constrainAs(footerRef) {
                         top.linkTo(inputsRef.bottom, margin = 32.dp)
-                        bottom.linkTo(parent.bottom, margin = 16.dp) // Anclado abajo también
+                        bottom.linkTo(parent.bottom, margin = 16.dp)
                         centerHorizontallyTo(parent)
                     }
                     .fillMaxWidth()
             ) {
                 Button(
                     onClick = {
-                        val password = passwordState.text.toString()
-                        val confirmPassword = confirmPasswordState.text.toString()
-
-                        // Validaciones
-                        if (password != confirmPassword) {
-                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
-                        } else if (password.length < 6) {
-                            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
-                        } else if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
-                            Toast.makeText(context, "Selecciona tu rol e instituto", Toast.LENGTH_SHORT).show()
-                        } else if (rolSeleccionado == "ESTUDIANTE") {
-                            if (cursoId.isEmpty()) {
-                                Toast.makeText(context, "Debes seleccionar un curso", Toast.LENGTH_SHORT).show()
-                            } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
-                                Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
-                            } else {
-                                authViewModel.completeGoogleSetup(
-                                    password = password,
-                                    rolSeleccionado = rolSeleccionado,
-                                    centroId = centroId,
-                                    cursoId = cursoId,
-                                    cursoNombre = cursoNombre,
-                                    turno = turno
-                                )
-                            }
+                        if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
+                            Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                         } else {
-                            // Llamada actualizada al ViewModel
                             authViewModel.completeGoogleSetup(
-                                password = password,
+                                password = passwordValue,
                                 rolSeleccionado = rolSeleccionado,
                                 centroId = centroId,
                                 cursoId = cursoId,
                                 cursoNombre = cursoNombre,
-                                turno = turno
+                                turno = if (turno == "Seleccionar Turno...") "" else turno
                             )
                         }
                     },
@@ -271,15 +297,19 @@ fun GoogleSetupScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Finalizar Registro")
+                    if (authState.isLoading) {
+                        CircularProgressIndicator(color = textColor, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Finalizar Registro")
+                    }
                 }
-            }
-
-            if (authState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.constrainAs(createRef()) { centerTo(parent) }
-                )
             }
         }
     }
+}
+
+// Composable auxiliar para el espacio
+@Composable
+private fun Spacer(modifier: Modifier) {
+    androidx.compose.foundation.layout.Spacer(modifier = modifier)
 }

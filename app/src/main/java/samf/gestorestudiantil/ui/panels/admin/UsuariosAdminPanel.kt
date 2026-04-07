@@ -70,6 +70,9 @@ fun UsuariosAdminPanel(
 ) {
     val context = LocalContext.current
     var textoBusqueda by remember { mutableStateOf("") }
+    var filtroRol by remember { mutableStateOf("") }
+    var filtroCurso by remember { mutableStateOf("") }
+    var filtroCiclo by remember { mutableStateOf("") }
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Pendientes, 1: Activos
     val tabs = listOf("Pendientes", "Activos")
     //var confirmDialogVisible by remember { mutableStateOf(false) }
@@ -91,11 +94,21 @@ fun UsuariosAdminPanel(
     }
 
     // Filtrar la lista real proveniente de Firebase
-    val usuariosFiltrados = remember(textoBusqueda, selectedTabIndex, adminState.usuarios) {
+    val usuariosFiltrados = remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, selectedTabIndex, adminState.usuarios) {
         val estadoFiltro = if (selectedTabIndex == 0) "PENDIENTE" else "ACTIVO"
         adminState.usuarios.filter {
-            it.estado == estadoFiltro &&
-                    (it.nombre.contains(textoBusqueda, ignoreCase = true) || it.email.contains(textoBusqueda, ignoreCase = true))
+            val coincideEstado = it.estado == estadoFiltro
+            val coincideTexto = it.nombre.contains(textoBusqueda, ignoreCase = true) || 
+                                it.email.contains(textoBusqueda, ignoreCase = true)
+            val coincideRol = if (filtroRol.isEmpty()) true else it.rol.equals(filtroRol, ignoreCase = true)
+            val coincideCurso = if (filtroCurso.isEmpty()) true else it.cursoOArea.equals(filtroCurso, ignoreCase = true)
+            val coincideCiclo = if (filtroCiclo.isEmpty()) true else {
+                // Asumiendo que el ciclo está dentro de cursoOArea o una propiedad similar.
+                // Si el modelo User no tiene ciclo, se puede inferir del cursoOArea o añadirlo al modelo.
+                it.cursoOArea.contains(filtroCiclo) 
+            }
+            
+            coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo
         }
     }
 
@@ -118,7 +131,39 @@ fun UsuariosAdminPanel(
                 modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
             )
 
-            CustomSearchBar(textoBusqueda, onValueChange = { textoBusqueda = it }, onFilterClick = {})
+            CustomSearchBar(
+                textoBusqueda = textoBusqueda,
+                onValueChange = { textoBusqueda = it },
+                onFilterClick = {
+                    onOpenDialog(
+                        DialogState.Filter(
+                            tipo = "Usuario",
+                            currentFilters = mapOf(
+                                "rol" to filtroRol,
+                                "curso" to filtroCurso,
+                                "ciclo" to filtroCiclo
+                            ),
+                            onApply = { seleccion ->
+                                filtroRol = seleccion["rol"] ?: ""
+                                filtroCurso = seleccion["curso"] ?: ""
+                                filtroCiclo = seleccion["ciclo"] ?: ""
+                            }
+                        )
+                    )
+                },
+                filters = mapOf(
+                    "rol" to filtroRol,
+                    "curso" to filtroCurso,
+                    "ciclo" to filtroCiclo
+                ),
+                onRemoveFilter = { key ->
+                    when(key) {
+                        "rol" -> filtroRol = ""
+                        "curso" -> filtroCurso = ""
+                        "ciclo" -> filtroCiclo = ""
+                    }
+                }
+            )
         }
 
         // Pestañas modernas de Material 3
@@ -179,7 +224,11 @@ fun UsuariosAdminPanel(
                                         }
                                     )
                                 )
-                            }
+                            },
+                            onUserDialog = {
+                                onOpenDialog(DialogState.UserProfile(usuario))
+                            },
+                            onOpenDialog = onOpenDialog
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -193,9 +242,11 @@ fun UsuariosAdminPanel(
 fun UsuarioCardAdmin(
     usuario: User,
     isPending: Boolean,
-    canDelete: Boolean, // <-- NUEVO PARÁMETRO
+    canDelete: Boolean,
     onAprobar: () -> Unit,
-    onRechazar: () -> Unit
+    onRechazar: () -> Unit,
+    onUserDialog: () -> Unit,
+    onOpenDialog: (DialogState) -> Unit
 ) {
     val softRed = Color(0xFFD74132)
     Card(
@@ -206,7 +257,7 @@ fun UsuarioCardAdmin(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Imagen de perfil
-                AccImg(imgUrl = usuario.imgUrl)
+                AccImg(imgUrl = usuario.imgUrl, { onUserDialog() })
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -227,7 +278,20 @@ fun UsuarioCardAdmin(
                 // Acciones para usuarios ACTIVOS (Editar / Eliminar)
                 if (!isPending) {
                     Row {
-                        IconButton(onClick = { /* TODO: Editar (Abre diálogo) */ }, modifier = Modifier.size(32.dp)) {
+                        IconButton(
+                            onClick = {
+                                if (usuario.rol == "PROFESOR") {
+                                    onOpenDialog(DialogState.AsignarAsignaturas(
+                                        profesor = usuario,
+                                        onAssign = { },
+                                        onUnassign = { }
+                                    ))
+                                } else {
+                                    /* TODO: Editar otros roles */
+                                }
+                            }, 
+                            modifier = Modifier.size(32.dp)
+                        ) {
                             Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
                         }
                         // MOSTRAR SOLO SI NO ES ÉL MISMO

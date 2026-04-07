@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
@@ -25,6 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,41 +46,52 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.ui.components.AsignaturaCard
+import androidx.compose.material.icons.filled.Edit
+import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
+import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 
 enum class AdminView {
-    CENTROS, TIPOS_CURSO, CURSOS, CICLOS, ASIGNATURAS
+    CENTROS, TIPOS_CURSO, CURSOS, TURNOS, CICLOS, ASIGNATURAS
 }
 
 @Composable
 fun CentrosAdminPanel(
     paddingValues: PaddingValues,
-    adminViewModel: AdminViewModel = viewModel()
+    adminViewModel: AdminViewModel = viewModel(),
+    onOpenDialog: (DialogState) -> Unit
 ) {
     val adminState by adminViewModel.adminState.collectAsState()
     val context = LocalContext.current
-    
+
     var currentView by remember { mutableStateOf(AdminView.CENTROS) }
     var selectedCentro by remember { mutableStateOf<Centro?>(null) }
     var selectedTipoCurso by remember { mutableStateOf<String?>(null) }
     var selectedCursoBaseName by remember { mutableStateOf<String?>(null) }
     var selectedCurso by remember { mutableStateOf<Curso?>(null) }
+    var selectedTurno by remember { mutableStateOf<String?>(null) }
+    var selectedCiclo by remember { mutableStateOf<String?>(null) } // NUEVO: Estado para el ciclo selecciona
 
     LaunchedEffect(Unit) {
         adminViewModel.cargarCentros()
     }
 
-    BackHandler(enabled = currentView != AdminView.CENTROS) {
+    val onBack = {
         when (currentView) {
             AdminView.ASIGNATURAS -> currentView = AdminView.CICLOS
-            AdminView.CICLOS -> currentView = AdminView.CURSOS
+            AdminView.CICLOS -> currentView = AdminView.TURNOS
+            AdminView.TURNOS -> currentView = AdminView.CURSOS
             AdminView.CURSOS -> currentView = AdminView.TIPOS_CURSO
             AdminView.TIPOS_CURSO -> currentView = AdminView.CENTROS
             else -> { /* Do nothing */ }
         }
+    }
+
+    BackHandler(enabled = currentView != AdminView.CENTROS) {
+        onBack()
     }
 
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -88,19 +101,33 @@ fun CentrosAdminPanel(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = when (currentView) {
-                    AdminView.CENTROS -> "Gestión de Centros"
-                    AdminView.TIPOS_CURSO -> "Tipos de Curso en ${selectedCentro?.nombre}"
-                    AdminView.CURSOS -> "Cursos de $selectedTipoCurso"
-                    AdminView.CICLOS -> "Ciclos de $selectedCursoBaseName"
-                    AdminView.ASIGNATURAS -> "Asignaturas de ${selectedCurso?.nombre}"
-                },
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = textColor,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 16.dp)
-            )
+            ) {
+                if (currentView != AdminView.CENTROS) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = textColor
+                        )
+                    }
+                }
+                Text(
+                    text = when (currentView) {
+                        AdminView.CENTROS -> "Gestión de Centros"
+                        AdminView.TIPOS_CURSO -> "Tipos de Curso en ${selectedCentro?.nombre}"
+                        AdminView.CURSOS -> "Cursos de $selectedTipoCurso"
+                        AdminView.TURNOS -> "Turnos de ${selectedCurso?.acronimo}"
+                        AdminView.CICLOS -> "Ciclos de ${selectedCurso?.acronimo} ($selectedTurno)"
+                        AdminView.ASIGNATURAS -> "Asignaturas de ${selectedCurso?.acronimo} - $selectedCiclo"
+                    },
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = textColor
+                )
+            }
 
             if (adminState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -122,15 +149,28 @@ fun CentrosAdminPanel(
                                 } 
                             }
                             items(adminState.centros) { centro ->
-                                CentroCard(centro) {
-                                    selectedCentro = centro
-                                    adminViewModel.cargarCursosPorCentro(centro.id)
-                                    currentView = AdminView.TIPOS_CURSO
-                                }
+                                CentroCard(
+                                    centro = centro,
+                                    onClick = {
+                                        selectedCentro = centro
+                                        adminViewModel.cargarCursosPorCentro(centro.id)
+                                        currentView = AdminView.TIPOS_CURSO
+                                    },
+                                    onEdit = {
+                                        onOpenDialog(DialogState.EditCentro(
+                                            centro = centro,
+                                            onSave = { adminViewModel.guardarCentro(it) }
+                                        ))
+                                    }
+                                )
                             }
                         }
                         AdminView.TIPOS_CURSO -> {
-                            val tiposUnicos = adminState.cursos.map { it.tipo }.distinct().sorted()
+                            // Evita crasheos si "it.tipo" es null o lanza excepción
+                            val tiposUnicos = adminState.cursos.mapNotNull {
+                                try { it.tipo } catch (e: Exception) { "Desconocido" }
+                            }.distinct().sorted()
+
                             items(tiposUnicos) { tipo ->
                                 TipoCursoCard(tipo) {
                                     selectedTipoCurso = tipo
@@ -140,35 +180,64 @@ fun CentrosAdminPanel(
                         }
                         AdminView.CURSOS -> {
                             val cursosPorTipo = adminState.cursos.filter { it.tipo == selectedTipoCurso }
-                            val cursosBase = cursosPorTipo.map { it.nombre.replace(Regex(" \\dº"), "") }.distinct().sorted()
-                            
-                            items(cursosBase) { cursoBaseName ->
-                                val cursoEjemplo = cursosPorTipo.first { it.nombre.startsWith(cursoBaseName) }
-                                CursoCard(cursoEjemplo, isBase = true) {
-                                    selectedCursoBaseName = cursoBaseName
+
+                            items(cursosPorTipo) { curso ->
+                                CursoCard(
+                                    curso = curso,
+                                    onClick = {
+                                        selectedCurso = curso
+                                        selectedCursoBaseName = curso.nombre
+                                        currentView = AdminView.TURNOS
+                                    },
+                                    onEdit = {
+                                        onOpenDialog(DialogState.EditCurso(
+                                            curso = curso,
+                                            centroId = selectedCentro?.id ?: "",
+                                            onSave = { adminViewModel.guardarCurso(it) }
+                                        ))
+                                    }
+                                )
+                            }
+                        }
+                        AdminView.TURNOS -> {
+                            val turnos = selectedCurso?.turnosDisponibles ?: emptyList()
+                            items(turnos) { turno ->
+                                TipoCursoCard(turno.replaceFirstChar { it.uppercase() }) {
+                                    selectedTurno = turno
+                                    adminViewModel.cargarAsignaturasPorCurso(selectedCurso!!.id, turno)
                                     currentView = AdminView.CICLOS
                                 }
                             }
                         }
                         AdminView.CICLOS -> {
-                            val ciclos = adminState.cursos
-                                .filter { it.nombre.startsWith(selectedCursoBaseName ?: "") }
-                                .map { it.ciclo }
-                                .distinct()
-                                .sorted()
+                            // Evita crasheos si "it.ciclo" es null o lanza excepción
+                            val ciclos = adminState.asignaturas.mapNotNull {
+                                try { it.ciclo } catch (e: Exception) { null }
+                            }.distinct().sorted()
 
                             items(ciclos) { ciclo ->
-                                val curso = adminState.cursos.first { it.nombre.startsWith(selectedCursoBaseName ?: "") && it.ciclo == ciclo }
-                                CursoCard(curso, isBase = false) {
-                                    selectedCurso = curso
-                                    adminViewModel.cargarAsignaturasPorCurso(curso.id)
+                                TipoCursoCard("Ciclo: $ciclo") {
+                                    selectedCiclo = ciclo
                                     currentView = AdminView.ASIGNATURAS
                                 }
                             }
                         }
                         AdminView.ASIGNATURAS -> {
-                            items(adminState.asignaturas) { asignatura ->
-                                AsignaturaCard(asignatura) {}
+                            // Filtramos las asignaturas en local según el ciclo seleccionado
+                            val asignaturasDelCiclo = adminState.asignaturas.filter { it.ciclo == selectedCiclo }
+                            items(asignaturasDelCiclo) { asignatura ->
+                                AsignaturaCard(
+                                    asignatura = asignatura,
+                                    onClick = {},
+                                    onEdit = {
+                                        onOpenDialog(DialogState.EditAsignatura(
+                                            asignatura = asignatura,
+                                            cursoId = selectedCurso?.id ?: "",
+                                            centroId = selectedCentro?.id ?: "",
+                                            onSave = { adminViewModel.guardarAsignatura(it) }
+                                        ))
+                                    }
+                                )
                             }
                         }
                     }
@@ -176,20 +245,43 @@ fun CentrosAdminPanel(
             }
         }
 
-        if (currentView == AdminView.CENTROS) {
-            FloatingActionButton(
-                onClick = { /* TODO: Add Centro Dialog */ },
-                containerColor = primaryColor,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir Centro", tint = textColor)
-            }
+        FloatingActionButton(
+            onClick = {
+                when (currentView) {
+                    AdminView.CENTROS -> {
+                        onOpenDialog(DialogState.EditCentro(
+                            onSave = { adminViewModel.guardarCentro(it) }
+                        ))
+                    }
+                    AdminView.CURSOS -> {
+                        onOpenDialog(DialogState.EditCurso(
+                            centroId = selectedCentro?.id ?: "",
+                            onSave = { adminViewModel.guardarCurso(it) }
+                        ))
+                    }
+                    AdminView.ASIGNATURAS -> {
+                        onOpenDialog(DialogState.EditAsignatura(
+                            cursoId = selectedCurso?.id ?: "",
+                            centroId = selectedCentro?.id ?: "",
+                            onSave = { adminViewModel.guardarAsignatura(it) }
+                        ))
+                    }
+                    else -> {}
+                }
+            },
+            containerColor = primaryColor,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
         }
     }
 }
 
+
 @Composable
-fun CentroCard(centro: Centro, onClick: () -> Unit) {
+fun CentroCard(centro: Centro, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -203,7 +295,16 @@ fun CentroCard(centro: Centro, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = centro.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                Text(text = centro.direccion, fontSize = 12.sp, color = Color.Gray)
+                // Se previene un posible null al leer dirección en caso de que el modelo haya variado
+                val addressStr = try { centro.direccion } catch (e: Exception) { "" }
+                if (addressStr.isNotEmpty()) {
+                    Text(text = addressStr, fontSize = 12.sp, color = Color.Gray)
+                }
+            }
+            if (onEdit != null) {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.Gray)
+                }
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray)
         }
@@ -229,8 +330,9 @@ fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
     }
 }
 
+// CursoCard simplificado: Al haber solo un documento por curso, la distinción "isBase" ya no es necesaria.
 @Composable
-fun CursoCard(curso: Curso, isBase: Boolean, onClick: () -> Unit) {
+fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -243,10 +345,17 @@ fun CursoCard(curso: Curso, isBase: Boolean, onClick: () -> Unit) {
             Icon(Icons.Default.School, contentDescription = null, tint = primaryColor)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                val nombre = if (isBase) curso.nombre.replace(Regex(" \\dº"), "") else curso.nombre
-                Text(text = nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                if (!isBase) {
-                    Text(text = "${curso.modalidad} - ${curso.ciclo}", fontSize = 12.sp, color = Color.Gray)
+                val tituloStr = try { curso.acronimo } catch (e: Exception) { "Nombre desconocido" }
+                val subtituloStr = try { curso.nombre } catch (e: Exception) { "" }
+
+                Text(text = tituloStr, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                if (subtituloStr.isNotEmpty()) {
+                    Text(text = subtituloStr, fontSize = 12.sp, color = Color.Gray)
+                }
+            }
+            if (onEdit != null) {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.Gray)
                 }
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray)

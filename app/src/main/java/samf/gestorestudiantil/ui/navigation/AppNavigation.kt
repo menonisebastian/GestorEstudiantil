@@ -24,7 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.screens.AuthScreen
-import samf.gestorestudiantil.ui.screens.GoogleSetupScreen
+import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
+import samf.gestorestudiantil.ui.screens.GooglePasswordSetupScreen
 import samf.gestorestudiantil.ui.screens.HomeScreen
 import samf.gestorestudiantil.ui.screens.PendingApprovalScreen
 import samf.gestorestudiantil.ui.screens.ProfileScreen
@@ -102,9 +103,9 @@ fun AppNavigation() {
         } else {
             // Caso: Logueado -> Decidir destino
             if (needsGoogleSetup) {
-                if (currentDestination !is Routes.GoogleSetup) {
+                if (currentDestination !is Routes.GooglePasswordSetup && currentDestination !is Routes.GoogleAcademicSetup) {
                     backStack.clear()
-                    backStack.add(Routes.GoogleSetup)
+                    backStack.add(Routes.GooglePasswordSetup)
                 }
             } else if (currentUser != null) {
                 val targetDestination = if (currentUser?.estado == "PENDIENTE") {
@@ -169,8 +170,18 @@ fun AppNavigation() {
                 }
             }
 
-            entry<Routes.GoogleSetup> {
-                GoogleSetupScreen(
+            entry<Routes.GooglePasswordSetup> {
+                GooglePasswordSetupScreen(
+                    authViewModel = authViewModel,
+                    onNext = { password: String ->
+                        backStack.add(Routes.GoogleAcademicSetup(password))
+                    }
+                )
+            }
+
+            entry<Routes.GoogleAcademicSetup> { route ->
+                GoogleAcademicSetupScreen(
+                    passwordValue = route.password,
                     authViewModel = authViewModel,
                     onSetupComplete = { user ->
                         currentUser = user
@@ -197,7 +208,14 @@ fun AppNavigation() {
             }
 
             entry<Routes.Profile> {
-                ProfileScreen(usuario = currentUser, onBack = { backStack.removeLastOrNull() })
+                ProfileScreen(
+                    usuario = currentUser,
+                    onBack = { backStack.removeLastOrNull()},
+                    onProfileUpdated = {usuarioEditado ->
+                        // Aquí actualizas el estado en el ViewModel que leen todas las pantallas
+                        currentUser = usuarioEditado
+                    }
+                )
             }
 
             entry<Routes.Settings> {

@@ -22,8 +22,8 @@ fun <T> CardItem(
     getIcono: (T) -> ImageVector,
     getColorFondo: (T) -> Color,
     getColorIcono: (T) -> Color,
-    getNombre: (T) -> String,       // <-- Nuevo parámetro para el título
-    getHoras: (T) -> String     // <-- Nuevo parámetro para el subtítulo (horas, créditos, etc.)
+    getAcron: (T) -> String,       // <-- Nuevo parámetro para el título
+    getNombre: (T) -> String     // <-- Nuevo parámetro para el subtítulo (horas, créditos, etc.)
 ) {
     Card(
         modifier = Modifier
@@ -61,7 +61,7 @@ fun <T> CardItem(
 
             // Usamos la función getTitulo() en lugar de curso.nombre
             Text(
-                text = getNombre(item),
+                text = getAcron(item),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -71,8 +71,8 @@ fun <T> CardItem(
 
             // Usamos la función getSubtitulo() en lugar de curso.horas
             Text(
-                text = getHoras(item),
-                fontSize = 12.sp,
+                text = getNombre(item),
+                fontSize = 10.sp,
                 color = Color.Gray.copy(alpha = 0.8f)
             )
         }

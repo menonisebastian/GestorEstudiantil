@@ -36,10 +36,10 @@ fun CalificacionesAsignaturaPanel(
     onBackClick: () -> Unit
 ) {
     val listaEvaluaciones = listOf(
-        Evaluacion("", "UD1", 8.0, "", asignatura.descripcion, tipoEvaluacion.Exposicion),
-        Evaluacion("", "UD2", 7.0, "", asignatura.descripcion, tipoEvaluacion.Practica),
-        Evaluacion("", "UD3", 9.0, "", asignatura.descripcion, tipoEvaluacion.Examen),
-        Evaluacion("", "TFG", 10.0, "", asignatura.descripcion, tipoEvaluacion.Proyecto)
+        Evaluacion("", "UD1", 8.0, "", asignatura.descripcion, true, tipoEvaluacion.Exposicion),
+        Evaluacion("", "UD2", 7.0, "", asignatura.descripcion, true, tipoEvaluacion.Practica),
+        Evaluacion("", "UD3", 9.0, "", asignatura.descripcion, true, tipoEvaluacion.Examen),
+        Evaluacion("", "TFG", 10.0, "", asignatura.descripcion, true, tipoEvaluacion.Proyecto)
     )
 
     val notaMedia = listaEvaluaciones.sumOf { it.nota } / listaEvaluaciones.size

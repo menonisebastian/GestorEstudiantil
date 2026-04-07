@@ -29,7 +29,10 @@ sealed interface Routes {
     data object Pending : Routes, NavKey
 
     @Serializable
-    data object GoogleSetup : Routes, NavKey
+    data object GooglePasswordSetup : Routes, NavKey
+
+    @Serializable
+    data class GoogleAcademicSetup(val password: String) : Routes, NavKey
 
     @Serializable
     data object Home : Routes, NavKey
@@ -68,6 +71,9 @@ sealed interface Routes {
 
         @Serializable
         data object Centros : HomeRoutes
+
+        @Serializable
+        data object AsignarProfesor : HomeRoutes
     }
 
     @Serializable

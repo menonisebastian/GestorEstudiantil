@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.2] - 2026-04-07
+- Bugfix: Fixed the raw data from DB and .jsonl.
+- Change: Modified AdminViewModel and Navigation.
+- Feature: Filter chips for the SearchBar
+- Feature: Creation of Profesor panels.
+- Feature: Implemented the ability to modify the DB data from the AdminPanel includin icons and colors from Cursos/Asignaturas.
+- Change: Cursos/Asignaturas now have their own colors.
+
 ## [v0.2.1] - 2026-03-15
 - Improvement: Reestructured NavigationBar to be a nested navigation with backstacks.
 

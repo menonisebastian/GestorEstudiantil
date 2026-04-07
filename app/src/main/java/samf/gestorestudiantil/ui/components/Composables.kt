@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -68,6 +70,8 @@ import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -276,7 +280,10 @@ fun ProfileImagePicker(
         ) {
             if (currentPhotoUrl.isNotEmpty()) {
                 AsyncImage(
-                    model = currentPhotoUrl,
+                    model = coil.request.ImageRequest.Builder(LocalContext.current)
+                        .data(currentPhotoUrl)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "Foto de perfil",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -370,7 +377,7 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
 }
 
 @Composable
-fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit ) {
+fun AsignaturaCard(asignatura: Asignatura, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
@@ -389,20 +396,48 @@ fun AsignaturaCard(asignatura: Asignatura, onClick:() -> Unit ) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = asignatura.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = iconColor)
+                Text(text = asignatura.acronimo, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = iconColor)
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(asignatura.descripcion, fontSize = 11.sp, color = surfaceDimColor, lineHeight = 14.sp)
+                Text(asignatura.nombre, fontSize = 11.sp, color = surfaceDimColor, lineHeight = 14.sp)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Indicador de Turno
+                    val turnoSigla = if (asignatura.turno.lowercase().contains("matutino")) "M" else "V"
+                    val turnoColor = if (turnoSigla == "M") Color(0xFFF59E0B) else Color(0xFF6366F1) // Ámbar vs Indigo
+
+                    Surface(
+                        color = turnoColor.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text(
+                            text = turnoSigla,
+                            color = turnoColor,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+
                     Icon(Icons.Outlined.Person, "Profesor", tint = surfaceDimColor, modifier = iconModifier)
-                    Text(asignatura.profesorId, color = surfaceDimColor, fontSize = 10.sp)
+                    Text(
+                        text = if (asignatura.profesorNombre.isNotEmpty()) asignatura.profesorNombre else "Sin asignar",
+                        color = surfaceDimColor,
+                        fontSize = 10.sp
+                    )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Icon(Icons.Outlined.AccessTime, "Hora", tint = surfaceDimColor, modifier = iconModifier)
-                    Text(asignatura.horas, color = surfaceDimColor, fontSize = 10.sp)
+                    Icon(Icons.Outlined.AccessTime, "Horas", tint = surfaceDimColor, modifier = iconModifier)
+                    Text(text = "${asignatura.horasSemanales}h", color = surfaceDimColor, fontSize = 10.sp)
+                }
+            }
+
+            if (onEdit != null) {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = iconColor)
                 }
             }
 
@@ -631,8 +666,15 @@ fun CustomOptionsTextField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit, onFilterClick: () -> Unit) {
+fun CustomSearchBar(
+    textoBusqueda: String,
+    onValueChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
+    filters: Map<String, String> = emptyMap(),
+    onRemoveFilter: (String) -> Unit = {}
+) {
     OutlinedTextField(
         value = textoBusqueda,
         onValueChange = onValueChange,
@@ -640,12 +682,48 @@ fun CustomSearchBar(textoBusqueda: String, onValueChange: (String) -> Unit, onFi
             .fillMaxWidth()
             .height(56.dp),
         placeholder = { Text("Buscar", color = surfaceDimColor) },
-        leadingIcon = { Icon(Icons.Default.Search, "Buscar", tint = Color.Gray) },
+        leadingIcon = {
+            Icon(Icons.Default.Search, "Buscar", tint = Color.Gray)
+        },
         trailingIcon = {
-            Row (verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                androidx.compose.foundation.lazy.LazyRow(
+                    modifier = Modifier.weight(1f, fill = false),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(filters.toList()) { (key, value) ->
+                        if (value.isNotEmpty()) {
+                            androidx.compose.material3.InputChip(
+                                selected = true,
+                                onClick = { },
+                                label = { Text(value, fontSize = 11.sp, maxLines = 1) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Quitar filtro",
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clickable { onRemoveFilter(key) }
+                                    )
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = androidx.compose.material3.InputChipDefaults.inputChipColors(
+                                    selectedContainerColor = primaryColor.copy(alpha = 0.2f),
+                                    selectedLabelColor = textColor
+                                ),
+                                border = null,
+                                modifier = Modifier.height(32.dp)
+                            )
+                        }
+                    }
+                }
 
                 if (textoBusqueda.isNotEmpty()) {
-                    IconButton(onClick = { textoBusqueda.takeIf { it.isNotEmpty() }?.let { onValueChange("") } }) {
+                    IconButton(onClick = { onValueChange("") }) {
                         Icon(Icons.Outlined.Close, "Cerrar", tint = Color.Gray)
                     }
                 }
@@ -929,6 +1007,8 @@ fun AccBox(name: String, role: String, curso: String, imgUrl: String = "", onCli
 
 @Composable
 fun AccImg(imgUrl: String = "", onClick: () -> Unit = {}) {
+    val context = LocalContext.current // Necesario para ImageRequest
+
     Box(
         modifier = Modifier
             .size(48.dp)
@@ -939,10 +1019,47 @@ fun AccImg(imgUrl: String = "", onClick: () -> Unit = {}) {
     ) {
         if (imgUrl.isNotEmpty()) {
             AsyncImage(
-                model = imgUrl,
+                // Se construye un ImageRequest para poder usar crossfade
+                model = coil.request.ImageRequest.Builder(context)
+                    .data(imgUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "Foto de perfil",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Outlined.Person,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun UserImg(imgUrl: String = "") {
+    val context = LocalContext.current // Necesario para ImageRequest
+
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .clip(CircleShape)
+            .background(Color.Blue),
+        contentAlignment = Alignment.Center
+    ) {
+        if (imgUrl.isNotEmpty()) {
+            AsyncImage(
+                // Se construye un ImageRequest para poder usar crossfade
+                model = coil.request.ImageRequest.Builder(context)
+                    .data(imgUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Foto de perfil",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
             )
         } else {
             Icon(
