@@ -4,15 +4,12 @@ import com.google.firebase.firestore.DocumentId
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Post(
+data class Unidad(
     @DocumentId
     var idFirestore: String = "",
-    var titulo: String = "",
-    var contenido: String = "",
-    var autorId: String = "",
-    var autorNombre: String = "",
+    var nombre: String = "",
+    var descripcion: String = "",
     var asignaturaId: String = "",
-    var unidadId: String = "",
-    var fechaCreacion: Long = System.currentTimeMillis(),
+    var orden: Int = 0,
     var visible: Boolean = false
 )

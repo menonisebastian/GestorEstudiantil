@@ -10,6 +10,7 @@ data class User(
     var centroId: String = "",
     var estado: String = "ACTIVO", // "PENDIENTE" (esperando admin) o "ACTIVO"
     var turno: String = "", // "matutino", "vespertino"
-    var imgUrl: String = ""
-
+    var cicloNum: Int = 1, // Ciclo en el que está matriculado (1 o 2)
+    var imgUrl: String = "",
+    var ultimaVezAsignaturas: Map<String, Long> = emptyMap() // Map<AsignaturaId, Timestamp>
 )

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.3] - 2026-04-07
+- Feature: Implemented the ability to add new Cursos/Asignaturas.
+- Feature: Implemented the ability to make Unidades/Posts inside Asignaturas.
+- Feature: Implemented the ability to qualify students.
+- Feature: Implemented the ability to add Recordatorios.
+- Bugfix: Fixed the matriculation of students.
+- Change: Cursos/Asignaturas IDs are now deterministic.
+- Change: cursoOArea is now a concatenation of the course + turn + cycle.
+
+
 ## [v0.2.2] - 2026-04-07
 - Bugfix: Fixed the raw data from DB and .jsonl.
 - Change: Modified AdminViewModel and Navigation.

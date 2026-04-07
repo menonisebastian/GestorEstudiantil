@@ -76,7 +76,6 @@ fun ProfileScreen(
             // === AVATAR ===
             ProfileImagePicker(
                 currentPhotoUrl = currentPhotoUrl,
-                userId = usuario?.id, // Importante pasar el ID
                 onPhotoUploaded = { secureUrl ->
                     // 1. Actualizamos la imagen localmente (lo que ya hacías)
                     currentPhotoUrl = secureUrl

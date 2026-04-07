@@ -27,7 +27,6 @@ import com.cloudinary.android.callback.UploadCallback
 
 fun uploadToCloudinary(
     uri: Uri,
-    fileName: String? = null,
     onStart: () -> Unit = {},
     onProgress: (Float) -> Unit = {},
     onSuccess: (String) -> Unit,

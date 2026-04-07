@@ -17,12 +17,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.models.listaAsignaturas
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onAsignaturaClick: (Asignatura) -> Unit)
+fun CalificacionesEstudiantePanel(
+    asignaturas: List<Asignatura>,
+    paddingValues: PaddingValues,
+    onAsignaturaClick: (Asignatura) -> Unit
+)
 {
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -49,7 +52,7 @@ fun CalificacionesEstudiantePanel(paddingValues: PaddingValues, onAsignaturaClic
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp))
             {
-                items(listaAsignaturas)
+                items(asignaturas)
                 {
                     asignatura ->
                     AsignaturaCard(asignatura, onClick = {

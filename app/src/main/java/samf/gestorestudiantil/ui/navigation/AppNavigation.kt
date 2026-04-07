@@ -34,6 +34,8 @@ import samf.gestorestudiantil.ui.screens.SettingsScreen
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
+import com.google.firebase.firestore.ListenerRegistration
+
 @Composable
 fun AppNavigation() {
     var currentUser by remember { mutableStateOf<User?>(null) }
@@ -45,26 +47,26 @@ fun AppNavigation() {
     
     val authViewModel: AuthViewModel = viewModel()
 
-    // 1. LISTENER DE SESIÓN
+    // 1. LISTENER DE SESIÓN Y DATOS DE USUARIO EN TIEMPO REAL
     DisposableEffect(Unit) {
         val auth = FirebaseAuth.getInstance()
-        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        val db = FirebaseFirestore.getInstance()
+        var userListener: ListenerRegistration? = null
+
+        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val firebaseUser = firebaseAuth.currentUser
+            userListener?.remove()
+
             if (firebaseUser == null) {
                 currentUser = null
+                needsGoogleSetup = false
                 isCheckingSession = false
             } else {
-                scope.launch {
-                    try {
-                        val doc = FirebaseFirestore.getInstance()
-                            .collection("usuarios")
-                            .document(firebaseUser.uid)
-                            .get()
-                            .await()
-
-                        if (doc.exists()) {
-                            val user = doc.toObject(User::class.java)
-                            // Validar que el usuario tenga los datos mínimos, sino enviarlo al setup
+                userListener = db.collection("usuarios")
+                    .document(firebaseUser.uid)
+                    .addSnapshotListener { snapshot, _ ->
+                        if (snapshot != null && snapshot.exists()) {
+                            val user = snapshot.toObject(User::class.java)
                             if (user != null && user.rol.isNotBlank()) {
                                 currentUser = user
                             } else {
@@ -73,17 +75,15 @@ fun AppNavigation() {
                         } else {
                             needsGoogleSetup = true
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        isCheckingSession = false
                     }
-                    // Finalizamos la carga solo después de intentar obtener los datos
-                    isCheckingSession = false
-                }
             }
         }
-        auth.addAuthStateListener(listener)
+
+        auth.addAuthStateListener(authListener)
         onDispose {
-            auth.removeAuthStateListener(listener)
+            auth.removeAuthStateListener(authListener)
+            userListener?.remove()
         }
     }
 
@@ -100,6 +100,8 @@ fun AppNavigation() {
                 backStack.clear()
                 backStack.add(Routes.Auth)
             }
+        } else if (isCheckingSession) {
+            // Do nothing while checking session
         } else {
             // Caso: Logueado -> Decidir destino
             if (needsGoogleSetup) {
@@ -157,7 +159,11 @@ fun AppNavigation() {
                 RegisterStep2Screen(
                     route = route,
                     authViewModel = authViewModel,
-                    onBack = { backStack.removeLastOrNull() }
+                    onBack = { backStack.removeLastOrNull() },
+                    onNavigateToHome = {
+                        // The session listener in AppNavigation will handle the switch
+                        // once authState.user is set and Firebase Auth state changes.
+                    }
                 )
             }
 

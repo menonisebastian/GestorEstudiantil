@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,6 @@ import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
-import samf.gestorestudiantil.data.models.listaCentros
-import samf.gestorestudiantil.data.models.listaCursos
 
 data class AuthState(
     val isLoading: Boolean = false,
@@ -49,33 +48,29 @@ class AuthViewModel : ViewModel() {
     // CARGA DE DATOS PARA SELECTORES (DROPDOWNS)
     // ====================================================================
     private fun loadCentros() {
-
-        _centros.value = listaCentros
-
-//        viewModelScope.launch {
-//            try {
-//                val snapshot = db.collection("centros").get().await()
-//                val lista = snapshot.toObjects(Centro::class.java)
-//                _centros.value = lista
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//        }
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("centros").get().await()
+                val lista = snapshot.toObjects(Centro::class.java)
+                _centros.value = lista
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun loadCursosPorCentro(centroId: String) {
-        _cursos.value = listaCursos.filter { it.centroId == centroId }
-//        viewModelScope.launch {
-//            try {
-//                val snapshot = db.collection("cursos")
-//                    .whereEqualTo("centroId", centroId)
-//                    .get().await()
-//                val lista = snapshot.toObjects(Curso::class.java)
-//                _cursos.value = lista
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//        }
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("cursos")
+                    .whereEqualTo("centroId", centroId)
+                    .get().await()
+                val lista = snapshot.toObjects(Curso::class.java)
+                _cursos.value = lista
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     // ====================================================================
@@ -126,6 +121,9 @@ class AuthViewModel : ViewModel() {
 
                 if (rolSeleccionado == "ESTUDIANTE") {
                     estadoInicial = "PENDIENTE"
+                    // Formato: ACRONIMO + LETRA TURNO + CICLO (ej: DAM M 1)
+                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                    areaOCurso = "${cursoNombre}${letraTurno}1"
                 } else if (rolSeleccionado == "PROFESOR") {
                     areaOCurso = "Sin asignar"
                     val admins = db.collection("usuarios")
@@ -146,10 +144,30 @@ class AuthViewModel : ViewModel() {
                     id = uid, nombre = name, email = email,
                     rol = finalRol, cursoId = cursoId, cursoOArea = areaOCurso,
                     centroId = centroId, estado = estadoInicial, turno = turno,
+                    cicloNum = 1, // Por defecto siempre el primer ciclo
                     imgUrl = imgUrl // <-- GUARDADO EN FIRESTORE
                 )
 
                 db.collection("usuarios").document(uid).set(newUser).await()
+                
+                // Si es estudiante, incrementar el contador del curso y de sus asignaturas
+                if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
+                    // Incrementar en el curso
+                    db.collection("cursos").document(cursoId)
+                        .update("numEstudiantes", FieldValue.increment(1))
+                    
+                    // Incrementar en todas sus asignaturas (mismo curso, ciclo y turno)
+                    db.collection("asignaturas")
+                        .whereEqualTo("cursoId", cursoId)
+                        .whereEqualTo("ciclo", 1) // En registro siempre es ciclo 1
+                        .whereEqualTo("turno", turno)
+                        .get().addOnSuccessListener { snapshot ->
+                            for (doc in snapshot.documents) {
+                                doc.reference.update("numEstudiantesCurso", FieldValue.increment(1))
+                            }
+                        }
+                }
+
                 _authState.value = AuthState(isSuccess = true, user = newUser)
 
             } catch (_: FirebaseAuthUserCollisionException) {
@@ -215,6 +233,9 @@ class AuthViewModel : ViewModel() {
 
                 if (rolSeleccionado == "ESTUDIANTE") {
                     estadoInicial = "PENDIENTE"
+                    // Formato: ACRONIMO + LETRA TURNO + CICLO (ej: DAM M 1)
+                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                    areaOCurso = "${cursoNombre}${letraTurno}1"
                 } else if (rolSeleccionado == "PROFESOR") {
                     areaOCurso = "Sin asignar"
                     // Verificar si es el primer profesor del centro para hacerlo ADMIN
@@ -239,11 +260,30 @@ class AuthViewModel : ViewModel() {
                     centroId = centroId,
                     estado = estadoInicial,
                     turno = turno,
+                    cicloNum = 1, // Por defecto al registrarse siempre 1er ciclo
                     imgUrl = firebaseUser.photoUrl?.toString() ?: ""
                 )
 
                 // 4. Guardar en Firestore
                 db.collection("usuarios").document(firebaseUser.uid).set(newUser).await()
+
+                // Si es estudiante, incrementar el contador del curso y de sus asignaturas
+                if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
+                    // Incrementar en el curso
+                    db.collection("cursos").document(cursoId)
+                        .update("numEstudiantes", FieldValue.increment(1))
+                    
+                    // Incrementar en todas sus asignaturas (mismo curso, ciclo y turno)
+                    db.collection("asignaturas")
+                        .whereEqualTo("cursoId", cursoId)
+                        .whereEqualTo("ciclo", 1) // En registro siempre es ciclo 1
+                        .whereEqualTo("turno", turno)
+                        .get().addOnSuccessListener { snapshot ->
+                            for (doc in snapshot.documents) {
+                                doc.reference.update("numEstudiantesCurso", FieldValue.increment(1))
+                            }
+                        }
+                }
 
                 _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {

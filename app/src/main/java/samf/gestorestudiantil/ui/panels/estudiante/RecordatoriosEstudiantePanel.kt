@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.data.models.listaRecordatorios
+import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.dialogs.DialogState
@@ -29,6 +29,7 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun RecordatoriosEstudiantePanel(
+    recordatorios: List<Recordatorio>,
     paddingValues: PaddingValues,
     onOpenDialog: (DialogState) -> Unit
 )
@@ -38,8 +39,8 @@ fun RecordatoriosEstudiantePanel(
     //var showFilterDialog by remember { mutableStateOf(false) }
 
 
-    val recordatoriosFiltrados = remember(textoBusqueda, filtroTipo) {
-        listaRecordatorios.filter {
+    val recordatoriosFiltrados = remember(textoBusqueda, filtroTipo, recordatorios) {
+        recordatorios.filter {
             val coincideTexto = it.titulo.contains(textoBusqueda, ignoreCase = true) ||
                     it.descripcion.contains(textoBusqueda, ignoreCase = true)
             val coincideTipo = if (filtroTipo.isEmpty()) true else it.tipo.name.equals(filtroTipo, ignoreCase = true)
@@ -72,6 +73,7 @@ fun RecordatoriosEstudiantePanel(
                         DialogState.Filter(
                             tipo = "Recordatorio",
                             currentFilters = if (filtroTipo.isNotEmpty()) mapOf("tipo" to filtroTipo) else emptyMap(),
+                            opcionesPersonalizadas = emptyMap(),
                             onApply = { seleccion -> filtroTipo = seleccion["tipo"] ?: "" }
                         )
                     )

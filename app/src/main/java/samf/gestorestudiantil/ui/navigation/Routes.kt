@@ -43,6 +43,11 @@ sealed interface Routes {
         data object Materias : HomeRoutes
 
         @Serializable
+        data class MateriaDetalle(
+            val asignatura: Asignatura
+        ) : HomeRoutes
+
+        @Serializable
         data object Horarios : HomeRoutes
 
         @Serializable

@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.data.models.listaAsignaturas
+import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.ui.components.CardItem
@@ -27,13 +27,17 @@ import samf.gestorestudiantil.ui.components.MensajeVacio
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
+fun AsignaturasEstudiantePanel(
+    asignaturas: List<Asignatura>,
+    paddingValues: PaddingValues,
+    onAsignaturaClick: (Asignatura) -> Unit
+)
 {
     var textoBusqueda by remember { mutableStateOf("") }
 
-    val asignaturasFiltradas = remember(textoBusqueda) {
-        if (textoBusqueda.isBlank()) listaAsignaturas
-        else listaAsignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
+    val asignaturasFiltradas = remember(textoBusqueda, asignaturas) {
+        if (textoBusqueda.isBlank()) asignaturas
+        else asignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
     }
 
     Column(
@@ -79,7 +83,9 @@ fun AsignaturasEstudiantePanel(paddingValues: PaddingValues)
                     getAcron = {it.acronimo},
                     getNombre = {it.nombre},
                     getColorFondo = {it.colorFondoHex.toComposeColor()},
-                    getColorIcono = {it.colorIconoHex.toComposeColor()}
+                    getColorIcono = {it.colorIconoHex.toComposeColor()},
+                    notificaciones = materia.numNotificaciones,
+                    onClick = { onAsignaturaClick(materia) }
                 )
             }
         }

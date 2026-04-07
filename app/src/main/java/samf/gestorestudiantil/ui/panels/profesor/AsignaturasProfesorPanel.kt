@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
@@ -33,7 +34,8 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 @Composable
 fun AsignaturasProfesorPanel(
     profesor: User,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onAsignaturaClick: (Asignatura) -> Unit
 ) {
     val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
@@ -82,7 +84,8 @@ fun AsignaturasProfesorPanel(
                     getAcron = { it.acronimo },
                     getNombre = { it.nombre },
                     getColorFondo = { it.colorFondoHex.toComposeColor() },
-                    getColorIcono = { it.colorIconoHex.toComposeColor() }
+                    getColorIcono = { it.colorIconoHex.toComposeColor() },
+                    onClick = { onAsignaturaClick(materia) }
                 )
             }
         }

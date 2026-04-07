@@ -143,6 +143,9 @@ fun UsuariosAdminPanel(
                                 "curso" to filtroCurso,
                                 "ciclo" to filtroCiclo
                             ),
+                            opcionesPersonalizadas = mapOf(
+                                "cursos" to adminState.cursos.map { it.acronimo }.distinct()
+                            ),
                             onApply = { seleccion ->
                                 filtroRol = seleccion["rol"] ?: ""
                                 filtroCurso = seleccion["curso"] ?: ""

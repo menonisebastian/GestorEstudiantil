@@ -42,6 +42,7 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
@@ -70,7 +71,6 @@ import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -236,7 +236,6 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
 @Composable
 fun ProfileImagePicker(
     currentPhotoUrl: String,
-    userId: String? = null,
     onPhotoUploaded: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -246,11 +245,9 @@ fun ProfileImagePicker(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val nombreArchivo = userId ?: java.util.UUID.randomUUID().toString()
 
             uploadToCloudinary(
                 uri = it,
-                fileName = nombreArchivo,
                 onStart = { isUploading = true },
                 onSuccess = { secureUrl ->
                     isUploading = false
@@ -432,6 +429,11 @@ fun AsignaturaCard(asignatura: Asignatura, onClick: () -> Unit, onEdit: (() -> U
 
                     Icon(Icons.Outlined.AccessTime, "Horas", tint = surfaceDimColor, modifier = iconModifier)
                     Text(text = "${asignatura.horasSemanales}h", color = surfaceDimColor, fontSize = 10.sp)
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Icon(Icons.Outlined.Groups, "Alumnos", tint = surfaceDimColor, modifier = iconModifier)
+                    Text(text = "${asignatura.numEstudiantesCurso}", color = surfaceDimColor, fontSize = 10.sp)
                 }
             }
 

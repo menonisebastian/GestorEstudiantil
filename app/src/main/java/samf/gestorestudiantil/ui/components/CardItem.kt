@@ -22,59 +22,81 @@ fun <T> CardItem(
     getIcono: (T) -> ImageVector,
     getColorFondo: (T) -> Color,
     getColorIcono: (T) -> Color,
-    getAcron: (T) -> String,       // <-- Nuevo parámetro para el título
-    getNombre: (T) -> String     // <-- Nuevo parámetro para el subtítulo (horas, créditos, etc.)
+    getAcron: (T) -> String,
+    getNombre: (T) -> String,
+    notificaciones: Int = 0,
+    onClick: () -> Unit = {}
 ) {
-    Card(
-        modifier = Modifier
-            .width(120.dp)
-            .height(160.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = {}),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = getColorFondo(item)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Column(
+    Box(modifier = Modifier.padding(top = 4.dp, end = 4.dp)) {
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .width(120.dp)
+                .height(160.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = getColorFondo(item)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(getColorIcono(item)),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    imageVector = getIcono(item),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(getColorIcono(item)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = getIcono(item),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Usamos la función getTitulo() en lugar de curso.nombre
+                Text(
+                    text = getAcron(item),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Usamos la función getSubtitulo() en lugar de curso.horas
+                Text(
+                    text = getNombre(item),
+                    fontSize = 10.sp,
+                    color = Color.Gray.copy(alpha = 0.8f)
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Usamos la función getTitulo() en lugar de curso.nombre
-            Text(
-                text = getAcron(item),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Usamos la función getSubtitulo() en lugar de curso.horas
-            Text(
-                text = getNombre(item),
-                fontSize = 10.sp,
-                color = Color.Gray.copy(alpha = 0.8f)
-            )
+        if (notificaciones > 0) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 4.dp, y = (-4).dp)
+                    .background(Color.Red, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (notificaciones > 99) "+99" else notificaciones.toString(),
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

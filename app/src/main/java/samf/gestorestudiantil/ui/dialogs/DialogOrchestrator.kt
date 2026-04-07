@@ -72,5 +72,19 @@ fun DialogOrchestrator(
                 onDismissRequest = onDismiss
             )
         }
+
+        is DialogState.AddUnidad -> {
+            AddUnidadDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
+        is DialogState.AddPost -> {
+            AddPostDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
     }
 }

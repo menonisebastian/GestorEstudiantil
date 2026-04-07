@@ -15,7 +15,6 @@ import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
-import samf.gestorestudiantil.data.models.ScrapedCiclo
 import samf.gestorestudiantil.data.models.ScrapedCourse
 import samf.gestorestudiantil.data.models.User
 
@@ -85,10 +84,12 @@ class AdminViewModel : ViewModel() {
                     val sc = gson.fromJson(line, ScrapedCourse::class.java)
                     if (sc._status != "ok") continue
 
-                    val cursoRef = db.collection("cursos").document()
-                    // PROTEGEMOS CONTRA NULOS (?: "") para evitar Crashes al leer
+                    // ID DETERMINISTA PARA CURSO (Centro + Acrónimo)
+                    val cursoId = "${idCentro}_${sc.acronimo ?: "DESCONOCIDO"}".replace(" ", "_")
+                    val cursoRef = db.collection("cursos").document(cursoId)
+
                     val cursoData = hashMapOf(
-                        "id"                to cursoRef.id,
+                        "id"                to cursoId,
                         "centroId"          to idCentro,
                         "acronimo"          to sc.acronimo,
                         "nombre"            to sc.nombre_curso,
@@ -102,23 +103,26 @@ class AdminViewModel : ViewModel() {
                         "colorIconoHex"     to (sc.colorIconoHex ?: "#2563EB")
                     )
 
-                    batch.set(cursoRef, cursoData)
+                    batch.set(cursoRef, cursoData, com.google.firebase.firestore.SetOptions.merge())
                     operationCount++
 
                     val ciclos = sc.ciclos ?: emptyList()
-                    val turnos = sc.turnos_disponibles ?: listOf("matutino") // Por defecto matutino si no hay
+                    val turnos = sc.turnos_disponibles ?: listOf("matutino")
 
                     for (turno in turnos) {
                         for (cicloBloque in ciclos) {
-                            val cicloRaw = cicloBloque.ciclo ?: ""
+                            val cicloRaw = cicloBloque.ciclo
                             val cicloNum = cicloAInt(cicloRaw)
 
-                            val asignaturasList = cicloBloque.asignaturas ?: emptyList()
+                            val asignaturasList = cicloBloque.asignaturas
                             for (asig in asignaturasList) {
-                                val asigRef = db.collection("asignaturas").document()
+                                // ID DETERMINISTA PARA ASIGNATURA: CURSOID_CICLO_ACRONIMO_TURNO
+                                val asigId = "${cursoId}_${cicloNum}_${asig.acronimo}_${turno}".replace(" ", "_")
+                                val asigRef = db.collection("asignaturas").document(asigId)
+
                                 val asigData = hashMapOf(
-                                    "id"             to asigRef.id,
-                                    "cursoId"        to cursoRef.id,
+                                    "id"             to asigId,
+                                    "cursoId"        to cursoId,
                                     "centroId"       to idCentro,
                                     "acronimo"       to asig.acronimo,
                                     "nombre"         to asig.nombre,
@@ -127,13 +131,12 @@ class AdminViewModel : ViewModel() {
                                     "turno"          to turno,
                                     "horasTotales"   to extraerNumero(asig.horas_totales),
                                     "horasSemanales" to extraerNumero(asig.horas_semanales),
-                                    "profesorId"     to "",
                                     "iconoName"      to (asig.iconoName ?: "Class"),
                                     "colorFondoHex"  to (asig.colorFondoHex ?: "#E8E8E8"),
                                     "colorIconoHex"  to (asig.colorIconoHex ?: "#6B7280")
                                 )
 
-                                batch.set(asigRef, asigData)
+                                batch.set(asigRef, asigData, com.google.firebase.firestore.SetOptions.merge())
                                 operationCount++
 
                                 if (operationCount >= 400) {
@@ -464,8 +467,8 @@ class AdminViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val collection = db.collection("asignaturas")
-                val ref = if (asignatura.id.isEmpty()) collection.document() else collection.document(asignatura.id)
-                if (asignatura.id.isEmpty()) asignatura.id = ref.id
+                val ref = if (asignatura.idFirestore.isEmpty()) collection.document() else collection.document(asignatura.idFirestore)
+                if (asignatura.idFirestore.isEmpty()) asignatura.idFirestore = ref.id
                 ref.set(asignatura, com.google.firebase.firestore.SetOptions.merge()).await()
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = "Error al guardar asignatura: ${e.localizedMessage}")

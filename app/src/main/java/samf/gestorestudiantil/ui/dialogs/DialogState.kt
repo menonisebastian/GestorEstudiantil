@@ -26,6 +26,7 @@ sealed class DialogState {
     data class Filter(
         val tipo: String, // "Usuario", "Asignatura", "Recordatorio", etc.
         val currentFilters: Map<String, String> = emptyMap(),
+        val opcionesPersonalizadas: Map<String, List<String>> = emptyMap(), // Opciones dinámicas
         val onApply: (Map<String, String>) -> Unit // Retorna el mapa de filtros actualizados
     ) : DialogState()
 
@@ -61,5 +62,25 @@ sealed class DialogState {
 
     data class AsignarProfesor(
         val asignatura: Asignatura
+    ) : DialogState()
+
+    // 6. Diálogos para Asignaturas (Profesores)
+    data class AddUnidad(
+        val asignaturaId: String,
+        val unidadId: String? = null, // null si es nueva, id si es editar
+        val nombreInicial: String = "",
+        val descripcionInicial: String = "",
+        val visibleInicial: Boolean = false,
+        val onSave: (String, String, Boolean) -> Unit // nombre, descripcion, visible
+    ) : DialogState()
+
+    data class AddPost(
+        val asignaturaId: String,
+        val unidadId: String,
+        val postId: String? = null, // null si es nuevo
+        val tituloInicial: String = "",
+        val contenidoInicial: String = "",
+        val visibleInicial: Boolean = false,
+        val onSave: (String, String, Boolean) -> Unit // titulo, contenido, visible
     ) : DialogState()
 }

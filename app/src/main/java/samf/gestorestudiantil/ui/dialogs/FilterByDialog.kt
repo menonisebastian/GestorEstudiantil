@@ -13,13 +13,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import samf.gestorestudiantil.data.models.listaAsignaturas
-import samf.gestorestudiantil.data.models.listaCursos
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -46,12 +41,14 @@ fun FilterByDialog(
     // Estado local para manejar múltiples selecciones antes de aplicar
     var tempFilters by remember { mutableStateOf(state.currentFilters) }
 
-    // Datos estáticos
+    // Opciones estáticas básicas
     val userOptions = listOf("Estudiante", "Admin", "Profesor")
-    val asignaturaOptions = listaAsignaturas.map { it.nombre }
     val recordatorioOptions = listOf("Examen", "Tarea", "Evento")
-    val cursoOptions = listaCursos.map { it.nombre }
     val cicloOptions = listOf("1", "2")
+
+    // Opciones dinámicas pasadas desde el ViewModel
+    val cursoOptions = state.opcionesPersonalizadas["cursos"] ?: emptyList()
+    val asignaturaOptions = state.opcionesPersonalizadas["asignaturas"] ?: emptyList()
 
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
@@ -71,14 +68,20 @@ fun FilterByDialog(
             val labelPrincipal = when(state.tipo) {
                 "Usuario" -> "Tipo de Usuario"
                 "Recordatorio" -> "Tipo de Recordatorio"
+                "Asignatura" -> "Asignatura"
                 else -> "Categoría"
             }
             val opcionesPrincipales = when(state.tipo) {
                 "Usuario" -> userOptions
                 "Recordatorio" -> recordatorioOptions
+                "Asignatura" -> asignaturaOptions
                 else -> emptyList()
             }
-            val keyPrincipal = if (state.tipo == "Recordatorio") "tipo" else "rol"
+            val keyPrincipal = when(state.tipo) {
+                "Recordatorio" -> "tipo"
+                "Asignatura" -> "asignatura"
+                else -> "rol"
+            }
 
             if (opcionesPrincipales.isNotEmpty()) {
                 CustomOptionsTextField(
@@ -91,7 +94,7 @@ fun FilterByDialog(
             }
 
             // Filtros adicionales para Usuarios
-            if (state.tipo == "Usuario") {
+            if (state.tipo == "Usuario" || state.tipo == "Calificaciones") {
                 CustomOptionsTextField(
                     texto = tempFilters["curso"] ?: "",
                     label = "Curso",
@@ -100,13 +103,25 @@ fun FilterByDialog(
                     icon = Icons.Default.FormatListNumbered
                 )
 
-                CustomOptionsTextField(
-                    texto = tempFilters["ciclo"] ?: "",
-                    label = "Ciclo",
-                    onValueChange = { tempFilters = tempFilters + ("ciclo" to it) },
-                    opciones = cicloOptions,
-                    icon = Icons.Default.FormatListNumbered
-                )
+                if (state.tipo == "Usuario") {
+                    CustomOptionsTextField(
+                        texto = tempFilters["ciclo"] ?: "",
+                        label = "Ciclo",
+                        onValueChange = { tempFilters = tempFilters + ("ciclo" to it) },
+                        opciones = cicloOptions,
+                        icon = Icons.Default.FormatListNumbered
+                    )
+                }
+                
+                if (state.tipo == "Calificaciones" && asignaturaOptions.isNotEmpty()) {
+                    CustomOptionsTextField(
+                        texto = tempFilters["asignatura"] ?: "",
+                        label = "Asignatura",
+                        onValueChange = { tempFilters = tempFilters + ("asignatura" to it) },
+                        opciones = asignaturaOptions,
+                        icon = Icons.Default.FormatListNumbered
+                    )
+                }
             }
 
             Row(

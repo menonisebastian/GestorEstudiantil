@@ -47,17 +47,29 @@ import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.LaunchedEffect
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterStep2Screen(
     route: Routes.RegisterStep2,
     authViewModel: AuthViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
     val authState by authViewModel.authState.collectAsState()
     val isLoading = authState.isLoading
     val context = LocalContext.current
+
+    LaunchedEffect(authState) {
+        if (authState.user != null) {
+            onNavigateToHome()
+        } else if (authState.errorMessage != null) {
+            Toast.makeText(context, authState.errorMessage, Toast.LENGTH_SHORT).show()
+            authViewModel.clearError()
+        }
+    }
 
     var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
     val roles = listOf("ESTUDIANTE", "PROFESOR")

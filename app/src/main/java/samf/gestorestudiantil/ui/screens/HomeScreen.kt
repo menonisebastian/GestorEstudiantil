@@ -57,12 +57,16 @@ import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.HorariosEstudiantePanel
+import samf.gestorestudiantil.ui.panels.estudiante.MateriaDetalleEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.profesor.AsignaturasProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.CalificacionesProfesorPanel
+import samf.gestorestudiantil.ui.panels.profesor.MateriaDetalleProfesorPanel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
+import samf.gestorestudiantil.ui.viewmodels.CurrentUserUiState
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import java.util.UUID
 
@@ -109,14 +113,34 @@ fun HomeScreen(
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
 
+    val appViewModel: AppViewModel = viewModel()
+    val appState by appViewModel.state.collectAsState()
+
     val estudianteViewModel: EstudianteViewModel = viewModel()
     val estudianteState by estudianteViewModel.state.collectAsState()
 
     // Cargar datos al entrar
-    LaunchedEffect(usuario.cursoId) {
+    LaunchedEffect(usuario.id, usuario.cursoId) {
+        // Cargar usuario en AppViewModel para disparar carga de recordatorios
+        appViewModel.setCurrentUser(
+            CurrentUserUiState(
+                id = usuario.id,
+                name = usuario.nombre,
+                role = usuario.rol,
+                photoUrl = usuario.imgUrl,
+                curso = usuario.cursoOArea
+            )
+        )
+        
         if (usuario.rol == "ESTUDIANTE" || usuario.rol == "PROFESOR") {
-            estudianteViewModel.cargarAsignaturas(usuario.cursoId)
-            estudianteViewModel.cargarRecordatorios(usuario.id)
+            estudianteViewModel.cargarAsignaturas(usuario.cursoId, usuario.turno, usuario.cicloNum, usuario.ultimaVezAsignaturas)
+        }
+    }
+
+    // Sincronizar tiempos de lectura cuando el usuario cambie en tiempo real (vía AppNavigation listener)
+    LaunchedEffect(usuario.ultimaVezAsignaturas) {
+        if (usuario.rol == "ESTUDIANTE") {
+            estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
         }
     }
 
@@ -152,7 +176,6 @@ fun HomeScreen(
     val showFab = tabs.getOrNull(pagerState.currentPage)
         .let { it == "Recordatorios" || it == "Notificaciones" }
 
-    var recordatorios by remember { mutableStateOf(listaRecordatorios) }
     var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
 
     Scaffold(
@@ -206,7 +229,7 @@ fun HomeScreen(
                                     hora = hora,
                                     tipo = tipo
                                 )
-                                recordatorios = recordatorios + nuevo
+                                appViewModel.añadirRecordatorio(nuevo)
                             }
                         )
                     },
@@ -247,10 +270,37 @@ fun HomeScreen(
                         if (usuario.rol == "PROFESOR") {
                             AsignaturasProfesorPanel(
                                 profesor = usuario,
-                                paddingValues = PaddingValues(0.dp)
+                                paddingValues = PaddingValues(0.dp),
+                                onAsignaturaClick = { asignatura ->
+                                    pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
+                                }
                             )
                         } else {
-                            AsignaturasEstudiantePanel(PaddingValues(0.dp))
+                            AsignaturasEstudiantePanel(
+                                asignaturas = estudianteState.asignaturas,
+                                paddingValues = PaddingValues(0.dp),
+                                onAsignaturaClick = { asignatura ->
+                                    if (usuario.rol == "ESTUDIANTE") {
+                                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.idFirestore)
+                                    }
+                                    pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
+                                }
+                            )
+                        }
+                    }
+                    entry<Routes.HomeRoutes.MateriaDetalle> { route ->
+                        if (usuario.rol == "PROFESOR") {
+                            MateriaDetalleProfesorPanel(
+                                asignatura = route.asignatura,
+                                profesor = usuario,
+                                onBackClick = { pageBackStack.removeLastOrNull() },
+                                onOpenDialog = { newState -> dialogState = newState }
+                            )
+                        } else {
+                            MateriaDetalleEstudiantePanel(
+                                asignatura = route.asignatura,
+                                onBackClick = { pageBackStack.removeLastOrNull() }
+                            )
                         }
                     }
                     entry<Routes.HomeRoutes.Horarios> {
@@ -261,10 +311,12 @@ fun HomeScreen(
                         if (usuario.rol == "PROFESOR") {
                             CalificacionesProfesorPanel(
                                 profesor = usuario,
-                                paddingValues = PaddingValues(0.dp)
+                                paddingValues = PaddingValues(0.dp),
+                                onOpenDialog = { newState -> dialogState = newState }
                             )
                         } else {
                             CalificacionesEstudiantePanel(
+                                asignaturas = estudianteState.asignaturas,
                                 paddingValues = PaddingValues(0.dp),
                                 onAsignaturaClick = { asignatura ->
                                     pageBackStack.add(Routes.HomeRoutes.CalificacionesDetalle(asignatura))
@@ -273,8 +325,14 @@ fun HomeScreen(
                         }
                     }
                     entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
+                        // Cargar evaluaciones de la asignatura seleccionada
+                        LaunchedEffect(route.asignatura.idFirestore) {
+                            estudianteViewModel.cargarEvaluaciones(route.asignatura.idFirestore)
+                        }
+
                         CalificacionesAsignaturaPanel(
-                            asignatura = route.asignatura,  // directo, sin buscar
+                            asignatura = route.asignatura,
+                            evaluaciones = estudianteState.evaluaciones,
                             paddingValues = PaddingValues(0.dp),
                             onBackClick = { pageBackStack.removeLastOrNull() }
                         )
@@ -296,6 +354,7 @@ fun HomeScreen(
 //                    }
                     entry<Routes.HomeRoutes.Recordatorios> {
                         RecordatoriosEstudiantePanel(
+                            recordatorios = appState.recordatorios,
                             paddingValues = PaddingValues(0.dp),
                             onOpenDialog = { newState -> dialogState = newState }
                         )

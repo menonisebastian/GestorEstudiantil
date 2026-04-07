@@ -144,6 +144,7 @@ fun GoogleAcademicSetupScreen(
 
     var cursoNombre by remember { mutableStateOf("Seleccionar Curso...") }
     var cursoId by remember { mutableStateOf("") }
+    var cursoAcronimo by remember { mutableStateOf("") }
 
     var turno by remember { mutableStateOf("Seleccionar Turno...") }
 
@@ -231,6 +232,7 @@ fun GoogleAcademicSetupScreen(
                             authViewModel.loadCursosPorCentro(centroSel.id)
                             cursoNombre = "Seleccionar Curso..."
                             cursoId = ""
+                            cursoAcronimo = ""
                             turno = "Seleccionar Turno..."
                         }
                     },
@@ -239,29 +241,40 @@ fun GoogleAcademicSetupScreen(
                     label = "Instituto"
                 )
 
-                if (rolSeleccionado == "ESTUDIANTE" && centroId.isNotEmpty()) {
-                    CustomOptionsTextField(
-                        texto = cursoNombre,
-                        onValueChange = { nombreSeleccionado ->
-                            cursoNombre = nombreSeleccionado
-                            val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
-                            if (cursoSel != null) {
-                                cursoId = cursoSel.id
-                                turno = "Seleccionar Turno..."
-                            }
-                        },
-                        opciones = cursosList.map { it.nombre },
-                        icon = Icons.Default.Class,
-                        label = "Curso a matricular"
-                    )
-                    
-                    if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
+                if (centroId.isNotEmpty()) {
+                    if (rolSeleccionado == "ESTUDIANTE") {
+                        CustomOptionsTextField(
+                            texto = cursoNombre,
+                            onValueChange = { nombreSeleccionado ->
+                                cursoNombre = nombreSeleccionado
+                                val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
+                                if (cursoSel != null) {
+                                    cursoId = cursoSel.id
+                                    cursoAcronimo = cursoSel.acronimo
+                                    turno = "Seleccionar Turno..."
+                                }
+                            },
+                            opciones = cursosList.map { it.nombre },
+                            icon = Icons.Default.Class,
+                            label = "Curso a matricular"
+                        )
+
+                        if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
+                            CustomOptionsTextField(
+                                texto = turno,
+                                onValueChange = { turno = it },
+                                opciones = turnosDisponibles,
+                                icon = Icons.Default.Schedule,
+                                label = "Turno"
+                            )
+                        }
+                    } else if (rolSeleccionado == "PROFESOR") {
                         CustomOptionsTextField(
                             texto = turno,
                             onValueChange = { turno = it },
-                            opciones = turnosDisponibles,
+                            opciones = listOf("matutino", "vespertino"),
                             icon = Icons.Default.Schedule,
-                            label = "Turno"
+                            label = "Turno de trabajo"
                         )
                     }
                 }
@@ -279,16 +292,35 @@ fun GoogleAcademicSetupScreen(
                 Button(
                     onClick = {
                         if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
-                            Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
-                        } else {
-                            authViewModel.completeGoogleSetup(
-                                password = passwordValue,
-                                rolSeleccionado = rolSeleccionado,
-                                centroId = centroId,
-                                cursoId = cursoId,
-                                cursoNombre = cursoNombre,
-                                turno = if (turno == "Seleccionar Turno...") "" else turno
-                            )
+                            Toast.makeText(context, "Por favor selecciona rol e instituto", Toast.LENGTH_SHORT).show()
+                        } else if (rolSeleccionado == "ESTUDIANTE") {
+                            if (cursoId.isEmpty()) {
+                                Toast.makeText(context, "Debes seleccionar un curso", Toast.LENGTH_SHORT).show()
+                            } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
+                                Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
+                            } else {
+                                authViewModel.completeGoogleSetup(
+                                    password = passwordValue,
+                                    rolSeleccionado = rolSeleccionado,
+                                    centroId = centroId,
+                                    cursoId = cursoId,
+                                    cursoNombre = cursoAcronimo,
+                                    turno = turno
+                                )
+                            }
+                        } else if (rolSeleccionado == "PROFESOR") {
+                            if (turno == "Seleccionar Turno...") {
+                                Toast.makeText(context, "Debes seleccionar un turno de trabajo", Toast.LENGTH_SHORT).show()
+                            } else {
+                                authViewModel.completeGoogleSetup(
+                                    password = passwordValue,
+                                    rolSeleccionado = rolSeleccionado,
+                                    centroId = centroId,
+                                    cursoId = "",
+                                    cursoNombre = "Docente",
+                                    turno = turno
+                                )
+                            }
                         }
                     },
                     enabled = !authState.isLoading,

@@ -32,17 +32,13 @@ import samf.gestorestudiantil.ui.theme.textColor
 @Composable
 fun CalificacionesAsignaturaPanel(
     asignatura: Asignatura,
+    evaluaciones: List<Evaluacion>,
     paddingValues: PaddingValues,
     onBackClick: () -> Unit
 ) {
-    val listaEvaluaciones = listOf(
-        Evaluacion("", "UD1", 8.0, "", asignatura.descripcion, true, tipoEvaluacion.Exposicion),
-        Evaluacion("", "UD2", 7.0, "", asignatura.descripcion, true, tipoEvaluacion.Practica),
-        Evaluacion("", "UD3", 9.0, "", asignatura.descripcion, true, tipoEvaluacion.Examen),
-        Evaluacion("", "TFG", 10.0, "", asignatura.descripcion, true, tipoEvaluacion.Proyecto)
-    )
-
-    val notaMedia = listaEvaluaciones.sumOf { it.nota } / listaEvaluaciones.size
+    val notaMedia = if (evaluaciones.isNotEmpty()) {
+        evaluaciones.sumOf { it.nota } / evaluaciones.size
+    } else 0.0
 
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -72,7 +68,7 @@ fun CalificacionesAsignaturaPanel(
             // BLOQUE 1: Contenido con márgenes
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp))
             {
-                items(listaEvaluaciones)
+                items(evaluaciones)
                 {
                         modulo ->
                     EvaluacionCard(modulo)
