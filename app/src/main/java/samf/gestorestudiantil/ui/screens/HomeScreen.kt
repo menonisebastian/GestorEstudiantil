@@ -50,9 +50,12 @@ import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
-import samf.gestorestudiantil.ui.panels.admin.AsignarProfesorPanel
 import samf.gestorestudiantil.ui.panels.admin.CentrosAdminPanel
 import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
+import samf.gestorestudiantil.ui.screens.admin.EditAsignaturaScreen
+import samf.gestorestudiantil.ui.screens.admin.EditCentroScreen
+import samf.gestorestudiantil.ui.screens.admin.EditCursoScreen
+import samf.gestorestudiantil.ui.screens.admin.EditUserScreen
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
@@ -88,7 +91,6 @@ val itemsProfesor: Map<String, ImageVector> = mapOf(
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
-    "Asignación" to Icons.Outlined.Class,
     "Recordatorios" to Icons.Outlined.Notifications
 )
 
@@ -370,13 +372,51 @@ fun HomeScreen(
                     entry<Routes.HomeRoutes.Centros> {
                         CentrosAdminPanel(
                             paddingValues = PaddingValues(0.dp),
-                            onOpenDialog = { newState -> dialogState = newState }
+                            onOpenDialog = { newState -> dialogState = newState },
+                            onNavigate = { route -> pageBackStack.add(route) }
                         )
                     }
-                    entry<Routes.HomeRoutes.AsignarProfesor> {
-                        AsignarProfesorPanel(
-                            paddingValues = PaddingValues(0.dp),
-                            onOpenDialog = { newState -> dialogState = newState }
+                    entry<Routes.HomeRoutes.EditCentro> { route ->
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        EditCentroScreen(
+                            state = DialogState.EditCentro(
+                                centro = route.centro,
+                                onSave = { adminViewModel.guardarCentro(it) }
+                            ),
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.EditCurso> { route ->
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        EditCursoScreen(
+                            state = DialogState.EditCurso(
+                                curso = route.curso,
+                                centroId = route.centroId,
+                                onSave = { adminViewModel.guardarCurso(it) }
+                            ),
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.EditAsignatura> { route ->
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        EditAsignaturaScreen(
+                            state = DialogState.EditAsignatura(
+                                asignatura = route.asignatura,
+                                cursoId = route.cursoId,
+                                centroId = route.centroId,
+                                onSave = { adminViewModel.guardarAsignatura(it) }
+                            ),
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.EditUser> { route ->
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        EditUserScreen(
+                            state = DialogState.EditUser(
+                                user = route.user,
+                                onSave = { adminViewModel.guardarUsuario(it) }
+                            ),
+                            onBack = { pageBackStack.removeLastOrNull() }
                         )
                     }
                 }

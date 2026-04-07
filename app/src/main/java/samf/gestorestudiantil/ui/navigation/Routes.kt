@@ -3,6 +3,9 @@ package samf.gestorestudiantil.ui.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Centro
+import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.User
 
 // Definición de rutas Type-Safe
 sealed interface Routes {
@@ -78,7 +81,16 @@ sealed interface Routes {
         data object Centros : HomeRoutes
 
         @Serializable
-        data object AsignarProfesor : HomeRoutes
+        data class EditCentro(val centro: Centro? = null) : HomeRoutes
+
+        @Serializable
+        data class EditCurso(val curso: Curso? = null, val centroId: String) : HomeRoutes
+
+        @Serializable
+        data class EditAsignatura(val asignatura: Asignatura? = null, val cursoId: String, val centroId: String) : HomeRoutes
+
+        @Serializable
+        data class EditUser(val user: User) : HomeRoutes
     }
 
     @Serializable

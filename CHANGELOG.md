@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.4] - 2026-04-08
+- Feature: Unified "Centros" and "Asignación" into a single administrative flow.
+- Improvement: Converted all administrative edit dialogs (Centros, Cursos, Asignaturas, Usuarios) into full-screen Scaffold views.
+- Improvement: Redesigned edit screens with fixed bottom bars for primary actions (Save/Cancel).
+- Improvement: Navigation 3 routes and mappers updated to support type-safe full-screen editing.
+- Improvement: Extracted UI picker components (ColorPicker, IconPicker) into a shared library.
+- Change: Removed obsolete `AdminEditDialogs.kt`.
+
 ## [v0.2.3] - 2026-04-07
 - Feature: Implemented the ability to add new Cursos/Asignaturas.
 - Feature: Implemented the ability to make Unidades/Posts inside Asignaturas.
@@ -19,7 +27,7 @@ All notable changes to this project will be documented in this file.
 - Change: Modified AdminViewModel and Navigation.
 - Feature: Filter chips for the SearchBar
 - Feature: Creation of Profesor panels.
-- Feature: Implemented the ability to modify the DB data from the AdminPanel includin icons and colors from Cursos/Asignaturas.
+- Feature: Implemented the ability to modify the DB data from the AdminPanel including icons and colors from Cursos/Asignaturas.
 - Change: Cursos/Asignaturas now have their own colors.
 
 ## [v0.2.1] - 2026-03-15

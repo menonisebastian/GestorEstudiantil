@@ -54,6 +54,11 @@ sealed class DialogState {
         val onSave: (Asignatura) -> Unit
     ) : DialogState()
 
+    data class EditUser(
+        val user: User,
+        val onSave: (User) -> Unit
+    ) : DialogState()
+
     data class AsignarAsignaturas(
         val profesor: User,
         val onAssign: (String) -> Unit, // id de la asignatura

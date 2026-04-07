@@ -1,5 +1,8 @@
 package samf.gestorestudiantil.data.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Curso(
     var id: String = "",
     var acronimo: String = "",          // "DAM", "DAW", "ASIR", "MKT" ...

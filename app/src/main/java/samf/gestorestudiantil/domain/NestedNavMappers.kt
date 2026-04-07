@@ -23,7 +23,10 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
     "Notificaciones"  -> Routes.HomeRoutes.Recordatorios
     "Usuarios"        -> Routes.HomeRoutes.Usuarios
     "Centros"         -> Routes.HomeRoutes.Centros
-    "Asignación"      -> Routes.HomeRoutes.AsignarProfesor
+    "EditCentro"      -> Routes.HomeRoutes.EditCentro()
+    "EditCurso"       -> Routes.HomeRoutes.EditCurso(null, "")
+    "EditAsignatura"  -> Routes.HomeRoutes.EditAsignatura(null, "", "")
+    "EditUser"        -> Routes.HomeRoutes.EditUser(samf.gestorestudiantil.data.models.User())
     else              -> Routes.HomeRoutes.Materias
 }
 
@@ -35,13 +38,20 @@ fun routeToTab(route: Any, rol: String): String = when (route) {
     is Routes.HomeRoutes.Recordatorios   -> "Recordatorios"
     is Routes.HomeRoutes.Usuarios        -> "Usuarios"
     is Routes.HomeRoutes.Centros         -> "Centros"
-    is Routes.HomeRoutes.AsignarProfesor -> "Asignación"
+    is Routes.HomeRoutes.EditCentro      -> "EditCentro"
+    is Routes.HomeRoutes.EditCurso       -> "EditCurso"
+    is Routes.HomeRoutes.EditAsignatura  -> "EditAsignatura"
+    is Routes.HomeRoutes.EditUser        -> "EditUser"
     else                                  -> ""
 }
 
 // Devuelve true si es una ruta de detalle (no un tab raíz)
 fun isDetailRoute(route: Any): Boolean =
-    route is Routes.HomeRoutes.CalificacionesDetalle
+    route is Routes.HomeRoutes.CalificacionesDetalle ||
+    route is Routes.HomeRoutes.EditCentro ||
+    route is Routes.HomeRoutes.EditCurso ||
+    route is Routes.HomeRoutes.EditAsignatura ||
+    route is Routes.HomeRoutes.EditUser
 
 
 //## Resumen visual de la arquitectura

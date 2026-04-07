@@ -52,6 +52,7 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
+import samf.gestorestudiantil.ui.navigation.Routes
 
 enum class AdminView {
     CENTROS, TIPOS_CURSO, CURSOS, TURNOS, CICLOS, ASIGNATURAS
@@ -61,7 +62,8 @@ enum class AdminView {
 fun CentrosAdminPanel(
     paddingValues: PaddingValues,
     adminViewModel: AdminViewModel = viewModel(),
-    onOpenDialog: (DialogState) -> Unit
+    onOpenDialog: (DialogState) -> Unit,
+    onNavigate: (Routes.HomeRoutes) -> Unit
 ) {
     val adminState by adminViewModel.adminState.collectAsState()
     val context = LocalContext.current
@@ -156,10 +158,7 @@ fun CentrosAdminPanel(
                                         currentView = AdminView.TIPOS_CURSO
                                     },
                                     onEdit = {
-                                        onOpenDialog(DialogState.EditCentro(
-                                            centro = centro,
-                                            onSave = { adminViewModel.guardarCentro(it) }
-                                        ))
+                                        onNavigate(Routes.HomeRoutes.EditCentro(centro))
                                     }
                                 )
                             }
@@ -189,10 +188,9 @@ fun CentrosAdminPanel(
                                         currentView = AdminView.TURNOS
                                     },
                                     onEdit = {
-                                        onOpenDialog(DialogState.EditCurso(
+                                        onNavigate(Routes.HomeRoutes.EditCurso(
                                             curso = curso,
-                                            centroId = selectedCentro?.id ?: "",
-                                            onSave = { adminViewModel.guardarCurso(it) }
+                                            centroId = selectedCentro?.id ?: ""
                                         ))
                                     }
                                 )
@@ -227,13 +225,14 @@ fun CentrosAdminPanel(
                             items(asignaturasDelCiclo) { asignatura ->
                                 AsignaturaCard(
                                     asignatura = asignatura,
-                                    onClick = {},
+                                    onClick = {
+                                        onOpenDialog(DialogState.AsignarProfesor(asignatura))
+                                    },
                                     onEdit = {
-                                        onOpenDialog(DialogState.EditAsignatura(
+                                        onNavigate(Routes.HomeRoutes.EditAsignatura(
                                             asignatura = asignatura,
                                             cursoId = selectedCurso?.id ?: "",
-                                            centroId = selectedCentro?.id ?: "",
-                                            onSave = { adminViewModel.guardarAsignatura(it) }
+                                            centroId = selectedCentro?.id ?: ""
                                         ))
                                     }
                                 )
@@ -248,21 +247,17 @@ fun CentrosAdminPanel(
             onClick = {
                 when (currentView) {
                     AdminView.CENTROS -> {
-                        onOpenDialog(DialogState.EditCentro(
-                            onSave = { adminViewModel.guardarCentro(it) }
-                        ))
+                        onNavigate(Routes.HomeRoutes.EditCentro())
                     }
                     AdminView.CURSOS -> {
-                        onOpenDialog(DialogState.EditCurso(
-                            centroId = selectedCentro?.id ?: "",
-                            onSave = { adminViewModel.guardarCurso(it) }
+                        onNavigate(Routes.HomeRoutes.EditCurso(
+                            centroId = selectedCentro?.id ?: ""
                         ))
                     }
                     AdminView.ASIGNATURAS -> {
-                        onOpenDialog(DialogState.EditAsignatura(
+                        onNavigate(Routes.HomeRoutes.EditAsignatura(
                             cursoId = selectedCurso?.id ?: "",
-                            centroId = selectedCentro?.id ?: "",
-                            onSave = { adminViewModel.guardarAsignatura(it) }
+                            centroId = selectedCentro?.id ?: ""
                         ))
                     }
                     else -> {}

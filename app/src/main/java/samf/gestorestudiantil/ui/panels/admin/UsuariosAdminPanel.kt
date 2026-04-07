@@ -249,7 +249,8 @@ fun UsuarioCardAdmin(
     onAprobar: () -> Unit,
     onRechazar: () -> Unit,
     onUserDialog: () -> Unit,
-    onOpenDialog: (DialogState) -> Unit
+    onOpenDialog: (DialogState) -> Unit,
+    adminViewModel: AdminViewModel = viewModel()
 ) {
     val softRed = Color(0xFFD74132)
     Card(
@@ -290,7 +291,12 @@ fun UsuarioCardAdmin(
                                         onUnassign = { }
                                     ))
                                 } else {
-                                    /* TODO: Editar otros roles */
+                                    onOpenDialog(DialogState.EditUser(
+                                        user = usuario,
+                                        onSave = { updated ->
+                                            adminViewModel.guardarUsuario(updated)
+                                        }
+                                    ))
                                 }
                             }, 
                             modifier = Modifier.size(32.dp)

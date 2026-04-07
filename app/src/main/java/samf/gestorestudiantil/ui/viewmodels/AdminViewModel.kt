@@ -486,6 +486,16 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    fun guardarUsuario(user: User) {
+        viewModelScope.launch {
+            try {
+                db.collection("usuarios").document(user.id).set(user).await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al guardar usuario: ${e.localizedMessage}")
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         usuariosListener?.remove()

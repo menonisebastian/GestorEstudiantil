@@ -1,5 +1,8 @@
 package samf.gestorestudiantil.data.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class User(
     var id: String = "",
     var nombre: String = "",

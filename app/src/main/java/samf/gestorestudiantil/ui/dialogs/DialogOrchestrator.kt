@@ -38,27 +38,6 @@ fun DialogOrchestrator(
             )
         }
 
-        is DialogState.EditCentro -> {
-            EditCentroDialog(
-                state = state,
-                onDismissRequest = onDismiss
-            )
-        }
-
-        is DialogState.EditCurso -> {
-            EditCursoDialog(
-                state = state,
-                onDismissRequest = onDismiss
-            )
-        }
-
-        is DialogState.EditAsignatura -> {
-            EditAsignaturaDialog(
-                state = state,
-                onDismissRequest = onDismiss
-            )
-        }
-
         is DialogState.AsignarAsignaturas -> {
             AsignarAsignaturasDialog(
                 state = state,
@@ -86,5 +65,10 @@ fun DialogOrchestrator(
                 onDismissRequest = onDismiss
             )
         }
+
+        is DialogState.EditCentro,
+        is DialogState.EditCurso,
+        is DialogState.EditAsignatura,
+        is DialogState.EditUser -> Unit
     }
 }
