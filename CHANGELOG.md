@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Improvement: Navigation 3 routes and mappers updated to support type-safe full-screen editing.
 - Improvement: Extracted UI picker components (ColorPicker, IconPicker) into a shared library.
 - Improvement: Logo and branding updated.
+- Improvement: Redesigned the UI for the Authentication screens.
 - Change: Removed obsolete `AdminEditDialogs.kt`.
 
 ## [v0.2.3] - 2026-04-07

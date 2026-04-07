@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -59,13 +59,15 @@ import samf.gestorestudiantil.domain.signInWithGoogle
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
-import samf.gestorestudiantil.ui.components.IconLogo
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.SocialMediaButton
+import samf.gestorestudiantil.ui.components.TextDivider
 import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
 val itemsAuth: Map<String, ImageVector> = mapOf(
@@ -84,7 +86,6 @@ fun AuthScreen(
     val tabs = remember { itemsAuth.keys.toList() }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
-    val centro = "Gestor Estudiantil"
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
     val token = stringResource(R.string.id_token)
@@ -136,9 +137,9 @@ fun AuthScreen(
                     Row (
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp)) {
+                        modifier = Modifier.padding(end = 16.dp).fillMaxWidth()) {
                         //IconLogo(100.dp)
-                        TitleLogo(100.dp)
+                        TitleLogo(150.dp)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -274,6 +275,20 @@ fun LoginPanel(
             )
 
             CustomPasswordTextField(state = passwordState, isLast = true)
+
+            Button(
+                onClick = {
+                    password = passwordState.text.toString()
+                    onLoginClick(email, password)
+                },
+                shape = RoundedCornerShape(16.dp),
+                enabled = !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text("Ingresar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = whiteColor)
+            }
         }
 
         Column(
@@ -284,9 +299,15 @@ fun LoginPanel(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Iniciar Sesión",
+                text = "Bienvenido de vuelta!",
                 color = textColor,
                 fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Por favor, ingresa tus datos para continuar",
+                color = surfaceDimColor,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -301,31 +322,21 @@ fun LoginPanel(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Button(
-                onClick = {
-                    password = passwordState.text.toString()
-                    onLoginClick(email, password)
-                },
-                shape = RoundedCornerShape(16.dp),
-                enabled = !isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Text("Entrar")
-            }
-
             TextButton(
                 onClick = { onForgotPassword() },
             ) {
-                Text("Recordar contraseña")
+                Text(text = "Recordar contraseña", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
 
-            HorizontalDivider()
+            //HorizontalDivider()
 
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text("O entra con", color = textColor, fontSize = 16.sp)
-            }
+//            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+//                Text("O entra con", color = textColor, fontSize = 16.sp)
+//            }
+
+            TextDivider(text = "O ingresa con")
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             SocialMediaButton(
                 iconRes = R.drawable.google,
@@ -386,7 +397,7 @@ fun RegistroPanelStep1(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text("Crea tu cuenta ya!", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
                 ProfileImagePicker(
                     currentPhotoUrl = fotoUrl,
@@ -422,7 +433,7 @@ fun RegistroPanelStep1(
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Siguiente")
+                    Text("Siguiente", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = whiteColor)
                 }
             }
         }

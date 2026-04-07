@@ -1103,7 +1103,6 @@ fun SocialMediaButton(
 fun IconLogo(
     width: Dp
 ) {
-
     Image(
         painter = painterResource(R.drawable.icon),
         contentDescription = "IconLogo",
@@ -1111,14 +1110,6 @@ fun IconLogo(
             .width(width)
             .padding(15.dp)
     )
-//    Card(
-//        onClick = onClick,
-//        elevation = CardDefaults.cardElevation(5.dp),
-//        shape = RoundedCornerShape(20.dp),
-//        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-//    ) {
-//
-//    }
 }
 
 // ============ BOTONES LOGOS ============ //
@@ -1133,12 +1124,38 @@ fun TitleLogo(
             .width(width)
             .padding(15.dp)
     )
-//    Card(
-//        onClick = onClick,
-//        elevation = CardDefaults.cardElevation(5.dp),
-//        shape = RoundedCornerShape(20.dp),
-//        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-//    ) {
-//
-//    }
+}
+
+@Composable
+fun TextDivider(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Línea izquierda
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+
+        // Texto central
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            color = surfaceDimColor
+        )
+
+        // Línea derecha
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
 }

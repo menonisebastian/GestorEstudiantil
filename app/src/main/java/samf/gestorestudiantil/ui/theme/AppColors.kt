@@ -20,6 +20,14 @@ val surfaceDimColor: Color
     @Composable
     get() = colorScheme.surfaceDim
 
+val errorColor: Color
+    @Composable
+    get() = colorScheme.error
+
+val whiteColor: Color
+    @Composable
+    get() = Color.White
+
 val primaryColor: Color
     @Composable
     get() = colorScheme.primary
