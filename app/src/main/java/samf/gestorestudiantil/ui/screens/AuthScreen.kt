@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,8 +59,10 @@ import samf.gestorestudiantil.domain.signInWithGoogle
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
+import samf.gestorestudiantil.ui.components.IconLogo
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.SocialMediaButton
+import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -129,7 +132,15 @@ fun AuthScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text(centro, fontWeight = FontWeight.ExtraBold, color = textColor) },
+                title = { /*Text(centro, fontWeight = FontWeight.ExtraBold, color = textColor)*/
+                    Row (
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp)) {
+                        //IconLogo(100.dp)
+                        TitleLogo(100.dp)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = backgroundColor,
                     titleContentColor = textColor

@@ -101,6 +101,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
@@ -1095,4 +1096,49 @@ fun SocialMediaButton(
                 .padding(15.dp)
         )
     }
+}
+
+// ============ BOTONES LOGOS ============ //
+@Composable
+fun IconLogo(
+    width: Dp
+) {
+
+    Image(
+        painter = painterResource(R.drawable.icon),
+        contentDescription = "IconLogo",
+        modifier = Modifier
+            .width(width)
+            .padding(15.dp)
+    )
+//    Card(
+//        onClick = onClick,
+//        elevation = CardDefaults.cardElevation(5.dp),
+//        shape = RoundedCornerShape(20.dp),
+//        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+//    ) {
+//
+//    }
+}
+
+// ============ BOTONES LOGOS ============ //
+@Composable
+fun TitleLogo(
+    width: Dp
+) {
+    Image(
+        painter = painterResource(R.drawable.logo),
+        contentDescription = "IconLogo",
+        modifier = Modifier
+            .width(width)
+            .padding(15.dp)
+    )
+//    Card(
+//        onClick = onClick,
+//        elevation = CardDefaults.cardElevation(5.dp),
+//        shape = RoundedCornerShape(20.dp),
+//        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+//    ) {
+//
+//    }
 }
