@@ -15,6 +15,7 @@ import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.ScrapedCourse
 import samf.gestorestudiantil.data.models.User
 
@@ -24,6 +25,7 @@ data class AdminState(
     val centros: List<Centro> = emptyList(),
     val cursos: List<Curso> = emptyList(),
     val asignaturas: List<Asignatura> = emptyList(),
+    val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
 
@@ -39,6 +41,7 @@ class AdminViewModel : ViewModel() {
     private var centrosListener: ListenerRegistration? = null
     private var cursosListener: ListenerRegistration? = null
     private var asignaturasListener: ListenerRegistration? = null
+    private var horariosListener: ListenerRegistration? = null
 
     // --- FUNCIONES DE LIMPIEZA DE DATOS ---
 
@@ -88,6 +91,8 @@ class AdminViewModel : ViewModel() {
                     val cursoId = "${idCentro}_${sc.acronimo ?: "DESCONOCIDO"}".replace(" ", "_")
                     val cursoRef = db.collection("cursos").document(cursoId)
 
+                    val turnosNormalizados = (sc.turnos_disponibles ?: emptyList<String>()).map { it.lowercase().trim() }
+
                     val cursoData = hashMapOf(
                         "id"                to cursoId,
                         "centroId"          to idCentro,
@@ -95,7 +100,7 @@ class AdminViewModel : ViewModel() {
                         "nombre"            to sc.nombre_curso,
                         "tipo"              to sc.tipo,
                         "modalidad"         to (sc.modalidad ?: "presencial"),
-                        "turnosDisponibles" to (sc.turnos_disponibles ?: emptyList<String>()),
+                        "turnosDisponibles" to turnosNormalizados,
                         "urlInfo"           to (sc.url ?: ""),
                         "horasTotalesCurso" to extraerNumero(sc.horas_totales_curso),
                         "iconoName"         to (sc.iconoName ?: "School"),
@@ -107,7 +112,7 @@ class AdminViewModel : ViewModel() {
                     operationCount++
 
                     val ciclos = sc.ciclos ?: emptyList()
-                    val turnos = sc.turnos_disponibles ?: listOf("matutino")
+                    val turnos = turnosNormalizados.ifEmpty { listOf("matutino") }
 
                     for (turno in turnos) {
                         for (cicloBloque in ciclos) {
@@ -117,7 +122,7 @@ class AdminViewModel : ViewModel() {
                             val asignaturasList = cicloBloque.asignaturas
                             for (asig in asignaturasList) {
                                 // ID DETERMINISTA PARA ASIGNATURA: CURSOID_CICLO_ACRONIMO_TURNO
-                                val asigId = "${cursoId}_${cicloNum}_${asig.acronimo}_${turno}".replace(" ", "_")
+                                val asigId = "${cursoId}_${cicloNum}_${asig.acronimo}_${turno}".replace(" ", "_").lowercase()
                                 val asigRef = db.collection("asignaturas").document(asigId)
 
                                 val asigData = hashMapOf(
@@ -292,11 +297,12 @@ class AdminViewModel : ViewModel() {
     }
 
     fun cargarAsignaturasSinProfesor(turno: String) {
+        val turnoNormalizado = turno.lowercase().trim()
         _adminState.value = _adminState.value.copy(isLoading = true)
         asignaturasListener?.remove()
         asignaturasListener = db.collection("asignaturas")
             .whereEqualTo("profesorId", "")
-            .whereEqualTo("turno", turno)
+            .whereEqualTo("turno", turnoNormalizado)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     _adminState.value = _adminState.value.copy(
@@ -387,11 +393,12 @@ class AdminViewModel : ViewModel() {
     }
 
     fun cargarAsignaturasPorCurso(cursoId: String, turno: String) {
+        val turnoNormalizado = turno.lowercase().trim()
         _adminState.value = _adminState.value.copy(isLoading = true)
         asignaturasListener?.remove()
         asignaturasListener = db.collection("asignaturas")
             .whereEqualTo("cursoId", cursoId)
-            .whereEqualTo("turno", turno)
+            .whereEqualTo("turno", turnoNormalizado)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     _adminState.value = _adminState.value.copy(
@@ -482,6 +489,60 @@ class AdminViewModel : ViewModel() {
                 db.collection("asignaturas").document(asignaturaId).delete().await()
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = "Error al eliminar asignatura: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    // ====================================================================
+    // 6. GESTIÓN DE HORARIOS
+    // ====================================================================
+
+    fun cargarHorariosPorCursoYCiclo(cursoId: String, cicloNum: Int, turno: String) {
+        val turnoNormalizado = turno.lowercase().trim()
+        _adminState.value = _adminState.value.copy(isLoading = true)
+        horariosListener?.remove()
+        horariosListener = db.collection("horarios")
+            .whereEqualTo("cursoId", cursoId)
+            .whereEqualTo("cicloNum", cicloNum)
+            .whereEqualTo("turno", turnoNormalizado)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _adminState.value = _adminState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Error al cargar horarios: ${error.localizedMessage}"
+                    )
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val lista = snapshot.toObjects(Horario::class.java)
+                    _adminState.value = _adminState.value.copy(
+                        isLoading = false,
+                        horarios = lista
+                    )
+                }
+            }
+    }
+
+    fun guardarHorario(horario: Horario) {
+        viewModelScope.launch {
+            try {
+                horario.turno = horario.turno.lowercase().trim()
+                val collection = db.collection("horarios")
+                val ref = if (horario.id.isEmpty()) collection.document() else collection.document(horario.id)
+                if (horario.id.isEmpty()) horario.id = ref.id
+                ref.set(horario, com.google.firebase.firestore.SetOptions.merge()).await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al guardar horario: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun eliminarHorario(horarioId: String) {
+        viewModelScope.launch {
+            try {
+                db.collection("horarios").document(horarioId).delete().await()
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = "Error al eliminar horario: ${e.localizedMessage}")
             }
         }
     }

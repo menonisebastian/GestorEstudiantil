@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,37 +28,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.ui.components.WeekNavBar
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
-// Definimos los colores aproximados de la imagen
-val ColorDesarrollo = Color(0xFFC5E1A5) // Verde claro
-val ColorSostenibilidad = Color(0xFFE1BEE7) // Lila
-val ColorAccesoDatos = Color(0xFFFFF59D) // Amarillo
-val ColorSistemas = Color(0xFFFFCC80) // Naranja
-val ColorProgMovil = Color(0xFFEF9A9A) // Rojo suave
-val ColorDocker = Color(0xFFD1C4E9) // Morado suave
-val ColorFOL = Color(0xFF80DEEA) // Cian/Turquesa
-val ColorServicios = Color(0xFF90CAF9) // Azul claro
-val ColorReceso = Color.LightGray
-
-data class ClaseHorario(
-    val materia: String,
-    val profesor: String,
-    val hora: String,
-    val color: Color
-)
-
 @Composable
-fun HorariosEstudiantePanel(paddingValues: PaddingValues) {
-
+fun HorariosEstudiantePanel(
+    paddingValues: PaddingValues,
+    horarios: List<Horario>,
+    asignaturas: List<Asignatura>,
+    turno: String,
+    isLoading: Boolean = false
+) {
     var selectedDay by remember { mutableStateOf("Lunes") }
-
-    val curso = "DAMV2"
 
     Column(
         modifier = Modifier
@@ -69,7 +58,7 @@ fun HorariosEstudiantePanel(paddingValues: PaddingValues) {
         Column(modifier = Modifier.padding(horizontal = 20.dp))
         {
             Text(
-                text = "Horario Personal - $curso",
+                text = "Horario Personal",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor,
@@ -83,144 +72,135 @@ fun HorariosEstudiantePanel(paddingValues: PaddingValues) {
             onItemSelected = { nuevoDia -> selectedDay = nuevoDia }
         )
 
-        // Contenido cambiante con animación
-        AnimatedContent(
-            targetState = selectedDay,
-            label = "HorarioTransition",
-            transitionSpec = {
-                fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator(color = samf.gestorestudiantil.ui.theme.primaryColor)
             }
-        ) { dia ->
-            HorarioDelDia(dia)
+        } else {
+            // Contenido cambiante con animación
+            AnimatedContent(
+                targetState = selectedDay,
+                label = "HorarioTransition",
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                }
+            ) { dia ->
+                HorarioDelDia(dia, horarios, asignaturas, turno)
+            }
         }
     }
 }
 
 @Composable
-fun HorarioDelDia(dia: String) {
-    val clases = getClasesPorDia(dia)
+fun HorarioDelDia(dia: String, horarios: List<Horario>, asignaturas: List<Asignatura>, turno: String) {
+    val slots = if (turno.lowercase().trim() == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
 
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (clases.isEmpty()) {
+        if (horarios.isEmpty()) {
             item {
                 Text(
-                    text = "No hay clases programadas",
-                    color = surfaceDimColor,
-                    modifier = Modifier.padding(top = 32.dp)
+                    text = "No hay clases programadas para este curso.",
+                    style = androidx.compose.ui.text.TextStyle(color = Color.Gray, fontSize = 12.sp),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
-        } else {
-            items(clases) { clase ->
-                ItemHorario(clase)
-            }
+        }
 
-            item {
-                Spacer(modifier = Modifier.height(20.dp)) // Espacio final
+        items(slots) { slot ->
+            // Normalizamos la comparación eliminando espacios extra
+            val h = horarios.find { item ->
+                val horarioSlot = "${item.horaInicio.trim()} - ${item.horaFin.trim()}"
+                item.dia.equals(dia, ignoreCase = true) && horarioSlot == slot.trim()
             }
+            val asig = asignaturas.find { it.idFirestore == h?.asignaturaId }
+            
+            ItemHorario(slot, h, asig)
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
 @Composable
-fun ItemHorario(clase: ClaseHorario) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = clase.color), // Usamos el color de la materia
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = clase.materia,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = Color.Black.copy(alpha = 0.8f) // Texto oscuro para contraste con colores pastel
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Row (verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = clase.hora,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black.copy(alpha = 0.6f)
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Text(
-                    text = clase.profesor,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black.copy(alpha = 0.6f)
-                )
+fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
+    val isReceso = slot.contains("RECREO") || slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")
+    
+    val colorFondo = when {
+        isReceso -> Color.LightGray.copy(alpha = 0.5f)
+        asignatura != null -> {
+            try {
+                Color(android.graphics.Color.parseColor(asignatura.colorFondoHex))
+            } catch (e: Exception) {
+                Color.LightGray.copy(alpha = 0.2f)
             }
         }
+        horario != null && (horario.asignaturaAcronimo.isNotEmpty()) -> {
+            // Si el horario tiene acrónimo pero la asignatura no se ha encontrado (quizás no está en el listado)
+            Color.LightGray.copy(alpha = 0.4f)
+        }
+        else -> Color.LightGray.copy(alpha = 0.2f)
     }
-}
 
-// Función auxiliar con los datos de la imagen
-fun getClasesPorDia(dia: String): List<ClaseHorario> {
-    val profesorInterfaces = "Juan Manuel"
-    val profesorServicios = "Eduardo"
-    val profesorDocker = "Miguel"
-    val profesorAccesoDatos = "Oscar"
-    val profesorSistemas = "Ruben"
-    val profesorProgMovil = "Eduardo"
-    val profesorFOL = "Raquel"
-    val profesorSostenibilidad = "Mariluz"
-
-    return when (dia) {
-        "Lunes" -> listOf(
-            ClaseHorario("Desarrollo de Interfaces", profesorInterfaces,"16:00 - 16:50", ColorDesarrollo),
-            ClaseHorario("Desarrollo de Interfaces", profesorInterfaces, "16:55 - 17:45", ColorDesarrollo),
-            ClaseHorario("Prog. Multiplataforma y Móvil", profesorProgMovil, "17:50 - 18:40", ColorProgMovil),
-            ClaseHorario("--- RECREO ---", "", "18:40 - 19:05", ColorReceso),
-            ClaseHorario("Prog. Multiplataforma y Móvil", profesorProgMovil, "19:05 - 19:55", ColorProgMovil),
-            ClaseHorario("Prog. Servicios y Procesos", profesorServicios, "20:00 - 20:50", ColorServicios),
-            ClaseHorario("Prog. Servicios y Procesos", profesorServicios, "20:55 - 21:45", ColorServicios)
-        )
-        "Martes" -> listOf(
-            ClaseHorario("Sostenibilidad", profesorSostenibilidad, "16:00 - 16:50", ColorSostenibilidad),
-            ClaseHorario("Sistemas de Gestión Empresarial", profesorSistemas, "16:55 - 17:45", ColorSistemas),
-            ClaseHorario("Sistemas de Gestión Empresarial", profesorSistemas, "17:50 - 18:40", ColorSistemas),
-            ClaseHorario("--- RECREO ---", "", "18:40 - 19:05", ColorReceso),
-            ClaseHorario("FOL", profesorFOL, "19:05 - 19:55", ColorFOL),
-            ClaseHorario("Prog. Servicios y Procesos", profesorServicios, "20:00 - 20:50", ColorServicios),
-            ClaseHorario("Prog. Servicios y Procesos", profesorServicios, "20:55 - 21:45", ColorServicios)
-        )
-        "Miércoles" -> listOf(
-            ClaseHorario("Acceso a Datos", profesorAccesoDatos, "16:00 - 16:50", ColorAccesoDatos),
-            ClaseHorario("Acceso a Datos", profesorAccesoDatos, "16:55 - 17:45", ColorAccesoDatos),
-            ClaseHorario("Docker", profesorDocker, "17:50 - 18:40", ColorDocker),
-            ClaseHorario("--- RECREO ---", "", "18:40 - 19:05", ColorReceso),
-            ClaseHorario("FOL", profesorFOL, "19:05 - 19:55", ColorFOL),
-            ClaseHorario("Desarrollo de Interfaces", profesorInterfaces, "20:00 - 20:50", ColorDesarrollo),
-            ClaseHorario("Desarrollo de Interfaces", profesorInterfaces, "20:55 - 21:45", ColorDesarrollo)
-        )
-        "Jueves" -> listOf(
-            ClaseHorario("Acceso a Datos", profesorAccesoDatos, "16:00 - 16:50", ColorAccesoDatos),
-            ClaseHorario("Acceso a Datos", profesorAccesoDatos, "16:55 - 17:45", ColorAccesoDatos),
-            ClaseHorario("Prog. Multiplataforma y Móvil", profesorProgMovil, "17:50 - 18:40", ColorProgMovil),
-            ClaseHorario("--- RECREO ---", "", "18:40 - 19:05", ColorReceso),
-            ClaseHorario("Prog. Multiplataforma y Móvil", profesorProgMovil, "19:05 - 19:55", ColorProgMovil),
-            ClaseHorario("Docker", profesorDocker, "20:00 - 20:50", ColorDocker),
-            ClaseHorario("Sistemas de Gestión Empresarial", profesorSistemas, "20:55 - 21:45", ColorSistemas)
-        )
-        "Viernes" -> listOf(
-            ClaseHorario("Sistemas de Gestión Empresarial", profesorSistemas, "16:00 - 16:50", ColorSistemas),
-            ClaseHorario("Sistemas de Gestión Empresarial", profesorSistemas, "16:55 - 17:45", ColorSistemas),
-            ClaseHorario("Desarrollo de Interfaces", profesorInterfaces, "17:50 - 18:40", ColorDesarrollo),
-            ClaseHorario("--- RECREO ---", "", "18:40 - 19:05", ColorReceso),
-            ClaseHorario("Desarrollo de Interfaces", profesorInterfaces, "19:05 - 19:55", ColorDesarrollo),
-            ClaseHorario("Acceso a Datos", profesorAccesoDatos, "20:00 - 20:50", ColorAccesoDatos),
-            ClaseHorario("Acceso a Datos", profesorAccesoDatos, "20:55 - 21:45", ColorAccesoDatos)
-        )
-        else -> emptyList()
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = colorFondo),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (horario != null) 2.dp else 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = when {
+                        isReceso -> "RECREO"
+                        horario != null -> horario.asignaturaAcronimo.ifEmpty { "Materia Asignada" }
+                        else -> "---"
+                    },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = if (horario != null || isReceso) Color.Black.copy(alpha = 0.8f) else surfaceDimColor
+                )
+                if (asignatura != null && !isReceso) {
+                    Text(
+                        text = asignatura.nombre,
+                        fontSize = 12.sp,
+                        color = Color.Black.copy(alpha = 0.6f),
+                        lineHeight = 14.sp
+                    )
+                }
+                Text(
+                    text = slot,
+                    fontSize = 13.sp,
+                    color = if (horario != null || isReceso) Color.Black.copy(alpha = 0.6f) else surfaceDimColor
+                )
+            }
+            
+            if (horario != null && !isReceso) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = horario.profesorNombre,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black.copy(alpha = 0.7f)
+                    )
+                    if (horario.aula.isNotEmpty()) {
+                        Text(
+                            text = "Aula: ${horario.aula}",
+                            fontSize = 11.sp,
+                            color = Color.Black.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+            }
+        }
     }
 }

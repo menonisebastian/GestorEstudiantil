@@ -4,11 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Horario
 
 @Composable
 fun AddUnidadDialog(
@@ -61,6 +65,98 @@ fun AddUnidadDialog(
                 enabled = nombre.isNotBlank()
             ) {
                 Text(if (state.unidadId == null) "Crear" else "Guardar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditHorarioDialog(
+    state: DialogState.EditHorario,
+    onDismissRequest: () -> Unit
+) {
+    var selectedAsignaturaId by remember { mutableStateOf(state.horario.asignaturaId) }
+    var aula by remember { mutableStateOf(state.horario.aula) }
+    var expanded by remember { mutableStateOf(false) }
+
+    val selectedAsignatura = state.asignaturasDisponibles.find { it.idFirestore == selectedAsignaturaId }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Asignar Materia") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(text = "${state.horario.dia} (${state.horario.horaInicio} - ${state.horario.horaFin})", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+
+                Box {
+                    OutlinedTextField(
+                        value = selectedAsignatura?.nombre ?: "Ninguna / Vacío",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Asignatura") },
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            IconButton(onClick = { expanded = true }) {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            }
+                        }
+                    )
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Ninguna / Vacío") },
+                            onClick = {
+                                selectedAsignaturaId = ""
+                                expanded = false
+                            }
+                        )
+                        state.asignaturasDisponibles.forEach { asig ->
+                            DropdownMenuItem(
+                                text = { Text("${asig.acronimo} - ${asig.nombre}") },
+                                onClick = {
+                                    selectedAsignaturaId = asig.idFirestore
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = aula,
+                    onValueChange = { aula = it },
+                    label = { Text("Aula") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val asig = state.asignaturasDisponibles.find { it.idFirestore == selectedAsignaturaId }
+                    val updated = state.horario.copy(
+                        asignaturaId = selectedAsignaturaId,
+                        asignaturaAcronimo = asig?.acronimo ?: "",
+                        profesorId = asig?.profesorId ?: "",
+                        profesorNombre = asig?.profesorNombre ?: "",
+                        aula = aula
+                    )
+                    state.onSave(updated)
+                    onDismissRequest()
+                }
+            ) {
+                Text("Guardar")
             }
         },
         dismissButton = {

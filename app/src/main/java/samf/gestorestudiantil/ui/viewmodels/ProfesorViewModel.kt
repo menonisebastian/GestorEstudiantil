@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
+import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
@@ -24,6 +25,7 @@ data class ProfesorState(
     val evaluaciones: List<Evaluacion> = emptyList(),
     val unidades: List<Unidad> = emptyList(),
     val posts: List<Post> = emptyList(),
+    val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
 
@@ -38,6 +40,7 @@ class ProfesorViewModel : ViewModel() {
     private var evaluacionesListener: ListenerRegistration? = null
     private var unidadesListener: ListenerRegistration? = null
     private var postsListener: ListenerRegistration? = null
+    private var horariosListener: ListenerRegistration? = null
 
     // ====================================================================
     // 0. GESTIÓN DE UNIDADES Y POSTS (PROFESORES)
@@ -220,10 +223,32 @@ class ProfesorViewModel : ViewModel() {
         }
     }
 
+    // ====================================================================
+    // 6. HORARIOS DEL PROFESOR (tiempo real)
+    // ====================================================================
+    fun cargarHorariosProfesor(profesorId: String) {
+        _state.update { it.copy(isLoading = true) }
+        horariosListener?.remove()
+
+        horariosListener = db.collection("horarios")
+            .whereEqualTo("profesorId", profesorId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _state.update { it.copy(isLoading = false, errorMessage = error.localizedMessage) }
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val lista = snapshot.toObjects(Horario::class.java)
+                    _state.update { it.copy(isLoading = false, horarios = lista) }
+                }
+            }
+    }
+
     override fun onCleared() {
         super.onCleared()
         asignaturasListener?.remove()
         estudiantesListener?.remove()
         evaluacionesListener?.remove()
+        horariosListener?.remove()
     }
 }

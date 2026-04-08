@@ -143,7 +143,8 @@ class AuthViewModel : ViewModel() {
                 val newUser = User(
                     id = uid, nombre = name, email = email,
                     rol = finalRol, cursoId = cursoId, cursoOArea = areaOCurso,
-                    centroId = centroId, estado = estadoInicial, turno = turno,
+                    centroId = centroId, estado = estadoInicial, 
+                    turno = turno.lowercase().trim(),
                     cicloNum = 1, // Por defecto siempre el primer ciclo
                     imgUrl = imgUrl // <-- GUARDADO EN FIRESTORE
                 )
@@ -259,7 +260,7 @@ class AuthViewModel : ViewModel() {
                     cursoOArea = areaOCurso,
                     centroId = centroId,
                     estado = estadoInicial,
-                    turno = turno,
+                    turno = turno.lowercase().trim(),
                     cicloNum = 1, // Por defecto al registrarse siempre 1er ciclo
                     imgUrl = firebaseUser.photoUrl?.toString() ?: ""
                 )

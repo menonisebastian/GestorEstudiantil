@@ -66,6 +66,13 @@ fun DialogOrchestrator(
             )
         }
 
+        is DialogState.EditHorario -> {
+            EditHorarioDialog(
+                state = state,
+                onDismissRequest = onDismiss
+            )
+        }
+
         is DialogState.EditCentro,
         is DialogState.EditCurso,
         is DialogState.EditAsignatura,

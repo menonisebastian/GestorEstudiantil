@@ -33,19 +33,21 @@ class EstudianteViewModel : ViewModel() {
 
     private var asignaturasListener: ListenerRegistration? = null
     private var postsListener: ListenerRegistration? = null
+    private var horariosListener: ListenerRegistration? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
 
     // ====================================================================
     // 1. ASIGNATURAS DEL CURSO DEL ESTUDIANTE (tiempo real)
     // ====================================================================
     fun cargarAsignaturas(cursoId: String, turno: String, cicloNum: Int, ultimaVezAsignaturas: Map<String, Long> = emptyMap()) {
+        val turnoNormalizado = turno.lowercase().trim()
         currentUltimaVez = ultimaVezAsignaturas
         _state.value = _state.value.copy(isLoading = true)
         asignaturasListener?.remove()
 
         asignaturasListener = db.collection("asignaturas")
             .whereEqualTo("cursoId", cursoId)
-            .whereEqualTo("turno", turno)
+            .whereEqualTo("turno", turnoNormalizado)
             .whereEqualTo("cicloNum", cicloNum)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -156,6 +158,36 @@ class EstudianteViewModel : ViewModel() {
         }
     }
 
+    // ====================================================================
+    // 3. HORARIOS DEL CURSO (tiempo real)
+    // ====================================================================
+    fun cargarHorarios(cursoId: String, turno: String, cicloNum: Int) {
+        val turnoNormalizado = turno.lowercase().trim()
+        _state.value = _state.value.copy(isLoading = true)
+        horariosListener?.remove()
+
+        horariosListener = db.collection("horarios")
+            .whereEqualTo("cursoId", cursoId)
+            .whereEqualTo("turno", turnoNormalizado)
+            .whereEqualTo("cicloNum", cicloNum)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        errorMessage = "Error al cargar horarios: ${error.localizedMessage}"
+                    )
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val horarios = snapshot.toObjects(Horario::class.java)
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        horarios = horarios
+                    )
+                }
+            }
+    }
+
     fun clearError() {
         _state.value = _state.value.copy(errorMessage = null)
     }
@@ -164,5 +196,6 @@ class EstudianteViewModel : ViewModel() {
         super.onCleared()
         asignaturasListener?.remove()
         postsListener?.remove()
+        horariosListener?.remove()
     }
 }

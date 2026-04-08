@@ -4,6 +4,7 @@ import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
 import java.util.UUID
 
@@ -87,5 +88,11 @@ sealed class DialogState {
         val contenidoInicial: String = "",
         val visibleInicial: Boolean = false,
         val onSave: (String, String, Boolean) -> Unit // titulo, contenido, visible
+    ) : DialogState()
+
+    data class EditHorario(
+        val horario: Horario,
+        val asignaturasDisponibles: List<Asignatura>,
+        val onSave: (Horario) -> Unit
     ) : DialogState()
 }

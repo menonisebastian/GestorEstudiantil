@@ -1104,7 +1104,7 @@ fun IconLogo(
     width: Dp
 ) {
     Image(
-        painter = painterResource(R.drawable.icon),
+        painter = painterResource(R.drawable.icononexopluscut),
         contentDescription = "IconLogo",
         modifier = Modifier
             .width(width)
@@ -1118,7 +1118,7 @@ fun TitleLogo(
     width: Dp
 ) {
     Image(
-        painter = painterResource(R.drawable.logo),
+        painter = painterResource(R.drawable.logonexoplus),
         contentDescription = "IconLogo",
         modifier = Modifier
             .width(width)

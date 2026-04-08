@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,7 +56,7 @@ import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import samf.gestorestudiantil.ui.navigation.Routes
 
 enum class AdminView {
-    CENTROS, TIPOS_CURSO, CURSOS, TURNOS, CICLOS, ASIGNATURAS
+    CENTROS, TIPOS_CURSO, CURSOS, TURNOS, CICLOS, ASIGNATURAS, HORARIOS
 }
 
 @Composable
@@ -82,6 +83,7 @@ fun CentrosAdminPanel(
 
     val onBack = {
         when (currentView) {
+            AdminView.HORARIOS -> currentView = AdminView.CICLOS
             AdminView.ASIGNATURAS -> currentView = AdminView.CICLOS
             AdminView.CICLOS -> currentView = AdminView.TURNOS
             AdminView.TURNOS -> currentView = AdminView.CURSOS
@@ -123,6 +125,7 @@ fun CentrosAdminPanel(
                         AdminView.TURNOS -> "Turnos de ${selectedCurso?.acronimo}"
                         AdminView.CICLOS -> "Ciclos de ${selectedCurso?.acronimo} ($selectedTurno)"
                         AdminView.ASIGNATURAS -> "Asignaturas de ${selectedCurso?.acronimo} - $selectedCiclo"
+                        AdminView.HORARIOS -> "Horario de ${selectedCurso?.acronimo} - $selectedCiclo"
                     },
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -213,9 +216,36 @@ fun CentrosAdminPanel(
                             }.distinct().sorted()
 
                             items(ciclos) { ciclo ->
-                                TipoCursoCard("Ciclo: $ciclo") {
-                                    selectedCiclo = ciclo
-                                    currentView = AdminView.ASIGNATURAS
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = surfaceColor)
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(text = "Ciclo: $ciclo", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Button(
+                                                onClick = {
+                                                    selectedCiclo = ciclo
+                                                    currentView = AdminView.ASIGNATURAS
+                                                },
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text("Asignaturas")
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    selectedCiclo = ciclo
+                                                    val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
+                                                    adminViewModel.cargarHorariosPorCursoYCiclo(selectedCurso!!.id, cicloNum, selectedTurno!!)
+                                                    currentView = AdminView.HORARIOS
+                                                },
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text("Horario")
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -236,6 +266,76 @@ fun CentrosAdminPanel(
                                         ))
                                     }
                                 )
+                            }
+                        }
+                        AdminView.HORARIOS -> {
+                            val slots = if (selectedTurno == "matutino") samf.gestorestudiantil.data.models.Horario.HORAS_MATUTINO else samf.gestorestudiantil.data.models.Horario.HORAS_VESPERTINO
+                            val dias = samf.gestorestudiantil.data.models.Horario.DIAS_SEMANA
+                            val cicloNum = selectedCiclo?.trim()?.firstOrNull()?.digitToIntOrNull() ?: 1
+
+                            items(slots) { slot ->
+                                Text(
+                                    text = slot,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = primaryColor
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    dias.forEach { dia ->
+                                        val h = adminState.horarios.find { it.dia == dia && "${it.horaInicio} - ${it.horaFin}" == slot }
+                                        val asig = adminState.asignaturas.find { it.idFirestore == h?.asignaturaId }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(60.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Card(
+                                                modifier = Modifier.fillMaxSize(),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = if (asig != null) Color(android.graphics.Color.parseColor(asig.colorFondoHex)) else Color.LightGray.copy(alpha = 0.3f)
+                                                ),
+                                                onClick = {
+                                                    val nuevoHorario = h ?: samf.gestorestudiantil.data.models.Horario(
+                                                        cursoId = selectedCurso!!.id,
+                                                        cicloNum = cicloNum,
+                                                        turno = selectedTurno!!,
+                                                        dia = dia,
+                                                        horaInicio = slot.split(" - ")[0],
+                                                        horaFin = slot.split(" - ")[1]
+                                                    )
+                                                    onOpenDialog(DialogState.EditHorario(
+                                                        horario = nuevoHorario,
+                                                        asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == selectedCiclo },
+                                                        onSave = { adminViewModel.guardarHorario(it) }
+                                                    ))
+                                                }
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    verticalArrangement = Arrangement.Center,
+                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                ) {
+                                                    Text(
+                                                        text = dia.take(1),
+                                                        fontSize = 10.sp,
+                                                        color = Color.Gray
+                                                    )
+                                                    Text(
+                                                        text = h?.asignaturaAcronimo ?: "-",
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = textColor
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

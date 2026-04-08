@@ -64,7 +64,9 @@ import samf.gestorestudiantil.ui.panels.estudiante.MateriaDetalleEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.profesor.AsignaturasProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.CalificacionesProfesorPanel
+import samf.gestorestudiantil.ui.panels.profesor.HorariosProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.MateriaDetalleProfesorPanel
+import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -121,8 +123,11 @@ fun HomeScreen(
     val estudianteViewModel: EstudianteViewModel = viewModel()
     val estudianteState by estudianteViewModel.state.collectAsState()
 
-    // Cargar datos al entrar
-    LaunchedEffect(usuario.id, usuario.cursoId) {
+    val profesorViewModel: ProfesorViewModel = viewModel()
+    val profesorState by profesorViewModel.state.collectAsState()
+
+    // Cargar datos al entrar o cuando cambien los datos clave del usuario
+    LaunchedEffect(usuario.id, usuario.cursoId, usuario.turno, usuario.cicloNum) {
         // Cargar usuario en AppViewModel para disparar carga de recordatorios
         appViewModel.setCurrentUser(
             CurrentUserUiState(
@@ -134,8 +139,14 @@ fun HomeScreen(
             )
         )
         
-        if (usuario.rol == "ESTUDIANTE" || usuario.rol == "PROFESOR") {
-            estudianteViewModel.cargarAsignaturas(usuario.cursoId, usuario.turno, usuario.cicloNum, usuario.ultimaVezAsignaturas)
+        if (usuario.rol == "ESTUDIANTE") {
+            if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
+                estudianteViewModel.cargarAsignaturas(usuario.cursoId, usuario.turno, usuario.cicloNum, usuario.ultimaVezAsignaturas)
+                estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
+            }
+        } else if (usuario.rol == "PROFESOR") {
+            profesorViewModel.cargarAsignaturas(usuario.id)
+            profesorViewModel.cargarHorariosProfesor(usuario.id)
         }
     }
 
@@ -306,7 +317,21 @@ fun HomeScreen(
                         }
                     }
                     entry<Routes.HomeRoutes.Horarios> {
-                        HorariosEstudiantePanel(PaddingValues(0.dp))
+                        if (usuario.rol == "PROFESOR") {
+                            HorariosProfesorPanel(
+                                paddingValues = PaddingValues(0.dp),
+                                horarios = profesorState.horarios,
+                                asignaturas = profesorState.asignaturas
+                            )
+                        } else {
+                            HorariosEstudiantePanel(
+                                paddingValues = PaddingValues(0.dp),
+                                horarios = estudianteState.horarios,
+                                asignaturas = estudianteState.asignaturas,
+                                turno = usuario.turno,
+                                isLoading = estudianteState.isLoading
+                            )
+                        }
                     }
                     // HomeScreen.kt — al navegar
                     entry<Routes.HomeRoutes.Calificaciones> {

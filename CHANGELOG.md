@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.5] - 2026-04-09
+- Feature: Schedule is now fully data-driven from Firestore.
+- Feature: Schedule synchronization between student and teacher schedules.
+- Feature: Implemented `HorariosProfesorPanel` for teacher schedules.
+- Feature: Added full subject names and group codes (e.g., "DAM V1") to schedule views for both roles.
+- Improvement: Standardized "turno" to lowercase across the entire system (Auth, Admin, Student) to resolve Firestore case-sensitivity issues.
+- Improvement: Enhanced schedule synchronization in `HomeScreen` to reactively load data when user profile fields (turno, cicloNum) are updated.
+- Improvement: Refactored `HorariosEstudiantePanel` with better loading states, empty states, and more flexible time slot matching.
+- Bugfix: Fixed a critical issue where schedules wouldn't display due to casing discrepancies and incomplete user profiles during initial data load.
+- Improvement: Logo and branding updated.
+
 ## [v0.2.4] - 2026-04-08
 - Feature: Unified "Centros" and "Asignación" into a single administrative flow.
 - Improvement: Converted all administrative edit dialogs (Centros, Cursos, Asignaturas, Usuarios) into full-screen Scaffold views.
