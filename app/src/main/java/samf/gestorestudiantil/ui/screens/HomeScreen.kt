@@ -178,11 +178,23 @@ fun HomeScreen(
         mutableStateListOf<Any>(tabToRoute(tabs.first(), usuario.rol))
     }
 
+    var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
+
+    // ✅ Mapa de backstacks locales por cada tab para persistir estado y manejar scroll/FAB
+    val tabBackStacks = remember(tabs) {
+        tabs.associateWith { tab ->
+            mutableStateListOf<Any>(tabToRoute(tab, usuario.rol))
+        }
+    }
+
+    val currentPageTab = tabs.getOrNull(pagerState.currentPage) ?: ""
+    val currentPageBackStack = tabBackStacks[currentPageTab]
+    val currentRoute = currentPageBackStack?.lastOrNull()
+
     // ✅ Sincronizar Pager → homeBackStack (cuando el usuario desliza)
     LaunchedEffect(pagerState.currentPage) {
         val newRoute = tabToRoute(tabs[pagerState.currentPage], usuario.rol)
         val currentTop = homeBackStack.lastOrNull()
-        // Solo cambiar si el top del stack es una ruta de tab (no un detalle)
         if (currentTop is Routes.HomeRoutes && newRoute::class != currentTop::class &&
             !isDetailRoute(currentTop)) {
             homeBackStack.clear()
@@ -190,7 +202,7 @@ fun HomeScreen(
         }
     }
 
-    // ✅ Sincronizar homeBackStack → Pager (cuando la navegación cambia el stack)
+    // ✅ Sincronizar homeBackStack → Pager
     LaunchedEffect(homeBackStack.toList()) {
         val topRoute = homeBackStack.lastOrNull()
         if (topRoute != null && !isDetailRoute(topRoute)) {
@@ -202,24 +214,18 @@ fun HomeScreen(
         }
     }
 
-    val showFab = tabs.getOrNull(pagerState.currentPage)
-        .let { it == "Recordatorios" || it == "Notificaciones" }
-
-    var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
-
-    // ✅ Manejo del botón Atrás global de la App
+    // ✅ Manejo del botón Atrás global
     BackHandler {
-        val currentRoute = homeBackStack.lastOrNull()
-        if (currentRoute != null) {
+        if (currentPageBackStack != null && currentPageBackStack.size > 1) {
+            currentPageBackStack.removeLastOrNull()
+        } else {
+            val currentHomeRoute = homeBackStack.lastOrNull()
             val firstTabRoute = tabToRoute(tabs.first(), usuario.rol)
-            
-            // Si no estamos en la primera pestaña (Materias/Usuarios), volvemos a ella
-            if (currentRoute::class != firstTabRoute::class) {
+            if (currentHomeRoute != null && currentHomeRoute::class != firstTabRoute::class) {
                 homeBackStack.clear()
                 homeBackStack.add(firstTabRoute)
             } else {
-                // Si ya estamos en la primera pestaña, dejamos que el sistema cierre la app
-                onLogout() // O simplemente no hacer nada para que BackHandler pase al sistema
+                onLogout()
             }
         }
     }
@@ -234,24 +240,20 @@ fun HomeScreen(
                         role = usuario.rol,
                         curso = usuario.cursoOArea,
                         imgUrl = usuario.imgUrl,
-                        onNavigateProfile = onNavigateProfile,   // directo, sin if/else
+                        onNavigateProfile = onNavigateProfile,
                         onNavigateSettings = onNavigateSettings,
                         onLogout = onLogout
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor,
-                    scrolledContainerColor = Color.Unspecified,
-                    navigationIconContentColor = Color.Unspecified,
-                    titleContentColor = Color.Unspecified,
-                    actionIconContentColor = Color.Unspecified
+                    containerColor = backgroundColor
                 )
             )
         },
         bottomBar = {
             BottomNavBar(
                 items = currentNavItems,
-                selectedItem = tabs.getOrNull(pagerState.currentPage) ?: "",
+                selectedItem = currentPageTab,
                 onItemSelected = { selectedKey ->
                     val index = tabs.indexOf(selectedKey)
                     if (index != -1) {
@@ -261,47 +263,66 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            if (showFab) {
-                FloatingActionButton(
-                    onClick = {
-                        dialogState = DialogState.AddRecordatorio(
-                            onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                val nuevo = Recordatorio(
-                                    id = UUID.randomUUID().toString(),
-                                    usuarioId = usuario.id,
-                                    titulo = titulo,
-                                    descripcion = descripcion,
-                                    fecha = fecha,
-                                    hora = hora,
-                                    tipo = tipo
-                                )
-                                appViewModel.añadirRecordatorio(nuevo)
-                            }
-                        )
-                    },
-                    containerColor = primaryColor
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
+            // ✅ FAB Centralizado y Contextual
+            when {
+                currentPageTab == "Recordatorios" || currentPageTab == "Notificaciones" -> {
+                    FloatingActionButton(
+                        onClick = {
+                            dialogState = DialogState.AddRecordatorio(
+                                onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                    val nuevo = Recordatorio(
+                                        id = UUID.randomUUID().toString(),
+                                        usuarioId = usuario.id,
+                                        titulo = titulo,
+                                        descripcion = descripcion,
+                                        fecha = fecha,
+                                        hora = hora,
+                                        tipo = tipo
+                                    )
+                                    appViewModel.añadirRecordatorio(nuevo)
+                                }
+                            )
+                        },
+                        containerColor = primaryColor
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
+                    }
+                }
+                usuario.rol == "ADMIN" && currentPageTab == "Centros" -> {
+                    val canAdd = when (currentRoute) {
+                        is Routes.HomeRoutes.Centros -> true
+                        is Routes.HomeRoutes.AdminCursos -> true
+                        is Routes.HomeRoutes.AdminAsignaturas -> true
+                        else -> false
+                    }
+                    if (canAdd) {
+                        FloatingActionButton(
+                            onClick = {
+                                when (currentRoute) {
+                                    is Routes.HomeRoutes.Centros -> currentPageBackStack?.add(Routes.HomeRoutes.EditCentro())
+                                    is Routes.HomeRoutes.AdminCursos -> currentPageBackStack?.add(Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.AdminAsignaturas -> currentPageBackStack?.add(Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
+                                }
+                            },
+                            containerColor = primaryColor
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
+                        }
+                    }
                 }
             }
         }
     ) { paddingValues ->
 
-        // ✅ HorizontalPager + NavDisplay anidado
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            userScrollEnabled = homeBackStack.lastOrNull()?.let { !isDetailRoute(it) } ?: true
+            userScrollEnabled = currentRoute?.let { !isDetailRoute(it) } ?: true
         ) { page ->
-            // Cada página tiene su propio NavDisplay para sub-navegación
-            val pageRoute = tabToRoute(tabs.getOrNull(page) ?: "", usuario.rol)
-
-            // Back stack local por página (para Calificaciones -> Detalle, etc.)
-            val pageBackStack = remember(pageRoute) {
-                mutableStateListOf<Any>(pageRoute)
-            }
+            val pageTab = tabs.getOrNull(page) ?: ""
+            val pageBackStack = tabBackStacks[pageTab] ?: return@HorizontalPager
 
             NavDisplay(
                 backStack = pageBackStack,
@@ -433,21 +454,6 @@ fun HomeScreen(
                             onBackClick = { pageBackStack.removeLastOrNull() }
                         )
                     }
-                    //TODO cambiar a Firebase
-//                    entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
-//                        val asignatura = viewModel.asignaturas
-//                            .collectAsState()
-//                            .value
-//                            .find { it.id == route.asignaturaId }
-//
-//                        if (asignatura != null) {
-//                            CalificacionesAsignaturaPanel(
-//                                asignatura = asignatura,
-//                                paddingValues = PaddingValues(0.dp),
-//                                onBackClick = { pageBackStack.removeLastOrNull() }
-//                            )
-//                        }
-//                    }
                     entry<Routes.HomeRoutes.Recordatorios> {
                         RecordatoriosEstudiantePanel(
                             recordatorios = appState.recordatorios,
@@ -468,27 +474,15 @@ fun HomeScreen(
                             adminViewModel.cargarCentros()
                         }
 
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            CentrosListScreen(
-                                adminState = adminState,
-                                adminViewModel = adminViewModel,
-                                onCentroClick = { centro: Centro ->
-                                    adminViewModel.cargarCursosPorCentro(centro.id)
-                                    pageBackStack.add(Routes.HomeRoutes.AdminTiposCurso(centro))
-                                },
-                                onEditCentro = { centro: Centro -> pageBackStack.add(Routes.HomeRoutes.EditCentro(centro)) }
-                            )
-
-                            FloatingActionButton(
-                                onClick = { pageBackStack.add(Routes.HomeRoutes.EditCentro()) },
-                                containerColor = primaryColor,
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(16.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
-                            }
-                        }
+                        CentrosListScreen(
+                            adminState = adminState,
+                            adminViewModel = adminViewModel,
+                            onCentroClick = { centro: Centro ->
+                                adminViewModel.cargarCursosPorCentro(centro.id)
+                                pageBackStack.add(Routes.HomeRoutes.AdminTiposCurso(centro))
+                            },
+                            onEditCentro = { centro: Centro -> pageBackStack.add(Routes.HomeRoutes.EditCentro(centro)) }
+                        )
                     }
                     entry<Routes.HomeRoutes.AdminTiposCurso> { route ->
                         TiposCursoScreen(
@@ -501,29 +495,18 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.AdminCursos> { route ->
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            CursosScreen(
-                                tipo = route.tipo,
-                                centroId = route.centroId,
-                                adminState = adminState,
-                                onCursoClick = { curso: Curso ->
-                                    pageBackStack.add(Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
-                                },
-                                onEditCurso = { curso: Curso ->
-                                    pageBackStack.add(Routes.HomeRoutes.EditCurso(curso, route.centroId))
-                                },
-                                onBack = { pageBackStack.removeLastOrNull() }
-                            )
-                            FloatingActionButton(
-                                onClick = { pageBackStack.add(Routes.HomeRoutes.EditCurso(centroId = route.centroId)) },
-                                containerColor = primaryColor,
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(16.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
-                            }
-                        }
+                        CursosScreen(
+                            tipo = route.tipo,
+                            centroId = route.centroId,
+                            adminState = adminState,
+                            onCursoClick = { curso: Curso ->
+                                pageBackStack.add(Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
+                            },
+                            onEditCurso = { curso: Curso ->
+                                pageBackStack.add(Routes.HomeRoutes.EditCurso(curso, route.centroId))
+                            },
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
                     }
                     entry<Routes.HomeRoutes.AdminTurnos> { route ->
                         TurnosScreen(
@@ -552,29 +535,18 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.AdminAsignaturas> { route ->
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AsignaturasScreen(
-                                curso = route.curso,
-                                ciclo = route.ciclo,
-                                adminState = adminState,
-                                onAsignaturaClick = { asignatura: Asignatura ->
-                                    dialogState = DialogState.AsignarProfesor(asignatura)
-                                },
-                                onEditAsignatura = { asignatura: Asignatura ->
-                                    pageBackStack.add(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
-                                },
-                                onBack = { pageBackStack.removeLastOrNull() }
-                            )
-                            FloatingActionButton(
-                                onClick = { pageBackStack.add(Routes.HomeRoutes.EditAsignatura(cursoId = route.curso.id, centroId = route.centroId)) },
-                                containerColor = primaryColor,
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(16.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
-                            }
-                        }
+                        AsignaturasScreen(
+                            curso = route.curso,
+                            ciclo = route.ciclo,
+                            adminState = adminState,
+                            onAsignaturaClick = { asignatura: Asignatura ->
+                                dialogState = DialogState.AsignarProfesor(asignatura)
+                            },
+                            onEditAsignatura = { asignatura: Asignatura ->
+                                pageBackStack.add(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                            },
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
                     }
                     entry<Routes.HomeRoutes.AdminHorarios> { route ->
                         HorariosAdminScreen(

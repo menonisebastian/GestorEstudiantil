@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ fun EditCentroScreen(
                 title = { Text(if (state.centro == null) "Añadir Centro" else "Editar ${state.centro.nombre}", color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
@@ -129,7 +129,7 @@ fun EditCursoScreen(
                 title = { Text(if (state.curso == null) "Añadir Curso" else "Editar ${state.curso.acronimo}", color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
@@ -219,7 +219,7 @@ fun EditAsignaturaScreen(
                 title = { Text(if (state.asignatura == null) "Añadir Asignatura" else "Editar ${state.asignatura.acronimo}", color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
@@ -306,7 +306,7 @@ fun EditUserScreen(
                 title = { Text("Editar ${state.user.nombre}", color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),

@@ -1110,6 +1110,10 @@ fun IconLogo(
             .width(width)
             .padding(15.dp)
     )
+    
+//    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Menu", tint = Color.White, modifier = Modifier.size(24.dp))
+//
+//    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = "Menu", tint = Color.White, modifier = Modifier.size(24.dp))
 }
 
 // ============ BOTONES LOGOS ============ //

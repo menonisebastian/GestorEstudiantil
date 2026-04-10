@@ -1,5 +1,7 @@
 package samf.gestorestudiantil.ui.panels.admin
 
+import android.graphics.Color.parseColor
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
@@ -35,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -43,16 +48,20 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
+import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AdminState
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun AdminHeader(titulo: String, onBack: (() -> Unit)? = null) {
@@ -62,7 +71,7 @@ fun AdminHeader(titulo: String, onBack: (() -> Unit)? = null) {
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
             }
         }
         Text(
@@ -76,7 +85,7 @@ fun AdminHeader(titulo: String, onBack: (() -> Unit)? = null) {
 
 @Composable
 fun CentrosListScreen(
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    adminState: AdminState,
     adminViewModel: AdminViewModel,
     onCentroClick: (Centro) -> Unit,
     onEditCentro: (Centro) -> Unit
@@ -87,7 +96,10 @@ fun CentrosListScreen(
         if (adminState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
                 item {
                     Button(onClick = { adminViewModel.cargarDatosDesdeJsonl(context) }, modifier = Modifier.padding(vertical = 8.dp)) {
                         Text("Importar y limpiar IES Comercio")
@@ -104,12 +116,12 @@ fun CentrosListScreen(
 @Composable
 fun TiposCursoScreen(
     centro: Centro,
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    adminState: AdminState,
     onTipoClick: (String) -> Unit,
     onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Tipos en ${centro.nombre}", onBack)
+        AdminHeader("Cursos en ${centro.nombre}", onBack)
         val tipos = adminState.cursos.mapNotNull { it.tipo }.distinct().sorted()
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(tipos) { tipo -> TipoCursoCard(tipo) { onTipoClick(tipo) } }
@@ -121,15 +133,19 @@ fun TiposCursoScreen(
 fun CursosScreen(
     tipo: String,
     centroId: String,
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    adminState: AdminState,
     onCursoClick: (Curso) -> Unit,
     onEditCurso: (Curso) -> Unit,
     onBack: () -> Unit
 ) {
+    val headerTitle = if (tipo.contains("Curso", ignoreCase = true)) tipo else "Cursos de $tipo"
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Cursos de $tipo", onBack)
+        AdminHeader(headerTitle, onBack)
         val cursos = adminState.cursos.filter { it.tipo == tipo }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
             items(cursos) { curso -> CursoCard(curso = curso, onClick = { onCursoClick(curso) }, onEdit = { onEditCurso(curso) }) }
         }
     }
@@ -155,7 +171,7 @@ fun TurnosScreen(
 fun CiclosScreen(
     curso: Curso,
     turno: String,
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    adminState: AdminState,
     onVerAsignaturas: (String) -> Unit,
     onVerHorario: (String) -> Unit,
     onBack: () -> Unit
@@ -184,15 +200,18 @@ fun CiclosScreen(
 fun AsignaturasScreen(
     curso: Curso,
     ciclo: String,
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
-    onAsignaturaClick: (samf.gestorestudiantil.data.models.Asignatura) -> Unit,
-    onEditAsignatura: (samf.gestorestudiantil.data.models.Asignatura) -> Unit,
+    adminState: AdminState,
+    onAsignaturaClick: (Asignatura) -> Unit,
+    onEditAsignatura: (Asignatura) -> Unit,
     onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         AdminHeader("Asignaturas - $ciclo", onBack)
         val asignaturas = adminState.asignaturas.filter { it.ciclo == ciclo }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
             items(asignaturas) { asignatura ->
                 AsignaturaCard(asignatura = asignatura, onClick = { onAsignaturaClick(asignatura) }, onEdit = { onEditAsignatura(asignatura) })
             }
@@ -205,7 +224,7 @@ fun HorariosAdminScreen(
     curso: Curso,
     ciclo: String,
     turno: String,
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    adminState: AdminState,
     onEditHorario: (Horario) -> Unit,
     onBack: () -> Unit
 ) {
@@ -227,7 +246,7 @@ fun HorariosAdminScreen(
                             Box(modifier = Modifier.weight(1f).height(60.dp), contentAlignment = Alignment.Center) {
                                 Card(
                                     modifier = Modifier.fillMaxSize(),
-                                    colors = CardDefaults.cardColors(containerColor = if (asig != null) Color(android.graphics.Color.parseColor(asig.colorFondoHex)) else Color.LightGray.copy(alpha = 0.3f)),
+                                    colors = CardDefaults.cardColors(containerColor = if (asig != null) Color(asig.colorFondoHex.toColorInt()) else Color.LightGray.copy(alpha = 0.3f)),
                                     onClick = {
                                         val nuevoHorario = h ?: Horario(cursoId = curso.id, cicloNum = cicloNum, turno = turno, dia = dia, horaInicio = slot.split(" - ")[0], horaFin = slot.split(" - ")[1])
                                         onEditHorario(nuevoHorario)
@@ -273,7 +292,7 @@ fun CentroCard(centro: Centro, onClick: () -> Unit, onEdit: (() -> Unit)? = null
                     Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.Gray)
                 }
             }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray)
+            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.Gray)
         }
     }
 }
@@ -292,13 +311,24 @@ fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
             Icon(Icons.Default.Category, contentDescription = null, tint = primaryColor)
             Spacer(modifier = Modifier.width(16.dp))
             Text(text = tipo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor, modifier = Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray)
+            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.Gray)
         }
     }
 }
 
 @Composable
 fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
+    val containerColor = try {
+        Color(curso.colorFondoHex.toColorInt())
+    } catch (e: Exception) {
+        surfaceColor
+    }
+    val iconColor = try {
+        Color(curso.colorIconoHex.toColorInt())
+    } catch (e: Exception) {
+        primaryColor
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -308,7 +338,20 @@ fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.School, contentDescription = null, tint = primaryColor)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(containerColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = curso.iconoName.toComposeIcon(),
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = curso.acronimo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
@@ -321,7 +364,7 @@ fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.Gray)
                 }
             }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray)
+            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.Gray)
         }
     }
 }

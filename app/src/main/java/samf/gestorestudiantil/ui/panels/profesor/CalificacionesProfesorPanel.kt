@@ -8,7 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -220,7 +221,7 @@ fun EstudiantesAsignaturaLista(
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
@@ -302,7 +303,7 @@ fun EstudianteCard(
                 Text(estudiante.nombre, fontWeight = FontWeight.Bold, color = textColor)
                 Text("${estudiante.cursoOArea} • $materia", fontSize = 11.sp, color = surfaceDimColor)
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = surfaceDimColor)
+            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = surfaceDimColor)
         }
     }
 }
@@ -345,7 +346,7 @@ fun CalificacionesDetalleEstudiante(
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textColor)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
                 }
                 AsyncImage(
                     model = estudiante.imgUrl,

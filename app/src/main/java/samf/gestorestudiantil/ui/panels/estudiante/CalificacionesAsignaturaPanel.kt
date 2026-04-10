@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -56,7 +56,7 @@ fun CalificacionesAsignaturaPanel(
             {
                 IconButton(onClick = {onBackClick()})
                 {
-                    Icon(imageVector = Icons.Outlined.ArrowBackIosNew, contentDescription = "Ver Calificaciones", tint = textColor)
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Ver Calificaciones", tint = textColor)
                 }
 
                 Spacer(modifier = Modifier.weight(1f))

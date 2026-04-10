@@ -46,7 +46,7 @@ import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.LaunchedEffect
 
@@ -98,7 +98,7 @@ fun RegisterStep2Screen(
                 title = { Text("Paso 2", fontWeight = FontWeight.ExtraBold, color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = textColor)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Atrás", tint = textColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

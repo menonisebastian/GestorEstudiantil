@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v0.3.0] - 2026-04-10
+- Navigation Persistence: Implemented `tabBackStacks` (map of `SnapshotStateList`) in `HomeScreen` to maintain independent navigation states for each bottom bar tab.
+- Scroll Control: Disabled `HorizontalPager` swiping on detail routes (`isDetailRoute`) to prevent accidental tab switching during nested navigation.
+- Centralized UI Management: Unified Floating Action Button (FAB) logic and backstack management within the main `HomeScreen` Scaffold for consistent behavior across all Admin levels.
+- UI Consistency: Standardized all navigation icons to `Icons.AutoMirrored.Filled.ArrowBackIos` and `Icons.AutoMirrored.Filled.ArrowForwardIos` across the entire application.
+- Visual Improvements: Updated `CursoCard` to be fully model-driven, using `iconoName`, `colorFondoHex`, and `colorIconoHex` from the `Curso` data object.
+- UX Refinement: Added `80.dp` bottom content padding to all administrative and grading `LazyColumn` lists to prevent the FAB from obscuring items.
+- Bugfix: Fixed redundant header titles in `CursosScreen` (e.g., "Cursos de Curso de...") by conditionally checking if the type name already contains the word "Curso".
 
 ## [v0.2.9] - 2026-04-10
 - Navigation Architecture: Centralized all Admin sub-routes (Centros, Tipos, Cursos, Asignaturas, Usuarios) in `HomeScreen` to resolve `IllegalStateException` and "Unknown screen" crashes caused by nested `NavDisplay` components.
