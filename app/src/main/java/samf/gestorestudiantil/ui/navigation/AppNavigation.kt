@@ -15,7 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.google.firebase.auth.FirebaseAuth
@@ -45,8 +45,6 @@ fun AppNavigation() {
     val scope = rememberCoroutineScope()
     val backStack = remember { mutableStateListOf<Any>() }
     
-    val authViewModel: AuthViewModel = viewModel()
-
     // 1. LISTENER DE SESIÓN Y DATOS DE USUARIO EN TIEMPO REAL
     DisposableEffect(Unit) {
         val auth = FirebaseAuth.getInstance()
@@ -146,7 +144,6 @@ fun AppNavigation() {
         entryProvider = entryProvider {
             entry<Routes.Auth> {
                 AuthScreen(
-                    authViewModel = authViewModel,
                     onAuthSuccess = { /* El listener maneja esto */ },
                     onRequireGoogleSetup = { needsGoogleSetup = true },
                     onNavigateToRegisterStep2 = { name, email, pass, fotoUrl ->
@@ -158,7 +155,6 @@ fun AppNavigation() {
             entry<Routes.RegisterStep2> { route ->
                 RegisterStep2Screen(
                     route = route,
-                    authViewModel = authViewModel,
                     onBack = { backStack.removeLastOrNull() },
                     onNavigateToHome = {
                         // The session listener in AppNavigation will handle the switch
@@ -178,7 +174,6 @@ fun AppNavigation() {
 
             entry<Routes.GooglePasswordSetup> {
                 GooglePasswordSetupScreen(
-                    authViewModel = authViewModel,
                     onNext = { password: String ->
                         backStack.add(Routes.GoogleAcademicSetup(password))
                     }
@@ -188,7 +183,6 @@ fun AppNavigation() {
             entry<Routes.GoogleAcademicSetup> { route ->
                 GoogleAcademicSetupScreen(
                     passwordValue = route.password,
-                    authViewModel = authViewModel,
                     onSetupComplete = { user ->
                         currentUser = user
                         needsGoogleSetup = false

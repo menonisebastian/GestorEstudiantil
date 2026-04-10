@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -54,7 +55,7 @@ import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun RegisterStep2Screen(
     route: Routes.RegisterStep2,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModel = hiltViewModel(),
     onBack: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {

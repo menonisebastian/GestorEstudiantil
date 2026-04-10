@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.credentials.CredentialManager
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
@@ -78,7 +79,7 @@ val itemsAuth: Map<String, ImageVector> = mapOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModel = hiltViewModel(),
     onAuthSuccess: (User) -> Unit,
     onRequireGoogleSetup: () -> Unit,
     onNavigateToRegisterStep2: (name: String, email: String, pass: String, fotoUrl: String) -> Unit

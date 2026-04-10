@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
@@ -117,13 +117,13 @@ fun HomeScreen(
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
 
-    val appViewModel: AppViewModel = viewModel()
+    val appViewModel: AppViewModel = hiltViewModel()
     val appState by appViewModel.state.collectAsState()
 
-    val estudianteViewModel: EstudianteViewModel = viewModel()
+    val estudianteViewModel: EstudianteViewModel = hiltViewModel()
     val estudianteState by estudianteViewModel.state.collectAsState()
 
-    val profesorViewModel: ProfesorViewModel = viewModel()
+    val profesorViewModel: ProfesorViewModel = hiltViewModel()
     val profesorState by profesorViewModel.state.collectAsState()
 
     // Cargar datos al entrar o cuando cambien los datos clave del usuario
@@ -402,7 +402,7 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditCentro> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditCentroScreen(
                             state = DialogState.EditCentro(
                                 centro = route.centro,
@@ -412,7 +412,7 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditCurso> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditCursoScreen(
                             state = DialogState.EditCurso(
                                 curso = route.curso,
@@ -423,7 +423,7 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditAsignatura> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditAsignaturaScreen(
                             state = DialogState.EditAsignatura(
                                 asignatura = route.asignatura,
@@ -435,7 +435,7 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditUser> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = viewModel()
+                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditUserScreen(
                             state = DialogState.EditUser(
                                 user = route.user,

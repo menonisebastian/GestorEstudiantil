@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
@@ -54,7 +55,7 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 @Composable
 fun GooglePasswordSetupScreen(
     onNext: (String) -> Unit,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val passwordState = rememberTextFieldState()
@@ -131,7 +132,7 @@ fun GooglePasswordSetupScreen(
 fun GoogleAcademicSetupScreen(
     passwordValue: String,
     onSetupComplete: (User) -> Unit,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
@@ -305,7 +306,10 @@ fun GoogleAcademicSetupScreen(
                                     centroId = centroId,
                                     cursoId = cursoId,
                                     cursoNombre = cursoAcronimo,
-                                    turno = turno
+                                    turno = turno,
+                                    name = authState.user?.nombre ?: "",
+                                    email = authState.user?.email ?: "",
+                                    imgUrl = authState.user?.imgUrl ?: ""
                                 )
                             }
                         } else if (rolSeleccionado == "PROFESOR") {
@@ -318,7 +322,10 @@ fun GoogleAcademicSetupScreen(
                                     centroId = centroId,
                                     cursoId = "",
                                     cursoNombre = "Docente",
-                                    turno = turno
+                                    turno = turno,
+                                    name = authState.user?.nombre ?: "",
+                                    email = authState.user?.email ?: "",
+                                    imgUrl = authState.user?.imgUrl ?: ""
                                 )
                             }
                         }

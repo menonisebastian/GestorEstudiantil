@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 - Dependency Injection: Created `FirebaseModule` and `RepositoryModule` for Hilt provider/binding management.
 - Improvement: ViewModels now use `StateFlow` for state management and are decoupled from Firebase SDKs.
 - Improvement: Removed `ListenerRegistration` manual handling in ViewModels by using `callbackFlow` in Repositories.
+- Refactor: Standardized Hilt ViewModel injection using `hiltViewModel()` across all screens, removing manual ViewModel passing in `AppNavigation`.
+- Bugfix: Fixed parameter mismatch and field naming in Google Setup registration flow.
+- Fix: Resolved build errors related to AGP 9.1 and Kotlin sourceSet configurations.
 
 ## [v0.2.6] - 2026-04-10
 - Feature: Integrated Hilt for Dependency Injection.
