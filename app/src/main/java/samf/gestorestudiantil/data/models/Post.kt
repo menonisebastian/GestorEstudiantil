@@ -14,5 +14,6 @@ data class Post(
     var asignaturaId: String = "",
     var unidadId: String = "",
     var fechaCreacion: Long = System.currentTimeMillis(),
+    var fechaActualizacion: Long = System.currentTimeMillis(),
     var visible: Boolean = false
 )

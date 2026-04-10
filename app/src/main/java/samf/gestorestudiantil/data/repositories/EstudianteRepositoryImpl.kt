@@ -45,7 +45,8 @@ class EstudianteRepositoryImpl @Inject constructor(
     override suspend fun getCountNuevosPosts(asignaturaId: String, lastRead: Long): Int {
         val postsSnapshot = db.collection("posts")
             .whereEqualTo("asignaturaId", asignaturaId)
-            .whereGreaterThan("fechaCreacion", lastRead)
+            .whereEqualTo("visible", true)
+            .whereGreaterThan("fechaActualizacion", lastRead)
             .get()
             .await()
         return postsSnapshot.size()

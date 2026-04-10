@@ -64,7 +64,8 @@ class ProfesorRepositoryImpl @Inject constructor(
         db.collection("posts").document(postId).update(
             "titulo", titulo,
             "contenido", contenido,
-            "visible", visible
+            "visible", visible,
+            "fechaActualizacion", System.currentTimeMillis()
         ).await()
     }
 
