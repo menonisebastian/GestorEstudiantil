@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.panels.admin
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -33,9 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,296 +41,201 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.ui.components.AsignaturaCard
-import androidx.compose.material.icons.filled.Edit
 import samf.gestorestudiantil.ui.dialogs.DialogState
+import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
-import samf.gestorestudiantil.ui.navigation.Routes
 
-enum class AdminView {
-    CENTROS, TIPOS_CURSO, CURSOS, TURNOS, CICLOS, ASIGNATURAS, HORARIOS
+@Composable
+fun AdminHeader(titulo: String, onBack: (() -> Unit)? = null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+    ) {
+        if (onBack != null) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+            }
+        }
+        Text(
+            text = titulo,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = textColor
+        )
+    }
 }
 
 @Composable
-fun CentrosAdminPanel(
-    paddingValues: PaddingValues,
-    adminViewModel: AdminViewModel = viewModel(),
-    onOpenDialog: (DialogState) -> Unit,
-    onNavigate: (Routes.HomeRoutes) -> Unit
+fun CentrosListScreen(
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    adminViewModel: AdminViewModel,
+    onCentroClick: (Centro) -> Unit,
+    onEditCentro: (Centro) -> Unit
 ) {
-    val adminState by adminViewModel.adminState.collectAsState()
     val context = LocalContext.current
-
-    var currentView by remember { mutableStateOf(AdminView.CENTROS) }
-    var selectedCentro by remember { mutableStateOf<Centro?>(null) }
-    var selectedTipoCurso by remember { mutableStateOf<String?>(null) }
-    var selectedCursoBaseName by remember { mutableStateOf<String?>(null) }
-    var selectedCurso by remember { mutableStateOf<Curso?>(null) }
-    var selectedTurno by remember { mutableStateOf<String?>(null) }
-    var selectedCiclo by remember { mutableStateOf<String?>(null) } // NUEVO: Estado para el ciclo selecciona
-
-    LaunchedEffect(Unit) {
-        adminViewModel.cargarCentros()
-    }
-
-    val onBack = {
-        when (currentView) {
-            AdminView.HORARIOS -> currentView = AdminView.CICLOS
-            AdminView.ASIGNATURAS -> currentView = AdminView.CICLOS
-            AdminView.CICLOS -> currentView = AdminView.TURNOS
-            AdminView.TURNOS -> currentView = AdminView.CURSOS
-            AdminView.CURSOS -> currentView = AdminView.TIPOS_CURSO
-            AdminView.TIPOS_CURSO -> currentView = AdminView.CENTROS
-            else -> { /* Do nothing */ }
-        }
-    }
-
-    BackHandler(enabled = currentView != AdminView.CENTROS) {
-        onBack()
-    }
-
-    Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                if (currentView != AdminView.CENTROS) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = textColor
-                        )
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Gestión de Centros")
+        if (adminState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                item {
+                    Button(onClick = { adminViewModel.cargarDatosDesdeJsonl(context) }, modifier = Modifier.padding(vertical = 8.dp)) {
+                        Text("Importar y limpiar IES Comercio")
                     }
                 }
-                Text(
-                    text = when (currentView) {
-                        AdminView.CENTROS -> "Gestión de Centros"
-                        AdminView.TIPOS_CURSO -> "Tipos de Curso en ${selectedCentro?.nombre}"
-                        AdminView.CURSOS -> "Cursos de $selectedTipoCurso"
-                        AdminView.TURNOS -> "Turnos de ${selectedCurso?.acronimo}"
-                        AdminView.CICLOS -> "Ciclos de ${selectedCurso?.acronimo} ($selectedTurno)"
-                        AdminView.ASIGNATURAS -> "Asignaturas de ${selectedCurso?.acronimo} - $selectedCiclo"
-                        AdminView.HORARIOS -> "Horario de ${selectedCurso?.acronimo} - $selectedCiclo"
-                    },
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = textColor
-                )
-            }
-
-            if (adminState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                items(adminState.centros) { centro ->
+                    CentroCard(centro = centro, onClick = { onCentroClick(centro) }, onEdit = { onEditCentro(centro) })
                 }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    when (currentView) {
-                        AdminView.CENTROS -> {
-                            item {
-                                Button(
-                                    onClick = { adminViewModel.cargarDatosDesdeJsonl(context) },
-                                    modifier = Modifier.padding(16.dp)
-                                ) {
-                                    Text("Importar y limpiar IES Comercio")
-                                } 
-                            }
-                            items(adminState.centros) { centro ->
-                                CentroCard(
-                                    centro = centro,
-                                    onClick = {
-                                        selectedCentro = centro
-                                        adminViewModel.cargarCursosPorCentro(centro.id)
-                                        currentView = AdminView.TIPOS_CURSO
-                                    },
-                                    onEdit = {
-                                        onNavigate(Routes.HomeRoutes.EditCentro(centro))
-                                    }
-                                )
-                            }
-                        }
-                        AdminView.TIPOS_CURSO -> {
-                            // Evita crasheos si "it.tipo" es null o lanza excepción
-                            val tiposUnicos = adminState.cursos.mapNotNull {
-                                try { it.tipo } catch (e: Exception) { "Desconocido" }
-                            }.distinct().sorted()
+            }
+        }
+    }
+}
 
-                            items(tiposUnicos) { tipo ->
-                                TipoCursoCard(tipo) {
-                                    selectedTipoCurso = tipo
-                                    currentView = AdminView.CURSOS
-                                }
-                            }
-                        }
-                        AdminView.CURSOS -> {
-                            val cursosPorTipo = adminState.cursos.filter { it.tipo == selectedTipoCurso }
+@Composable
+fun TiposCursoScreen(
+    centro: Centro,
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    onTipoClick: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Tipos en ${centro.nombre}", onBack)
+        val tipos = adminState.cursos.mapNotNull { it.tipo }.distinct().sorted()
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(tipos) { tipo -> TipoCursoCard(tipo) { onTipoClick(tipo) } }
+        }
+    }
+}
 
-                            items(cursosPorTipo) { curso ->
-                                CursoCard(
-                                    curso = curso,
-                                    onClick = {
-                                        selectedCurso = curso
-                                        selectedCursoBaseName = curso.nombre
-                                        currentView = AdminView.TURNOS
-                                    },
-                                    onEdit = {
-                                        onNavigate(Routes.HomeRoutes.EditCurso(
-                                            curso = curso,
-                                            centroId = selectedCentro?.id ?: ""
-                                        ))
-                                    }
-                                )
-                            }
-                        }
-                        AdminView.TURNOS -> {
-                            val turnos = selectedCurso?.turnosDisponibles ?: emptyList()
-                            items(turnos) { turno ->
-                                TipoCursoCard(turno.replaceFirstChar { it.uppercase() }) {
-                                    selectedTurno = turno
-                                    adminViewModel.cargarAsignaturasPorCurso(selectedCurso!!.id, turno)
-                                    currentView = AdminView.CICLOS
-                                }
-                            }
-                        }
-                        AdminView.CICLOS -> {
-                            // Evita crasheos si "it.ciclo" es null o lanza excepción
-                            val ciclos = adminState.asignaturas.mapNotNull {
-                                try { it.ciclo } catch (e: Exception) { null }
-                            }.distinct().sorted()
+@Composable
+fun CursosScreen(
+    tipo: String,
+    centroId: String,
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    onCursoClick: (Curso) -> Unit,
+    onEditCurso: (Curso) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Cursos de $tipo", onBack)
+        val cursos = adminState.cursos.filter { it.tipo == tipo }
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(cursos) { curso -> CursoCard(curso = curso, onClick = { onCursoClick(curso) }, onEdit = { onEditCurso(curso) }) }
+        }
+    }
+}
 
-                            items(ciclos) { ciclo ->
+@Composable
+fun TurnosScreen(
+    curso: Curso,
+    onTurnoClick: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Turnos de ${curso.acronimo}", onBack)
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(curso.turnosDisponibles) { turno ->
+                TipoCursoCard(turno.replaceFirstChar { it.uppercase() }) { onTurnoClick(turno) }
+            }
+        }
+    }
+}
+
+@Composable
+fun CiclosScreen(
+    curso: Curso,
+    turno: String,
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    onVerAsignaturas: (String) -> Unit,
+    onVerHorario: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Ciclos de ${curso.acronimo} ($turno)", onBack)
+        val ciclos = adminState.asignaturas.mapNotNull { it.ciclo }.distinct().sorted()
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(ciclos) { ciclo ->
+                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = surfaceColor)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = "Ciclo: $ciclo", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = { onVerAsignaturas(ciclo) }, modifier = Modifier.weight(1f)) { Text("Asignaturas") }
+                            Button(onClick = { onVerHorario(ciclo) }, modifier = Modifier.weight(1f)) { Text("Horario") }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AsignaturasScreen(
+    curso: Curso,
+    ciclo: String,
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    onAsignaturaClick: (samf.gestorestudiantil.data.models.Asignatura) -> Unit,
+    onEditAsignatura: (samf.gestorestudiantil.data.models.Asignatura) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Asignaturas - $ciclo", onBack)
+        val asignaturas = adminState.asignaturas.filter { it.ciclo == ciclo }
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(asignaturas) { asignatura ->
+                AsignaturaCard(asignatura = asignatura, onClick = { onAsignaturaClick(asignatura) }, onEdit = { onEditAsignatura(asignatura) })
+            }
+        }
+    }
+}
+
+@Composable
+fun HorariosAdminScreen(
+    curso: Curso,
+    ciclo: String,
+    turno: String,
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    onEditHorario: (Horario) -> Unit,
+    onBack: () -> Unit
+) {
+    val slots = if (turno == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
+    val dias = Horario.DIAS_SEMANA
+    val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        AdminHeader("Horario - $ciclo", onBack)
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 80.dp)) {
+            items(slots) { slot ->
+                val isReceso = slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")
+                if (!isReceso) {
+                    Text(text = slot, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp), color = primaryColor)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        dias.forEach { dia ->
+                            val h = adminState.horarios.find { it.dia == dia && "${it.horaInicio} - ${it.horaFin}" == slot }
+                            val asig = adminState.asignaturas.find { it.idFirestore == h?.asignaturaId }
+                            Box(modifier = Modifier.weight(1f).height(60.dp), contentAlignment = Alignment.Center) {
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = surfaceColor)
-                                ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(text = "Ciclo: $ciclo", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            Button(
-                                                onClick = {
-                                                    selectedCiclo = ciclo
-                                                    currentView = AdminView.ASIGNATURAS
-                                                },
-                                                modifier = Modifier.weight(1f)
-                                            ) {
-                                                Text("Asignaturas")
-                                            }
-                                            Button(
-                                                onClick = {
-                                                    selectedCiclo = ciclo
-                                                    val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
-                                                    adminViewModel.cargarHorariosPorCursoYCiclo(selectedCurso!!.id, cicloNum, selectedTurno!!)
-                                                    currentView = AdminView.HORARIOS
-                                                },
-                                                modifier = Modifier.weight(1f)
-                                            ) {
-                                                Text("Horario")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        AdminView.ASIGNATURAS -> {
-                            // Filtramos las asignaturas en local según el ciclo seleccionado
-                            val asignaturasDelCiclo = adminState.asignaturas.filter { it.ciclo == selectedCiclo }
-                            items(asignaturasDelCiclo) { asignatura ->
-                                AsignaturaCard(
-                                    asignatura = asignatura,
+                                    modifier = Modifier.fillMaxSize(),
+                                    colors = CardDefaults.cardColors(containerColor = if (asig != null) Color(android.graphics.Color.parseColor(asig.colorFondoHex)) else Color.LightGray.copy(alpha = 0.3f)),
                                     onClick = {
-                                        onOpenDialog(DialogState.AsignarProfesor(asignatura))
-                                    },
-                                    onEdit = {
-                                        onNavigate(Routes.HomeRoutes.EditAsignatura(
-                                            asignatura = asignatura,
-                                            cursoId = selectedCurso?.id ?: "",
-                                            centroId = selectedCentro?.id ?: ""
-                                        ))
+                                        val nuevoHorario = h ?: Horario(cursoId = curso.id, cicloNum = cicloNum, turno = turno, dia = dia, horaInicio = slot.split(" - ")[0], horaFin = slot.split(" - ")[1])
+                                        onEditHorario(nuevoHorario)
                                     }
-                                )
-                            }
-                        }
-                        AdminView.HORARIOS -> {
-                            val slots = if (selectedTurno == "matutino") samf.gestorestudiantil.data.models.Horario.HORAS_MATUTINO else samf.gestorestudiantil.data.models.Horario.HORAS_VESPERTINO
-                            val dias = samf.gestorestudiantil.data.models.Horario.DIAS_SEMANA
-                            val cicloNum = selectedCiclo?.trim()?.firstOrNull()?.digitToIntOrNull() ?: 1
-
-                            items(slots) { slot ->
-                                Text(
-                                    text = slot,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    color = primaryColor
-                                )
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    dias.forEach { dia ->
-                                        val h = adminState.horarios.find { it.dia == dia && "${it.horaInicio} - ${it.horaFin}" == slot }
-                                        val asig = adminState.asignaturas.find { it.idFirestore == h?.asignaturaId }
-
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(60.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Card(
-                                                modifier = Modifier.fillMaxSize(),
-                                                colors = CardDefaults.cardColors(
-                                                    containerColor = if (asig != null) Color(android.graphics.Color.parseColor(asig.colorFondoHex)) else Color.LightGray.copy(alpha = 0.3f)
-                                                ),
-                                                onClick = {
-                                                    val nuevoHorario = h ?: samf.gestorestudiantil.data.models.Horario(
-                                                        cursoId = selectedCurso!!.id,
-                                                        cicloNum = cicloNum,
-                                                        turno = selectedTurno!!,
-                                                        dia = dia,
-                                                        horaInicio = slot.split(" - ")[0],
-                                                        horaFin = slot.split(" - ")[1]
-                                                    )
-                                                    onOpenDialog(DialogState.EditHorario(
-                                                        horario = nuevoHorario,
-                                                        asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == selectedCiclo },
-                                                        onSave = { adminViewModel.guardarHorario(it) }
-                                                    ))
-                                                }
-                                            ) {
-                                                Column(
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    verticalArrangement = Arrangement.Center,
-                                                    horizontalAlignment = Alignment.CenterHorizontally
-                                                ) {
-                                                    Text(
-                                                        text = dia.take(1),
-                                                        fontSize = 10.sp,
-                                                        color = Color.Gray
-                                                    )
-                                                    Text(
-                                                        text = h?.asignaturaAcronimo ?: "-",
-                                                        fontSize = 12.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = textColor
-                                                    )
-                                                }
-                                            }
-                                        }
+                                    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(text = dia.take(1), fontSize = 10.sp, color = Color.Gray)
+                                        Text(text = h?.asignaturaAcronimo ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black.copy(alpha = 0.8f))
                                     }
                                 }
                             }
@@ -341,34 +243,6 @@ fun CentrosAdminPanel(
                     }
                 }
             }
-        }
-
-        FloatingActionButton(
-            onClick = {
-                when (currentView) {
-                    AdminView.CENTROS -> {
-                        onNavigate(Routes.HomeRoutes.EditCentro())
-                    }
-                    AdminView.CURSOS -> {
-                        onNavigate(Routes.HomeRoutes.EditCurso(
-                            centroId = selectedCentro?.id ?: ""
-                        ))
-                    }
-                    AdminView.ASIGNATURAS -> {
-                        onNavigate(Routes.HomeRoutes.EditAsignatura(
-                            cursoId = selectedCurso?.id ?: "",
-                            centroId = selectedCentro?.id ?: ""
-                        ))
-                    }
-                    else -> {}
-                }
-            },
-            containerColor = primaryColor,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
         }
     }
 }
@@ -389,7 +263,6 @@ fun CentroCard(centro: Centro, onClick: () -> Unit, onEdit: (() -> Unit)? = null
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = centro.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                // Se previene un posible null al leer dirección en caso de que el modelo haya variado
                 val addressStr = try { centro.direccion } catch (e: Exception) { "" }
                 if (addressStr.isNotEmpty()) {
                     Text(text = addressStr, fontSize = 12.sp, color = Color.Gray)
@@ -424,7 +297,6 @@ fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
     }
 }
 
-// CursoCard simplificado: Al haber solo un documento por curso, la distinción "isBase" ya no es necesaria.
 @Composable
 fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
     Card(
@@ -439,12 +311,9 @@ fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
             Icon(Icons.Default.School, contentDescription = null, tint = primaryColor)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                val tituloStr = try { curso.acronimo } catch (e: Exception) { "Nombre desconocido" }
-                val subtituloStr = try { curso.nombre } catch (e: Exception) { "" }
-
-                Text(text = tituloStr, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                if (subtituloStr.isNotEmpty()) {
-                    Text(text = subtituloStr, fontSize = 12.sp, color = Color.Gray)
+                Text(text = curso.acronimo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                if (curso.nombre.isNotEmpty()) {
+                    Text(text = curso.nombre, fontSize = 12.sp, color = Color.Gray)
                 }
             }
             if (onEdit != null) {

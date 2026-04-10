@@ -4,12 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.9] - 2026-04-10
+- Navigation Architecture: Centralized all Admin sub-routes (Centros, Tipos, Cursos, Asignaturas, Usuarios) in `HomeScreen` to resolve `IllegalStateException` and "Unknown screen" crashes caused by nested `NavDisplay` components.
+- Navigation Architecture: Updated `NestedNavMappers` to correctly identify detail routes within the expanded Admin hierarchy to support back-gesture priority.
+- State Management: Scoped `AdminViewModel` and `ProfesorViewModel` at the `HomeScreen` level to ensure state persistence and shared data across sub-navigation levels.
+- Refactor: Decoupled `CentrosAdminPanel` into stateless, reusable screen components (`CentrosListScreen`, `TiposCursoScreen`, `CursosScreen`, etc.).
+- Improvement: Internalized search and UI state within `EstudiantesAsignaturaLista` (Calificaciones) for better encapsulation and simplified parent logic.
+- Bugfix: Fixed icon import issues and type inference errors in the Admin navigation tree.
+
 ## [v0.2.8] - 2026-04-10
 - Bugfix: Fixed student notification badge not appearing on new or edited posts.
 - Feature: Added `fechaActualizacion` to Posts to track edits and trigger notifications.
 - Improvement: Notification count now only considers visible posts.
 - Infrastructure: Updated `EstudianteRepository` and `ProfesorRepository` to handle post update timestamps.
-
 
 ## [v0.2.7] - 2026-04-10
 - Architecture: Completed full refactor to Clean Architecture + MVVM.

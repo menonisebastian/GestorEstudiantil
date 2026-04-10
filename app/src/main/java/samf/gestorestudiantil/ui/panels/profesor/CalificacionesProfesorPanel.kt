@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -40,13 +41,13 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 fun CalificacionesProfesorPanel(
     profesor: User,
     paddingValues: PaddingValues,
-    onOpenDialog: (DialogState) -> Unit
+    onOpenDialog: (DialogState) -> Unit,
+    onAsignaturaClick: (Asignatura) -> Unit,
+    onEstudianteClick: (User, Asignatura) -> Unit
 ) {
     val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    var selectedAsignatura by remember { mutableStateOf<Asignatura?>(null) }
-    var selectedEstudiante by remember { mutableStateOf<User?>(null) }
     var searchText by remember { mutableStateOf("") }
     var filtroCurso by remember { mutableStateOf("") }
     var filtroAsignatura by remember { mutableStateOf("") }
@@ -71,150 +72,128 @@ fun CalificacionesProfesorPanel(
             .padding(paddingValues)
             .padding(horizontal = 20.dp)
     ) {
-        if (selectedEstudiante != null && selectedAsignatura != null) {
-            // ... (detalle omitido por brevedad, se mantiene igual)
-            CalificacionesDetalleEstudiante(
-                estudiante = selectedEstudiante!!,
-                asignatura = selectedAsignatura!!,
-                onBack = { selectedEstudiante = null },
-                viewModel = viewModel
-            )
-        } else if (selectedAsignatura != null) {
-            // ...
-            EstudiantesAsignaturaLista(
-                asignatura = selectedAsignatura!!,
-                estudiantes = state.estudiantes,
-                searchText = searchText,
-                onSearchChange = { searchText = it },
-                onEstudianteClick = { selectedEstudiante = it },
-                onBack = { selectedAsignatura = null },
-                viewModel = viewModel
-            )
-        } else {
-            Text(
-                text = "Gestión de Calificaciones",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = textColor,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-            )
+        Text(
+            text = "Gestión de Calificaciones",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = textColor,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+        )
 
-            CustomSearchBar(
-                textoBusqueda = searchText,
-                onValueChange = { searchText = it },
-                onFilterClick = {
-                    onOpenDialog(
-                        DialogState.Filter(
-                            tipo = "Calificaciones",
-                            currentFilters = buildMap {
-                                if (filtroCurso.isNotEmpty()) put("curso", filtroCurso)
-                                if (filtroAsignatura.isNotEmpty()) put("asignatura", filtroAsignatura)
-                            },
-                            opcionesPersonalizadas = mapOf(
-                                "cursos" to cursosOpciones,
-                                "asignaturas" to asignaturasOpciones
-                            ),
-                            onApply = { seleccion ->
-                                filtroCurso = seleccion["curso"] ?: ""
-                                filtroAsignatura = seleccion["asignatura"] ?: ""
+        CustomSearchBar(
+            textoBusqueda = searchText,
+            onValueChange = { searchText = it },
+            onFilterClick = {
+                onOpenDialog(
+                    DialogState.Filter(
+                        tipo = "Calificaciones",
+                        currentFilters = buildMap {
+                            if (filtroCurso.isNotEmpty()) put("curso", filtroCurso)
+                            if (filtroAsignatura.isNotEmpty()) put("asignatura", filtroAsignatura)
+                        },
+                        opcionesPersonalizadas = mapOf(
+                            "cursos" to cursosOpciones,
+                            "asignaturas" to asignaturasOpciones
+                        ),
+                        onApply = { seleccion ->
+                            filtroCurso = seleccion["curso"] ?: ""
+                            filtroAsignatura = seleccion["asignatura"] ?: ""
+                        }
+                    )
+                )
+            },
+            filters = buildMap {
+                if (filtroCurso.isNotEmpty()) put("curso", filtroCurso)
+                if (filtroAsignatura.isNotEmpty()) put("asignatura", filtroAsignatura)
+            },
+            onRemoveFilter = { key ->
+                if (key == "curso") filtroCurso = ""
+                if (key == "asignatura") filtroAsignatura = ""
+            }
+        )
+
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = Color.Transparent,
+            contentColor = primaryColor,
+            divider = {},
+            indicator = { tabPositions ->
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                    color = primaryColor
+                )
+            },
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = {
+                        Text(
+                            title,
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedTab == index) primaryColor else surfaceDimColor
+                        )
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        when (selectedTab) {
+            0 -> { // Pestaña Estudiantes
+                val filteredEstudiantes = state.todosMisEstudiantes.filter {
+                    val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true)
+                    val coincideCurso = filtroCurso.isEmpty() || it.cursoOArea == filtroCurso
+
+                    // Si hay filtro de asignatura, el estudiante debe pertenecer al curso de esa asignatura
+                    val coincideAsignatura = if (filtroAsignatura.isEmpty()) true else {
+                        state.asignaturas.any { asig -> asig.acronimo == filtroAsignatura && asig.cursoId == it.cursoId }
+                    }
+
+                    coincideBusqueda && coincideCurso && coincideAsignatura
+                }
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(filteredEstudiantes) { estudiante ->
+                        // En esta pestaña, necesitamos saber qué asignatura del profesor dar a este alumno
+                        // Si hay filtro de asignatura, usamos esa. Si no, la primera que coincida con el curso del alumno.
+                        val asigDelProfesorParaEsteAlumno = if (filtroAsignatura.isNotEmpty()) {
+                            state.asignaturas.find { it.acronimo == filtroAsignatura && it.cursoId == estudiante.cursoId }
+                        } else {
+                            state.asignaturas.find { it.cursoId == estudiante.cursoId }
+                        }
+
+                        EstudianteCard(
+                            estudiante = estudiante,
+                            materia = asigDelProfesorParaEsteAlumno?.nombre ?: "Sin asignatura común",
+                            onImageClick = { onOpenDialog(DialogState.UserProfile(estudiante)) },
+                            onClick = {
+                                if (asigDelProfesorParaEsteAlumno != null) {
+                                    onEstudianteClick(estudiante, asigDelProfesorParaEsteAlumno)
+                                }
                             }
                         )
-                    )
-                },
-                filters = buildMap {
-                    if (filtroCurso.isNotEmpty()) put("curso", filtroCurso)
-                    if (filtroAsignatura.isNotEmpty()) put("asignatura", filtroAsignatura)
-                },
-                onRemoveFilter = { key ->
-                    if (key == "curso") filtroCurso = ""
-                    if (key == "asignatura") filtroAsignatura = ""
-                }
-            )
-
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color.Transparent,
-                contentColor = primaryColor,
-                divider = {},
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = primaryColor
-                    )
-                },
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = {
-                            Text(
-                                title,
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedTab == index) primaryColor else surfaceDimColor
-                            )
-                        }
-                    )
+                    }
                 }
             }
+            1 -> { // Pestaña Asignaturas
+                val filteredAsignaturas = state.asignaturas.filter {
+                    val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)
+                    val coincideAsignatura = filtroAsignatura.isEmpty() || it.acronimo == filtroAsignatura
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    // En la pestaña de asignaturas, el filtro de curso se aplica al cursoId/acrónimo del curso
+                    // Nota: state.asignaturas ya está filtrado por profesorId en el ViewModel
+                    val coincideCurso = filtroCurso.isEmpty() || it.cursoId.contains(filtroCurso) // O una comparación más exacta si se tiene el acrónimo del curso en Asignatura
 
-            when (selectedTab) {
-                0 -> { // Pestaña Estudiantes
-                    val filteredEstudiantes = state.todosMisEstudiantes.filter {
-                        val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true)
-                        val coincideCurso = filtroCurso.isEmpty() || it.cursoOArea == filtroCurso
-                        
-                        // Si hay filtro de asignatura, el estudiante debe pertenecer al curso de esa asignatura
-                        val coincideAsignatura = if (filtroAsignatura.isEmpty()) true else {
-                            state.asignaturas.any { asig -> asig.acronimo == filtroAsignatura && asig.cursoId == it.cursoId }
-                        }
-
-                        coincideBusqueda && coincideCurso && coincideAsignatura
-                    }
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(filteredEstudiantes) { estudiante ->
-                            // En esta pestaña, necesitamos saber qué asignatura del profesor dar a este alumno
-                            // Si hay filtro de asignatura, usamos esa. Si no, la primera que coincida con el curso del alumno.
-                            val asigDelProfesorParaEsteAlumno = if (filtroAsignatura.isNotEmpty()) {
-                                state.asignaturas.find { it.acronimo == filtroAsignatura && it.cursoId == estudiante.cursoId }
-                            } else {
-                                state.asignaturas.find { it.cursoId == estudiante.cursoId }
-                            }
-                            
-                            EstudianteCard(
-                                estudiante = estudiante,
-                                materia = asigDelProfesorParaEsteAlumno?.nombre ?: "Sin asignatura común",
-                                onClick = { 
-                                    if (asigDelProfesorParaEsteAlumno != null) {
-                                        selectedAsignatura = asigDelProfesorParaEsteAlumno
-                                        selectedEstudiante = it
-                                    }
-                                }
-                            )
-                        }
-                    }
+                    coincideBusqueda && coincideAsignatura && coincideCurso
                 }
-                1 -> { // Pestaña Asignaturas
-                    val filteredAsignaturas = state.asignaturas.filter {
-                        val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)
-                        val coincideAsignatura = filtroAsignatura.isEmpty() || it.acronimo == filtroAsignatura
-                        
-                        // En la pestaña de asignaturas, el filtro de curso se aplica al cursoId/acrónimo del curso
-                        // Nota: state.asignaturas ya está filtrado por profesorId en el ViewModel
-                        val coincideCurso = filtroCurso.isEmpty() || it.cursoId.contains(filtroCurso) // O una comparación más exacta si se tiene el acrónimo del curso en Asignatura
-
-                        coincideBusqueda && coincideAsignatura && coincideCurso
-                    }
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(filteredAsignaturas) { asignatura ->
-                            AsignaturaCard(asignatura, onClick = {
-                                selectedAsignatura = asignatura
-                                viewModel.cargarEstudiantesPorCurso(asignatura.cursoId)
-                            })
-                        }
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(filteredAsignaturas) { asignatura ->
+                        AsignaturaCard(asignatura, onClick = {
+                            onAsignaturaClick(asignatura)
+                        })
                     }
                 }
             }
@@ -226,50 +205,77 @@ fun CalificacionesProfesorPanel(
 fun EstudiantesAsignaturaLista(
     asignatura: Asignatura,
     estudiantes: List<User>,
-    searchText: String,
-    onSearchChange: (String) -> Unit,
     onEstudianteClick: (User) -> Unit,
+    onOpenDialog: (DialogState) -> Unit,
     onBack: () -> Unit,
     viewModel: ProfesorViewModel
 ) {
-    Column {
+    var searchText by remember { mutableStateOf("") }
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 20.dp)
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textColor)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
             }
-            Text(
-                text = asignatura.nombre,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
+            Spacer(modifier = Modifier.weight(1f))
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = asignatura.nombre,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
+                val cursoAcronimo = try { asignatura.idFirestore.substringAfter("_").substringBefore("_").uppercase() } catch (e: Exception) { "" }
+                Text(
+                    text = "$cursoAcronimo - [$cursoAcronimo$turnoLetra${asignatura.cicloNum}]",
+                    fontSize = 12.sp,
+                    color = surfaceDimColor
+                )
+            }
         }
 
         CustomSearchBar(
             textoBusqueda = searchText,
-            onValueChange = onSearchChange,
+            onValueChange = { searchText = it },
             onFilterClick = {}
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val filteredEstudiantes = estudiantes.filter {
-            it.nombre.contains(searchText, ignoreCase = true)
+        val filteredEstudiantes = if (searchText.isEmpty()) {
+            estudiantes
+        } else {
+            estudiantes.filter {
+                it.nombre.contains(searchText, ignoreCase = true)
+            }
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(filteredEstudiantes) { estudiante ->
-                EstudianteCard(estudiante, asignatura.nombre, onEstudianteClick)
+                EstudianteCard(
+                    estudiante = estudiante,
+                    materia = asignatura.nombre,
+                    onImageClick = { onOpenDialog(DialogState.UserProfile(estudiante)) },
+                    onClick = onEstudianteClick
+                )
             }
         }
     }
 }
 
 @Composable
-fun EstudianteCard(estudiante: User, materia: String, onClick: (User) -> Unit) {
+fun EstudianteCard(
+    estudiante: User,
+    materia: String,
+    onImageClick: () -> Unit = {},
+    onClick: (User) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -287,7 +293,8 @@ fun EstudianteCard(estudiante: User, materia: String, onClick: (User) -> Unit) {
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray),
+                    .background(Color.Gray)
+                    .clickable { onImageClick() },
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -304,6 +311,7 @@ fun EstudianteCard(estudiante: User, materia: String, onClick: (User) -> Unit) {
 fun CalificacionesDetalleEstudiante(
     estudiante: User,
     asignatura: Asignatura,
+    onOpenDialog: (DialogState) -> Unit,
     onBack: () -> Unit,
     viewModel: ProfesorViewModel
 ) {
@@ -315,53 +323,81 @@ fun CalificacionesDetalleEstudiante(
         viewModel.cargarEvaluacionesEstudiante(estudiante.id, asignatura.idFirestore)
     }
 
-    Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textColor)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = estudiante.nombre,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
-                )
-                Text(
-                    text = asignatura.nombre,
-                    fontSize = 12.sp,
-                    color = surfaceDimColor
-                )
-            }
-            IconButton(onClick = {
-                evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.idFirestore)
-                showDialog = true
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = primaryColor)
+    Scaffold(
+        containerColor = Color.Transparent,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.idFirestore)
+                    showDialog = true
+                },
+                containerColor = primaryColor
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
             }
         }
-
-        if (state.evaluaciones.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No hay calificaciones registradas", color = surfaceDimColor)
-            }
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(state.evaluaciones) { eval ->
-                    EvaluacionProfesorItem(
-                        evaluacion = eval,
-                        onEdit = {
-                            evaluacionAEditar = eval
-                            showDialog = true
-                        },
-                        onDelete = { viewModel.eliminarEvaluacion(eval) },
-                        onToggleVisibility = {
-                            viewModel.guardarEvaluacion(eval.copy(visible = !eval.visible))
-                        }
+    ) { _ -> // Ignoramos paddingValues del Scaffold interno para reducir el espacio superior
+        Column(modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .fillMaxSize()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = textColor)
+                }
+                AsyncImage(
+                    model = estudiante.imgUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                        .clickable { onOpenDialog(DialogState.UserProfile(estudiante)) },
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.weight(1f))
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = estudiante.nombre,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
                     )
+                    val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
+                    val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
+                    Text(
+                        text = "${asignatura.nombre} - [$cursoAcronimo$turnoLetra${asignatura.cicloNum}]",
+                        fontSize = 12.sp,
+                        color = surfaceDimColor
+                    )
+                }
+            }
+
+            if (state.evaluaciones.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay calificaciones registradas", color = surfaceDimColor)
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(state.evaluaciones) { eval ->
+                        EvaluacionProfesorItem(
+                            evaluacion = eval,
+                            onEdit = {
+                                evaluacionAEditar = eval
+                                showDialog = true
+                            },
+                            onDelete = { viewModel.eliminarEvaluacion(eval) },
+                            onToggleVisibility = {
+                                viewModel.guardarEvaluacion(eval.copy(visible = !eval.visible))
+                            }
+                        )
+                    }
                 }
             }
         }

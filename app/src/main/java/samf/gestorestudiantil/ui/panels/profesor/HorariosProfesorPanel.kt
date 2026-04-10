@@ -40,7 +40,8 @@ import samf.gestorestudiantil.ui.theme.textColor
 fun HorariosProfesorPanel(
     paddingValues: PaddingValues,
     horarios: List<Horario>,
-    asignaturas: List<Asignatura>
+    asignaturas: List<Asignatura>,
+    turno: String = "matutino"
 ) {
     var selectedDay by remember { mutableStateOf("Lunes") }
 
@@ -76,16 +77,14 @@ fun HorariosProfesorPanel(
                 fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
             }
         ) { dia ->
-            HorarioDelDiaProfesor(dia, horarios, asignaturas)
+            HorarioDelDiaProfesor(dia, horarios, asignaturas, turno)
         }
     }
 }
 
 @Composable
-fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: List<Asignatura>) {
-    // Para el profesor, mostramos solo sus bloques asignados, ordenados por hora
-    val clasesHoy = horarios.filter { it.dia == dia }
-        .sortedBy { it.horaInicio }
+fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: List<Asignatura>, turno: String) {
+    val slots = if (turno.lowercase().trim() == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
 
     LazyColumn(
         modifier = Modifier
@@ -94,19 +93,10 @@ fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: Lis
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (clasesHoy.isEmpty()) {
-            item {
-                Text(
-                    text = "No tienes clases asignadas este día",
-                    color = surfaceDimColor,
-                    modifier = Modifier.padding(top = 32.dp)
-                )
-            }
-        } else {
-            items(clasesHoy) { h ->
-                val asig = asignaturas.find { it.idFirestore == h.asignaturaId }
-                ItemHorarioProfesor(h, asig)
-            }
+        items(slots) { slot ->
+            val h = horarios.find { it.dia.equals(dia, ignoreCase = true) && "${it.horaInicio.trim()} - ${it.horaFin.trim()}" == slot.trim() }
+            val asig = asignaturas.find { it.idFirestore == h?.asignaturaId }
+            ItemHorarioProfesor(slot, h, asig)
         }
 
         item {
@@ -116,17 +106,25 @@ fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: Lis
 }
 
 @Composable
-fun ItemHorarioProfesor(horario: Horario, asignatura: Asignatura?) {
-    val colorFondo = try {
-        Color(android.graphics.Color.parseColor(asignatura?.colorFondoHex ?: "#E8E8E8"))
-    } catch (e: Exception) {
-        Color.LightGray.copy(alpha = 0.2f)
+fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?) {
+    val isReceso = slot.contains("RECREO") || slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")
+
+    val colorFondo = when {
+        isReceso -> Color.LightGray.copy(alpha = 0.5f)
+        asignatura != null -> {
+            try {
+                Color(android.graphics.Color.parseColor(asignatura.colorFondoHex))
+            } catch (e: Exception) {
+                Color.LightGray.copy(alpha = 0.2f)
+            }
+        }
+        else -> Color.LightGray.copy(alpha = 0.1f)
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = colorFondo),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (horario != null) 2.dp else 0.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -134,12 +132,16 @@ fun ItemHorarioProfesor(horario: Horario, asignatura: Asignatura?) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = horario.asignaturaAcronimo,
+                    text = when {
+                        isReceso -> "RECREO"
+                        horario != null -> horario.asignaturaAcronimo.ifEmpty { "Materia Asignada" }
+                        else -> "---"
+                    },
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = Color.Black.copy(alpha = 0.8f)
+                    color = if (horario != null || isReceso) Color.Black.copy(alpha = 0.8f) else surfaceDimColor
                 )
-                if (asignatura != null) {
+                if (asignatura != null && !isReceso) {
                     Text(
                         text = asignatura.nombre,
                         fontSize = 12.sp,
@@ -148,36 +150,35 @@ fun ItemHorarioProfesor(horario: Horario, asignatura: Asignatura?) {
                     )
                 }
                 Text(
-                    text = "${horario.horaInicio} - ${horario.horaFin}",
+                    text = slot,
                     fontSize = 13.sp,
-                    color = Color.Black.copy(alpha = 0.6f)
+                    color = if (horario != null || isReceso) Color.Black.copy(alpha = 0.6f) else surfaceDimColor
                 )
             }
             
-            Column(horizontalAlignment = Alignment.End) {
-                // Generamos el código del grupo: Acrónimo + Inicial Turno + Ciclo (Ej: DAM V1)
-                val inicialTurno = when(horario.turno.lowercase().trim()) {
-                    "matutino" -> "M"
-                    "vespertino" -> "V"
-                    else -> horario.turno.take(1).uppercase()
-                }
-                
-                // Extraemos el acrónimo del cursoId (ej: ies_comercio_DAM -> DAM)
-                val acronimoCurso = horario.cursoId.substringAfterLast("_").uppercase()
+            if (horario != null && !isReceso) {
+                Column(horizontalAlignment = Alignment.End) {
+                    val inicialTurno = when(horario.turno.lowercase().trim()) {
+                        "matutino" -> "M"
+                        "vespertino" -> "V"
+                        else -> horario.turno.take(1).uppercase()
+                    }
+                    val acronimoCurso = horario.cursoId.substringAfterLast("_").uppercase()
 
-                Text(
-                    text = "$acronimoCurso $inicialTurno${horario.cicloNum}",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.Black.copy(alpha = 0.8f)
-                )
-                if (horario.aula.isNotEmpty()) {
                     Text(
-                        text = "Aula: ${horario.aula}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black.copy(alpha = 0.6f)
+                        text = "$acronimoCurso $inicialTurno${horario.cicloNum}",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.Black.copy(alpha = 0.8f)
                     )
+                    if (horario.aula.isNotEmpty()) {
+                        Text(
+                            text = "Aula: ${horario.aula}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Black.copy(alpha = 0.6f)
+                        )
+                    }
                 }
             }
         }

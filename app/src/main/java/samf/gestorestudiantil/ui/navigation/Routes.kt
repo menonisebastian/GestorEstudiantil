@@ -56,10 +56,20 @@ sealed interface Routes {
         @Serializable
         data object Calificaciones : HomeRoutes
 
-        // Routes.kt
         @Serializable
         data class CalificacionesDetalle(
-            val asignatura: Asignatura  // objeto completo
+            val asignatura: Asignatura
+        ) : HomeRoutes
+
+        @Serializable
+        data class EstudiantesAsignatura(
+            val asignatura: Asignatura
+        ) : HomeRoutes
+
+        @Serializable
+        data class CalificacionesEstudianteDetalle(
+            val estudiante: User,
+            val asignatura: Asignatura
         ) : HomeRoutes
 
         // TODO : Cambiar a Firebase
@@ -77,8 +87,27 @@ sealed interface Routes {
         @Serializable
         data object Usuarios : HomeRoutes
 
+        // Jerarquía de Centros Admin
         @Serializable
         data object Centros : HomeRoutes
+
+        @Serializable
+        data class AdminTiposCurso(val centro: Centro) : HomeRoutes
+
+        @Serializable
+        data class AdminCursos(val centroId: String, val tipo: String) : HomeRoutes
+
+        @Serializable
+        data class AdminTurnos(val centroId: String, val curso: Curso) : HomeRoutes
+
+        @Serializable
+        data class AdminCiclos(val centroId: String, val curso: Curso, val turno: String) : HomeRoutes
+
+        @Serializable
+        data class AdminAsignaturas(val centroId: String, val curso: Curso, val turno: String, val ciclo: String) : HomeRoutes
+
+        @Serializable
+        data class AdminHorarios(val centroId: String, val curso: Curso, val turno: String, val ciclo: String) : HomeRoutes
 
         @Serializable
         data class EditCentro(val centro: Centro? = null) : HomeRoutes

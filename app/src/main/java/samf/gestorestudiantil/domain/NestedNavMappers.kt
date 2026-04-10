@@ -48,10 +48,19 @@ fun routeToTab(route: Any, rol: String): String = when (route) {
 // Devuelve true si es una ruta de detalle (no un tab raíz)
 fun isDetailRoute(route: Any): Boolean =
     route is Routes.HomeRoutes.CalificacionesDetalle ||
+    route is Routes.HomeRoutes.MateriaDetalle ||
+    route is Routes.HomeRoutes.EstudiantesAsignatura ||
+    route is Routes.HomeRoutes.CalificacionesEstudianteDetalle ||
     route is Routes.HomeRoutes.EditCentro ||
     route is Routes.HomeRoutes.EditCurso ||
     route is Routes.HomeRoutes.EditAsignatura ||
-    route is Routes.HomeRoutes.EditUser
+    route is Routes.HomeRoutes.EditUser ||
+    route is Routes.HomeRoutes.AdminTiposCurso ||
+    route is Routes.HomeRoutes.AdminCursos ||
+    route is Routes.HomeRoutes.AdminTurnos ||
+    route is Routes.HomeRoutes.AdminCiclos ||
+    route is Routes.HomeRoutes.AdminAsignaturas ||
+    route is Routes.HomeRoutes.AdminHorarios
 
 
 //## Resumen visual de la arquitectura

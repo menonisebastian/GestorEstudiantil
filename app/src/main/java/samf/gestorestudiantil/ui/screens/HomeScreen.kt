@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
+import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Centro
+import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.listaRecordatorios
@@ -50,7 +55,13 @@ import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
-import samf.gestorestudiantil.ui.panels.admin.CentrosAdminPanel
+import samf.gestorestudiantil.ui.panels.admin.AsignaturasScreen
+import samf.gestorestudiantil.ui.panels.admin.CiclosScreen
+import samf.gestorestudiantil.ui.panels.admin.CursosScreen
+import samf.gestorestudiantil.ui.panels.admin.CentrosListScreen
+import samf.gestorestudiantil.ui.panels.admin.HorariosAdminScreen
+import samf.gestorestudiantil.ui.panels.admin.TiposCursoScreen
+import samf.gestorestudiantil.ui.panels.admin.TurnosScreen
 import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
 import samf.gestorestudiantil.ui.screens.admin.EditAsignaturaScreen
 import samf.gestorestudiantil.ui.screens.admin.EditCentroScreen
@@ -63,7 +74,9 @@ import samf.gestorestudiantil.ui.panels.estudiante.HorariosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.MateriaDetalleEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.profesor.AsignaturasProfesorPanel
+import samf.gestorestudiantil.ui.panels.profesor.CalificacionesDetalleEstudiante
 import samf.gestorestudiantil.ui.panels.profesor.CalificacionesProfesorPanel
+import samf.gestorestudiantil.ui.panels.profesor.EstudiantesAsignaturaLista
 import samf.gestorestudiantil.ui.panels.profesor.HorariosProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.MateriaDetalleProfesorPanel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -125,6 +138,9 @@ fun HomeScreen(
 
     val profesorViewModel: ProfesorViewModel = hiltViewModel()
     val profesorState by profesorViewModel.state.collectAsState()
+
+    val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
+    val adminState by adminViewModel.adminState.collectAsState()
 
     // Cargar datos al entrar o cuando cambien los datos clave del usuario
     LaunchedEffect(usuario.id, usuario.cursoId, usuario.turno, usuario.cicloNum) {
@@ -190,6 +206,23 @@ fun HomeScreen(
         .let { it == "Recordatorios" || it == "Notificaciones" }
 
     var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
+
+    // ✅ Manejo del botón Atrás global de la App
+    BackHandler {
+        val currentRoute = homeBackStack.lastOrNull()
+        if (currentRoute != null) {
+            val firstTabRoute = tabToRoute(tabs.first(), usuario.rol)
+            
+            // Si no estamos en la primera pestaña (Materias/Usuarios), volvemos a ella
+            if (currentRoute::class != firstTabRoute::class) {
+                homeBackStack.clear()
+                homeBackStack.add(firstTabRoute)
+            } else {
+                // Si ya estamos en la primera pestaña, dejamos que el sistema cierre la app
+                onLogout() // O simplemente no hacer nada para que BackHandler pase al sistema
+            }
+        }
+    }
 
     Scaffold(
         containerColor = backgroundColor,
@@ -260,7 +293,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            userScrollEnabled = true
+            userScrollEnabled = homeBackStack.lastOrNull()?.let { !isDetailRoute(it) } ?: true
         ) { page ->
             // Cada página tiene su propio NavDisplay para sub-navegación
             val pageRoute = tabToRoute(tabs.getOrNull(page) ?: "", usuario.rol)
@@ -321,7 +354,8 @@ fun HomeScreen(
                             HorariosProfesorPanel(
                                 paddingValues = PaddingValues(0.dp),
                                 horarios = profesorState.horarios,
-                                asignaturas = profesorState.asignaturas
+                                asignaturas = profesorState.asignaturas,
+                                turno = usuario.turno.ifEmpty { "matutino" }
                             )
                         } else {
                             HorariosEstudiantePanel(
@@ -339,7 +373,13 @@ fun HomeScreen(
                             CalificacionesProfesorPanel(
                                 profesor = usuario,
                                 paddingValues = PaddingValues(0.dp),
-                                onOpenDialog = { newState -> dialogState = newState }
+                                onOpenDialog = { newState -> dialogState = newState },
+                                onAsignaturaClick = { asignatura ->
+                                    pageBackStack.add(Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
+                                },
+                                onEstudianteClick = { estudiante, asignatura ->
+                                    pageBackStack.add(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
+                                }
                             )
                         } else {
                             CalificacionesEstudiantePanel(
@@ -350,6 +390,35 @@ fun HomeScreen(
                                 }
                             )
                         }
+                    }
+                    entry<Routes.HomeRoutes.EstudiantesAsignatura> { route ->
+                        val profesorViewModel: ProfesorViewModel = hiltViewModel()
+                        val pState by profesorViewModel.state.collectAsState()
+
+                        LaunchedEffect(route.asignatura.cursoId) {
+                            profesorViewModel.cargarEstudiantesPorCurso(route.asignatura.cursoId)
+                        }
+
+                        EstudiantesAsignaturaLista(
+                            asignatura = route.asignatura,
+                            estudiantes = pState.estudiantes,
+                            onEstudianteClick = { estudiante ->
+                                pageBackStack.add(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
+                            },
+                            onOpenDialog = { newState -> dialogState = newState },
+                            onBack = { pageBackStack.removeLastOrNull() },
+                            viewModel = profesorViewModel
+                        )
+                    }
+                    entry<Routes.HomeRoutes.CalificacionesEstudianteDetalle> { route ->
+                        val profesorViewModel: ProfesorViewModel = hiltViewModel()
+                        CalificacionesDetalleEstudiante(
+                            estudiante = route.estudiante,
+                            asignatura = route.asignatura,
+                            onOpenDialog = { newState -> dialogState = newState },
+                            onBack = { pageBackStack.removeLastOrNull() },
+                            viewModel = profesorViewModel
+                        )
                     }
                     entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
                         // Cargar evaluaciones de la asignatura seleccionada
@@ -395,14 +464,135 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.Centros> {
-                        CentrosAdminPanel(
-                            paddingValues = PaddingValues(0.dp),
-                            onOpenDialog = { newState -> dialogState = newState },
-                            onNavigate = { route -> pageBackStack.add(route) }
+                        LaunchedEffect(Unit) {
+                            adminViewModel.cargarCentros()
+                        }
+
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            CentrosListScreen(
+                                adminState = adminState,
+                                adminViewModel = adminViewModel,
+                                onCentroClick = { centro: Centro ->
+                                    adminViewModel.cargarCursosPorCentro(centro.id)
+                                    pageBackStack.add(Routes.HomeRoutes.AdminTiposCurso(centro))
+                                },
+                                onEditCentro = { centro: Centro -> pageBackStack.add(Routes.HomeRoutes.EditCentro(centro)) }
+                            )
+
+                            FloatingActionButton(
+                                onClick = { pageBackStack.add(Routes.HomeRoutes.EditCentro()) },
+                                containerColor = primaryColor,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(16.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
+                            }
+                        }
+                    }
+                    entry<Routes.HomeRoutes.AdminTiposCurso> { route ->
+                        TiposCursoScreen(
+                            centro = route.centro,
+                            adminState = adminState,
+                            onTipoClick = { tipo: String ->
+                                pageBackStack.add(Routes.HomeRoutes.AdminCursos(route.centro.id, tipo))
+                            },
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.AdminCursos> { route ->
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            CursosScreen(
+                                tipo = route.tipo,
+                                centroId = route.centroId,
+                                adminState = adminState,
+                                onCursoClick = { curso: Curso ->
+                                    pageBackStack.add(Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
+                                },
+                                onEditCurso = { curso: Curso ->
+                                    pageBackStack.add(Routes.HomeRoutes.EditCurso(curso, route.centroId))
+                                },
+                                onBack = { pageBackStack.removeLastOrNull() }
+                            )
+                            FloatingActionButton(
+                                onClick = { pageBackStack.add(Routes.HomeRoutes.EditCurso(centroId = route.centroId)) },
+                                containerColor = primaryColor,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(16.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
+                            }
+                        }
+                    }
+                    entry<Routes.HomeRoutes.AdminTurnos> { route ->
+                        TurnosScreen(
+                            curso = route.curso,
+                            onTurnoClick = { turno: String ->
+                                adminViewModel.cargarAsignaturasPorCurso(route.curso.id, turno)
+                                pageBackStack.add(Routes.HomeRoutes.AdminCiclos(route.centroId, route.curso, turno))
+                            },
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.AdminCiclos> { route ->
+                        CiclosScreen(
+                            curso = route.curso,
+                            turno = route.turno,
+                            adminState = adminState,
+                            onVerAsignaturas = { ciclo: String ->
+                                pageBackStack.add(Routes.HomeRoutes.AdminAsignaturas(route.centroId, route.curso, route.turno, ciclo))
+                            },
+                            onVerHorario = { ciclo: String ->
+                                val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
+                                adminViewModel.cargarHorariosPorCursoYCiclo(route.curso.id, cicloNum, route.turno)
+                                pageBackStack.add(Routes.HomeRoutes.AdminHorarios(route.centroId, route.curso, route.turno, ciclo))
+                            },
+                            onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.AdminAsignaturas> { route ->
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AsignaturasScreen(
+                                curso = route.curso,
+                                ciclo = route.ciclo,
+                                adminState = adminState,
+                                onAsignaturaClick = { asignatura: Asignatura ->
+                                    dialogState = DialogState.AsignarProfesor(asignatura)
+                                },
+                                onEditAsignatura = { asignatura: Asignatura ->
+                                    pageBackStack.add(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                                },
+                                onBack = { pageBackStack.removeLastOrNull() }
+                            )
+                            FloatingActionButton(
+                                onClick = { pageBackStack.add(Routes.HomeRoutes.EditAsignatura(cursoId = route.curso.id, centroId = route.centroId)) },
+                                containerColor = primaryColor,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(16.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
+                            }
+                        }
+                    }
+                    entry<Routes.HomeRoutes.AdminHorarios> { route ->
+                        HorariosAdminScreen(
+                            curso = route.curso,
+                            ciclo = route.ciclo,
+                            turno = route.turno,
+                            adminState = adminState,
+                            onEditHorario = { horario: Horario ->
+                                dialogState = DialogState.EditHorario(
+                                    horario = horario,
+                                    asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == route.ciclo },
+                                    onSave = { adminViewModel.guardarHorario(it) }
+                                )
+                            },
+                            onBack = { pageBackStack.removeLastOrNull() }
                         )
                     }
                     entry<Routes.HomeRoutes.EditCentro> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditCentroScreen(
                             state = DialogState.EditCentro(
                                 centro = route.centro,
@@ -412,7 +602,6 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditCurso> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditCursoScreen(
                             state = DialogState.EditCurso(
                                 curso = route.curso,
@@ -423,7 +612,6 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditAsignatura> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditAsignaturaScreen(
                             state = DialogState.EditAsignatura(
                                 asignatura = route.asignatura,
@@ -435,7 +623,6 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditUser> { route ->
-                        val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
                         EditUserScreen(
                             state = DialogState.EditUser(
                                 user = route.user,
