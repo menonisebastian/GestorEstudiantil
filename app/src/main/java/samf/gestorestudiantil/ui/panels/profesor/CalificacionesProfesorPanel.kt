@@ -27,8 +27,11 @@ import coil.compose.AsyncImage
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.User
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
+import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -484,19 +487,18 @@ fun AddEditCalificacionDialog(
         title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
+                CustomTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
-                    label = { Text("Nombre del trabajo/examen") },
-                    shape = RoundedCornerShape(12.dp),
+                    label = "Nombre del trabajo/examen",
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                CustomTextField(
                     value = nota,
                     onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) nota = it },
-                    label = { Text("Nota (0.0 - 10.0)") },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Nota (0.0 - 10.0)",
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )
             }
         },

@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.screens
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,8 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
@@ -46,7 +47,6 @@ import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.User
-import samf.gestorestudiantil.data.models.listaRecordatorios
 import samf.gestorestudiantil.domain.isDetailRoute
 import samf.gestorestudiantil.domain.routeToTab
 import samf.gestorestudiantil.domain.tabToRoute
@@ -90,14 +90,14 @@ import java.util.UUID
 
 // 1. Definimos los mapas de navegación según tu requerimiento inicial
 val itemsEstudiante: Map<String, ImageVector> = mapOf(
-    "Materias" to Icons.Outlined.Class,
+    "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
     "Recordatorios" to Icons.Outlined.Notifications
 )
 
 val itemsProfesor: Map<String, ImageVector> = mapOf(
-    "Materias" to Icons.Outlined.Class,
+    "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
     "Recordatorios" to Icons.Outlined.Notifications
@@ -178,7 +178,13 @@ fun HomeScreen(
         mutableStateListOf<Any>(tabToRoute(tabs.first(), usuario.rol))
     }
 
-    var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
+    // Gestión de diálogos (Pila para permitir pickers sobre otros diálogos)
+    val dialogStack = remember { mutableStateListOf<DialogState>() }
+
+    val onOpenDialog: (DialogState) -> Unit = { newState ->
+        dialogStack.clear()
+        dialogStack.add(newState)
+    }
 
     // ✅ Mapa de backstacks locales por cada tab para persistir estado y manejar scroll/FAB
     val tabBackStacks = remember(tabs) {
@@ -214,6 +220,7 @@ fun HomeScreen(
         }
     }
 
+    val context = LocalContext.current
     // ✅ Manejo del botón Atrás global
     BackHandler {
         if (currentPageBackStack != null && currentPageBackStack.size > 1) {
@@ -225,7 +232,7 @@ fun HomeScreen(
                 homeBackStack.clear()
                 homeBackStack.add(firstTabRoute)
             } else {
-                onLogout()
+                (context as? Activity)?.finish()
             }
         }
     }
@@ -268,19 +275,21 @@ fun HomeScreen(
                 currentPageTab == "Recordatorios" || currentPageTab == "Notificaciones" -> {
                     FloatingActionButton(
                         onClick = {
-                            dialogState = DialogState.AddRecordatorio(
-                                onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                    val nuevo = Recordatorio(
-                                        id = UUID.randomUUID().toString(),
-                                        usuarioId = usuario.id,
-                                        titulo = titulo,
-                                        descripcion = descripcion,
-                                        fecha = fecha,
-                                        hora = hora,
-                                        tipo = tipo
-                                    )
-                                    appViewModel.añadirRecordatorio(nuevo)
-                                }
+                            onOpenDialog(
+                                DialogState.AddRecordatorio(
+                                    onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                        val nuevo = Recordatorio(
+                                            id = UUID.randomUUID().toString(),
+                                            usuarioId = usuario.id,
+                                            titulo = titulo,
+                                            descripcion = descripcion,
+                                            fecha = fecha,
+                                            hora = hora,
+                                            tipo = tipo
+                                        )
+                                        appViewModel.añadirRecordatorio(nuevo)
+                                    }
+                                )
                             )
                         },
                         containerColor = primaryColor
@@ -361,7 +370,7 @@ fun HomeScreen(
                                 asignatura = route.asignatura,
                                 profesor = usuario,
                                 onBackClick = { pageBackStack.removeLastOrNull() },
-                                onOpenDialog = { newState -> dialogState = newState }
+                                onOpenDialog = onOpenDialog
                             )
                         } else {
                             MateriaDetalleEstudiantePanel(
@@ -394,7 +403,7 @@ fun HomeScreen(
                             CalificacionesProfesorPanel(
                                 profesor = usuario,
                                 paddingValues = PaddingValues(0.dp),
-                                onOpenDialog = { newState -> dialogState = newState },
+                                onOpenDialog = onOpenDialog,
                                 onAsignaturaClick = { asignatura ->
                                     pageBackStack.add(Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
                                 },
@@ -426,7 +435,7 @@ fun HomeScreen(
                             onEstudianteClick = { estudiante ->
                                 pageBackStack.add(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
                             },
-                            onOpenDialog = { newState -> dialogState = newState },
+                            onOpenDialog = onOpenDialog,
                             onBack = { pageBackStack.removeLastOrNull() },
                             viewModel = profesorViewModel
                         )
@@ -436,7 +445,7 @@ fun HomeScreen(
                         CalificacionesDetalleEstudiante(
                             estudiante = route.estudiante,
                             asignatura = route.asignatura,
-                            onOpenDialog = { newState -> dialogState = newState },
+                            onOpenDialog = onOpenDialog,
                             onBack = { pageBackStack.removeLastOrNull() },
                             viewModel = profesorViewModel
                         )
@@ -458,7 +467,7 @@ fun HomeScreen(
                         RecordatoriosEstudiantePanel(
                             recordatorios = appState.recordatorios,
                             paddingValues = PaddingValues(0.dp),
-                            onOpenDialog = { newState -> dialogState = newState }
+                            onOpenDialog = onOpenDialog
                         )
                     }
                     // Admin
@@ -466,7 +475,7 @@ fun HomeScreen(
                         UsuariosAdminPanel(
                             paddingValues = PaddingValues(0.dp),
                             usuarioActual = usuario,
-                            onOpenDialog = { newState -> dialogState = newState }
+                            onOpenDialog = onOpenDialog
                         )
                     }
                     entry<Routes.HomeRoutes.Centros> {
@@ -540,7 +549,7 @@ fun HomeScreen(
                             ciclo = route.ciclo,
                             adminState = adminState,
                             onAsignaturaClick = { asignatura: Asignatura ->
-                                dialogState = DialogState.AsignarProfesor(asignatura)
+                                onOpenDialog(DialogState.AsignarProfesor(asignatura))
                             },
                             onEditAsignatura = { asignatura: Asignatura ->
                                 pageBackStack.add(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
@@ -555,10 +564,12 @@ fun HomeScreen(
                             turno = route.turno,
                             adminState = adminState,
                             onEditHorario = { horario: Horario ->
-                                dialogState = DialogState.EditHorario(
-                                    horario = horario,
-                                    asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == route.ciclo },
-                                    onSave = { adminViewModel.guardarHorario(it) }
+                                onOpenDialog(
+                                    DialogState.EditHorario(
+                                        horario = horario,
+                                        asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == route.ciclo },
+                                        onSave = { adminViewModel.guardarHorario(it) }
+                                    )
                                 )
                             },
                             onBack = { pageBackStack.removeLastOrNull() }
@@ -609,8 +620,9 @@ fun HomeScreen(
     }
 
     DialogOrchestrator(
-        state = dialogState,
-        onDismiss = { dialogState = DialogState.None }
+        states = dialogStack,
+        onShowDialog = { dialogStack.add(it) },
+        onDismiss = { dialogStack.remove(it) }
     )
 }
 

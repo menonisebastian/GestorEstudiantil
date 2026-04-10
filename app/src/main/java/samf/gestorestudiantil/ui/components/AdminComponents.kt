@@ -28,10 +28,10 @@ fun ColorPickerField(label: String, value: String, onValueChange: (String) -> Un
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        OutlinedTextField(
+        CustomTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label) },
+            label = label,
             modifier = Modifier.weight(1f)
         )
         Box(
@@ -64,10 +64,10 @@ fun IconPickerField(value: String, onValueChange: (String) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        OutlinedTextField(
+        CustomTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text("Icono Name") },
+            label = "Icono Name",
             modifier = Modifier.weight(1f)
         )
         IconButton(onClick = { showDialog = true }) {

@@ -133,8 +133,8 @@ fun RegisterStep2Screen(
                         texto = rolSeleccionado,
                         onValueChange = { rolSeleccionado = it },
                         opciones = roles,
-                        icon = Icons.Outlined.Person,
-                        label = "¿Eres Estudiante o Profesor?"
+                        label = "¿Eres Estudiante o Profesor?",
+                        icon = Icons.Outlined.Person
                     )
 
                     CustomOptionsTextField(
@@ -151,8 +151,8 @@ fun RegisterStep2Screen(
                             }
                         },
                         opciones = centrosList.map { it.nombre },
-                        icon = Icons.Default.Business,
-                        label = "Instituto"
+                        label = "Instituto",
+                        icon = Icons.Default.Business
                     )
 
                     if (centroId.isNotEmpty()) {
@@ -169,8 +169,8 @@ fun RegisterStep2Screen(
                                     }
                                 },
                                 opciones = cursosList.map { it.nombre },
-                                icon = Icons.Default.Class,
-                                label = "Curso a matricular"
+                                label = "Curso a matricular",
+                                icon = Icons.Default.Class
                             )
 
                             if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
@@ -178,8 +178,8 @@ fun RegisterStep2Screen(
                                     texto = turno,
                                     onValueChange = { turno = it },
                                     opciones = turnosDisponibles,
-                                    icon = Icons.Default.Schedule,
-                                    label = "Turno"
+                                    label = "Turno",
+                                    icon = Icons.Default.Schedule
                                 )
                             }
                         } else if (rolSeleccionado == "PROFESOR") {
@@ -187,8 +187,8 @@ fun RegisterStep2Screen(
                                 texto = turno,
                                 onValueChange = { turno = it },
                                 opciones = listOf("matutino", "vespertino"),
-                                icon = Icons.Default.Schedule,
-                                label = "Turno de trabajo"
+                                label = "Turno de trabajo",
+                                icon = Icons.Default.Schedule
                             )
                         }
                     }

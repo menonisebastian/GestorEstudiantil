@@ -4,15 +4,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import samf.gestorestudiantil.ui.components.CustomOptionsTextField
+import samf.gestorestudiantil.ui.components.CustomTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.models.Horario
 
 @Composable
 fun AddUnidadDialog(
@@ -29,19 +31,18 @@ fun AddUnidadDialog(
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
+                CustomTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
-                    label = { Text("Nombre de la unidad") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Nombre de la unidad"
                 )
-                OutlinedTextField(
+                CustomTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
-                    label = { Text("Descripción") },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Descripción",
+                    singleLine = false,
                     minLines = 3
                 )
                 Row(
@@ -82,7 +83,6 @@ fun EditHorarioDialog(
 ) {
     var selectedAsignaturaId by remember { mutableStateOf(state.horario.asignaturaId) }
     var aula by remember { mutableStateOf(state.horario.aula) }
-    var expanded by remember { mutableStateOf(false) }
 
     val selectedAsignatura = state.asignaturasDisponibles.find { it.idFirestore == selectedAsignaturaId }
 
@@ -96,48 +96,20 @@ fun EditHorarioDialog(
             ) {
                 Text(text = "${state.horario.dia} (${state.horario.horaInicio} - ${state.horario.horaFin})", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
 
-                Box {
-                    OutlinedTextField(
-                        value = selectedAsignatura?.nombre ?: "Ninguna / Vacío",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Asignatura") },
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            IconButton(onClick = { expanded = true }) {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                            }
-                        }
-                    )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.fillMaxWidth(0.8f)
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Ninguna / Vacío") },
-                            onClick = {
-                                selectedAsignaturaId = ""
-                                expanded = false
-                            }
-                        )
-                        state.asignaturasDisponibles.forEach { asig ->
-                            DropdownMenuItem(
-                                text = { Text("${asig.acronimo} - ${asig.nombre}") },
-                                onClick = {
-                                    selectedAsignaturaId = asig.idFirestore
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
+                CustomOptionsTextField(
+                    texto = selectedAsignatura?.let { "${it.acronimo} - ${it.nombre}" } ?: "Ninguna / Vacío",
+                    onValueChange = { seleccion ->
+                        selectedAsignaturaId = if (seleccion == "Ninguna / Vacío") "" 
+                        else state.asignaturasDisponibles.find { "${it.acronimo} - ${it.nombre}" == seleccion }?.idFirestore ?: ""
+                    },
+                    opciones = listOf("Ninguna / Vacío") + state.asignaturasDisponibles.map { "${it.acronimo} - ${it.nombre}" },
+                    label = "Asignatura"
+                )
 
-                OutlinedTextField(
+                CustomTextField(
                     value = aula,
                     onValueChange = { aula = it },
-                    label = { Text("Aula") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Aula"
                 )
             }
         },
@@ -182,19 +154,18 @@ fun AddPostDialog(
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
+                CustomTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
-                    label = { Text("Título") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Título"
                 )
-                OutlinedTextField(
+                CustomTextField(
                     value = contenido,
                     onValueChange = { contenido = it },
-                    label = { Text("Contenido / Mensaje") },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Contenido / Mensaje",
+                    singleLine = false,
                     minLines = 5
                 )
                 Row(

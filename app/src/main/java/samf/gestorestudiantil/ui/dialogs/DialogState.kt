@@ -95,4 +95,15 @@ sealed class DialogState {
         val asignaturasDisponibles: List<Asignatura>,
         val onSave: (Horario) -> Unit
     ) : DialogState()
+
+    // 7. Selectores de Fecha y Hora
+    data class DatePicker(
+        val initialDate: String,
+        val onDateSelected: (String) -> Unit
+    ) : DialogState()
+
+    data class TimePicker(
+        val initialTime: String,
+        val onTimeSelected: (String) -> Unit
+    ) : DialogState()
 }

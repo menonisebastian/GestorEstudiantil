@@ -36,7 +36,8 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun AddRecordatorioDialog(
-    state: DialogState.AddRecordatorio, // <-- CAMBIO AQUÍ
+    state: DialogState.AddRecordatorio,
+    onShowDialog: (DialogState) -> Unit, // Nuevo parámetro
     onDismissRequest: () -> Unit
 ) {
     var titulo by remember { mutableStateOf("") }
@@ -81,13 +82,17 @@ fun AddRecordatorioDialog(
             )
             CustomDateField(
                 value = fecha,
-                onValueChange = { fecha = it },
                 label = "Fecha",
+                onShowDatePicker = {
+                    onShowDialog(DialogState.DatePicker(fecha) { fecha = it })
+                }
             )
             CustomTimeField(
                 value = hora,
-                onValueChange = { hora = it },
                 label = "Hora",
+                onShowTimePicker = {
+                    onShowDialog(DialogState.TimePicker(hora) { hora = it })
+                }
             )
             CustomOptionsTextField(
                 texto = tipo,

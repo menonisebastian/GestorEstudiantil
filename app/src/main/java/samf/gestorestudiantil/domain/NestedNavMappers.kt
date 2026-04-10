@@ -16,7 +16,7 @@ fun authRouteToTab(route: Any): String = when (route) {
 }
 
 fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
-    "Materias"        -> Routes.HomeRoutes.Materias
+    "Asignaturas"     -> Routes.HomeRoutes.Materias
     "Horarios"        -> Routes.HomeRoutes.Horarios
     "Calificaciones"  -> Routes.HomeRoutes.Calificaciones
     "Recordatorios",
@@ -32,7 +32,7 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
 
 // Convierte un NavKey al nombre del tab
 fun routeToTab(route: Any, rol: String): String = when (route) {
-    is Routes.HomeRoutes.Materias        -> "Materias"
+    is Routes.HomeRoutes.Materias        -> "Asignaturas"
     is Routes.HomeRoutes.Horarios        -> "Horarios"
     is Routes.HomeRoutes.Calificaciones  -> "Calificaciones"
     is Routes.HomeRoutes.Recordatorios   -> "Recordatorios"
@@ -69,7 +69,7 @@ fun isDetailRoute(route: Any): Boolean =
 //├── Routes.Auth       → AuthScreen (con su propio HorizontalPager)
 //├── Routes.Home       → HomeScreen
 //│   └── HorizontalPager
-//│       ├── Página 0 → NavDisplay(pageBackStack) → Materias
+//│       ├── Página 0 → NavDisplay(pageBackStack) → Asignaturas
 //│       ├── Página 1 → NavDisplay(pageBackStack) → Horarios
 //│       ├── Página 2 → NavDisplay(pageBackStack) → Calificaciones
 //│       │                                        ↘ CalificacionesDetalle ✅

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -73,8 +74,8 @@ fun UsuariosAdminPanel(
     var filtroRol by remember { mutableStateOf("") }
     var filtroCurso by remember { mutableStateOf("") }
     var filtroCiclo by remember { mutableStateOf("") }
-    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Pendientes, 1: Activos
-    val tabs = listOf("Pendientes", "Activos")
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Activos, 1: Pendientes
+    val tabs = listOf("Activos", "Pendientes")
     //var confirmDialogVisible by remember { mutableStateOf(false) }
 
     // Observamos el estado del ViewModel
@@ -95,7 +96,7 @@ fun UsuariosAdminPanel(
 
     // Filtrar la lista real proveniente de Firebase
     val usuariosFiltrados = remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, selectedTabIndex, adminState.usuarios) {
-        val estadoFiltro = if (selectedTabIndex == 0) "PENDIENTE" else "ACTIVO"
+        val estadoFiltro = if (selectedTabIndex == 1) "PENDIENTE" else "ACTIVO"
         adminState.usuarios.filter {
             val coincideEstado = it.estado == estadoFiltro
             val coincideTexto = it.nombre.contains(textoBusqueda, ignoreCase = true) || 
@@ -213,7 +214,7 @@ fun UsuariosAdminPanel(
                     items(usuariosFiltrados) { usuario ->
                         UsuarioCardAdmin(
                             usuario = usuario,
-                            isPending = selectedTabIndex == 0,
+                            isPending = selectedTabIndex == 1,
                             canDelete = usuario.id != usuarioActual.id,
                             onAprobar = { adminViewModel.aprobarUsuario(usuario.id) },
                             onRechazar = {
@@ -284,25 +285,34 @@ fun UsuarioCardAdmin(
                     Row {
                         IconButton(
                             onClick = {
-                                if (usuario.rol == "PROFESOR") {
-                                    onOpenDialog(DialogState.AsignarAsignaturas(
-                                        profesor = usuario,
-                                        onAssign = { },
-                                        onUnassign = { }
-                                    ))
-                                } else {
-                                    onOpenDialog(DialogState.EditUser(
-                                        user = usuario,
-                                        onSave = { updated ->
-                                            adminViewModel.guardarUsuario(updated)
-                                        }
-                                    ))
-                                }
+                                onOpenDialog(DialogState.EditUser(
+                                    user = usuario,
+                                    onSave = { updated ->
+                                        adminViewModel.guardarUsuario(updated)
+                                    }
+                                ))
                             }, 
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
                         }
+                        
+                        // Botón adicional para Profesores (Asignar materias)
+                        if (usuario.rol == "PROFESOR") {
+                            IconButton(
+                                onClick = {
+                                    onOpenDialog(DialogState.AsignarAsignaturas(
+                                        profesor = usuario,
+                                        onAssign = { },
+                                        onUnassign = { }
+                                    ))
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(Icons.Outlined.School, contentDescription = "Materias", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
+                            }
+                        }
+
                         // MOSTRAR SOLO SI NO ES ÉL MISMO
                         if (canDelete) {
                             IconButton(onClick = onRechazar, modifier = Modifier.size(32.dp)) {

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.1] - 2026-04-11
+- UI Standardization: Replaced all `OutlinedTextField` instances with a unified `CustomTextField` featuring a borderless design, 16dp rounded corners, and `surfaceColor` background.
+- Admin Management: Implemented `EditUserDialog` for comprehensive user editing, featuring role-based conditional fields (Shift, Cycle, Course/Area).
+- Admin Management: Inverted the tab order in `UsuariosAdminPanel` to display "Activos" (Active) as the primary tab.
+- Visual Grid: Refactored Subject panels from horizontal `LazyRow` to a 3-column `LazyVerticalGrid` to improve accessibility and information density.
+- Typography & Layout: Enhanced `CardItem` legibility with improved text contrast, centered alignment, and ellipsis handling for long subject names.
+- Component Refactor: Updated `CustomSearchBar` and `CustomPasswordTextField` (migrated to `TextFieldState`) to maintain visual and functional consistency across the app.
+
 ## [v0.3.0] - 2026-04-10
 - Navigation Persistence: Implemented `tabBackStacks` (map of `SnapshotStateList`) in `HomeScreen` to maintain independent navigation states for each bottom bar tab.
 - Scroll Control: Disabled `HorizontalPager` swiping on detail routes (`isDetailRoute`) to prevent accidental tab switching during nested navigation.

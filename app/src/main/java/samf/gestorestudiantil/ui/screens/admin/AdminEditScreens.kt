@@ -14,6 +14,8 @@ import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.ColorPickerField
+import samf.gestorestudiantil.ui.components.CustomOptionsTextField
+import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.IconPickerField
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -81,23 +83,20 @@ fun EditCentroScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
+            CustomTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
-                label = { Text("Nombre") },
-                modifier = Modifier.fillMaxWidth()
+                label = "Nombre"
             )
-            OutlinedTextField(
+            CustomTextField(
                 value = direccion,
                 onValueChange = { direccion = it },
-                label = { Text("Dirección") },
-                modifier = Modifier.fillMaxWidth()
+                label = "Dirección"
             )
-            OutlinedTextField(
+            CustomTextField(
                 value = tipo,
                 onValueChange = { tipo = it },
-                label = { Text("Tipo (ej. Instituto de Educación Secundaria)") },
-                modifier = Modifier.fillMaxWidth()
+                label = "Tipo (ej. Instituto de Educación Secundaria)"
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -177,14 +176,14 @@ fun EditCursoScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = acronimo, onValueChange = { acronimo = it }, label = { Text("Acrónimo (ej. DAM)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre Completo") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = tipo, onValueChange = { tipo = it }, label = { Text("Tipo (ej. FP Grado Superior)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = modalidad, onValueChange = { modalidad = it }, label = { Text("Modalidad (presencial/dual)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = urlInfo, onValueChange = { urlInfo = it }, label = { Text("URL Info") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = horasTotalesCurso, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotalesCurso = it }, label = { Text("Horas Totales") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = turnosStr, onValueChange = { turnosStr = it }, label = { Text("Turnos (separados por coma)") }, modifier = Modifier.fillMaxWidth())
+            CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. DAM)")
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
+            CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
+            CustomTextField(value = tipo, onValueChange = { tipo = it }, label = "Tipo (ej. FP Grado Superior)")
+            CustomTextField(value = modalidad, onValueChange = { modalidad = it }, label = "Modalidad (presencial/dual)")
+            CustomTextField(value = urlInfo, onValueChange = { urlInfo = it }, label = "URL Info")
+            CustomTextField(value = horasTotalesCurso, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotalesCurso = it }, label = "Horas Totales")
+            CustomTextField(value = turnosStr, onValueChange = { turnosStr = it }, label = "Turnos (separados por coma)")
 
             IconPickerField(value = iconoName, onValueChange = { iconoName = it })
             ColorPickerField(label = "Color Fondo Hex", value = colorFondoHex, onValueChange = { colorFondoHex = it })
@@ -267,14 +266,14 @@ fun EditAsignaturaScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = acronimo, onValueChange = { acronimo = it }, label = { Text("Acrónimo (ej. AD)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre Completo") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = descripcion, onValueChange = { descripcion = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = profesorId, onValueChange = { profesorId = it }, label = { Text("ID Profesor") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = ciclo, onValueChange = { ciclo = it }, label = { Text("Ciclo (ej. 1, 2, único)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cicloNum, onValueChange = { if (it.all { c -> c.isDigit() }) cicloNum = it }, label = { Text("Número de Ciclo (1 o 2)") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = horasTotales, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotales = it }, label = { Text("Horas Totales") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = horasSemanales, onValueChange = { if (it.all { c -> c.isDigit() }) horasSemanales = it }, label = { Text("Horas Semanales") }, modifier = Modifier.fillMaxWidth())
+            CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. AD)")
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
+            CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
+            CustomTextField(value = profesorId, onValueChange = { profesorId = it }, label = "ID Profesor")
+            CustomTextField(value = ciclo, onValueChange = { ciclo = it }, label = "Ciclo (ej. 1, 2, único)")
+            CustomTextField(value = cicloNum, onValueChange = { if (it.all { c -> c.isDigit() }) cicloNum = it }, label = "Número de Ciclo (1 o 2)")
+            CustomTextField(value = horasTotales, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotales = it }, label = "Horas Totales")
+            CustomTextField(value = horasSemanales, onValueChange = { if (it.all { c -> c.isDigit() }) horasSemanales = it }, label = "Horas Semanales")
 
             IconPickerField(value = iconoName, onValueChange = { iconoName = it })
             ColorPickerField(label = "Color Fondo Hex", value = colorFondoHex, onValueChange = { colorFondoHex = it })
@@ -349,37 +348,30 @@ fun EditUserScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre")
 
             Text("Rol", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                roles.forEach { r ->
-                    FilterChip(
-                        selected = rol == r,
-                        onClick = { rol = r },
-                        label = { Text(r) }
-                    )
-                }
-            }
+            CustomOptionsTextField(
+                texto = rol,
+                onValueChange = { rol = it },
+                opciones = roles,
+                label = "Rol"
+            )
 
-            OutlinedTextField(value = cursoOArea, onValueChange = { cursoOArea = it }, label = { Text("Curso o Área") }, modifier = Modifier.fillMaxWidth())
+            CustomTextField(value = cursoOArea, onValueChange = { cursoOArea = it }, label = "Curso o Área")
 
             Text("Turno", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                turnos.forEach { t ->
-                    FilterChip(
-                        selected = turno == t,
-                        onClick = { turno = t },
-                        label = { Text(if(t.isEmpty()) "N/A" else t) }
-                    )
-                }
-            }
+            CustomOptionsTextField(
+                texto = turno,
+                onValueChange = { turno = it },
+                opciones = turnos.map { if(it.isEmpty()) "N/A" else it },
+                label = "Turno"
+            )
 
-            OutlinedTextField(
+            CustomTextField(
                 value = cicloNum,
                 onValueChange = { if (it.all { c -> c.isDigit() }) cicloNum = it },
-                label = { Text("Ciclo (1 o 2)") },
-                modifier = Modifier.fillMaxWidth()
+                label = "Ciclo (1 o 2)"
             )
             Spacer(modifier = Modifier.height(16.dp))
         }

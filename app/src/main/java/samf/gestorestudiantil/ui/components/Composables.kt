@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,7 +30,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
@@ -45,13 +45,9 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,21 +59,16 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults.colors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecureTextField
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -115,8 +106,6 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Composable
 fun TopBarRow(
@@ -478,24 +467,28 @@ fun EvaluacionCard(evaluacion: Evaluacion) {
 fun CustomTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    icon: ImageVector? = null,
     label: String,
-    readOnly: Boolean,
-    isClickable: Boolean,
-    isLast: Boolean? = false,
-    onClick: (() -> Unit)? = null
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    readOnly: Boolean = false,
+    isClickable: Boolean = false,
+    isLast: Boolean = false,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    onClick: (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
 
     val focusManager = LocalFocusManager.current
 
-    Box (modifier = Modifier.clip(RoundedCornerShape(16.dp))){
+    Box (modifier = modifier.clip(RoundedCornerShape(16.dp))){
         TextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .then(if (singleLine) Modifier.height(56.dp) else Modifier.heightIn(min = 56.dp))
                 .clip(RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
             colors = TextFieldDefaults.colors(
@@ -507,17 +500,16 @@ fun CustomTextField(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
             ),
-            singleLine = true,
+            singleLine = singleLine,
+            minLines = minLines,
             readOnly = readOnly,
-            leadingIcon = {
-                if (icon != null) {
-                    Icon(icon, null, tint = Color.Gray)
-                }
+            leadingIcon = icon?.let {
+                { Icon(it, null, tint = Color.Gray) }
             },
-            keyboardOptions = KeyboardOptions(
-                imeAction = if (isLast == true) ImeAction.Done else ImeAction.Next
+            keyboardOptions = keyboardOptions.copy(
+                imeAction = if (isLast) ImeAction.Done else ImeAction.Next
             ),
-            keyboardActions = if (isLast == true) {
+            keyboardActions = if (isLast) {
                 KeyboardActions(
                     onDone = {
                         focusManager.clearFocus()
@@ -605,8 +597,9 @@ fun CustomOptionsTextField(
     texto: String,
     onValueChange: (String) -> Unit,
     opciones: List<String>,
-    icon: ImageVector? = null,
-    label: String
+    label: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -614,7 +607,7 @@ fun CustomOptionsTextField(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         TextField(
             value = texto,
@@ -633,11 +626,13 @@ fun CustomOptionsTextField(
                 disabledContainerColor = surfaceColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedLabelColor = surfaceDimColor,
+                unfocusedLabelColor = surfaceDimColor,
             ),
             singleLine = true,
-            leadingIcon = if (icon != null) {
-                { Icon(icon, contentDescription = null, tint = Color.Gray) }
-            } else null,
+            leadingIcon = icon?.let {
+                { Icon(it, contentDescription = null, tint = Color.Gray) }
+            },
             trailingIcon = {
                 // Este componente rota la flecha automáticamente según el estado 'expanded'
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -678,12 +673,13 @@ fun CustomSearchBar(
     filters: Map<String, String> = emptyMap(),
     onRemoveFilter: (String) -> Unit = {}
 ) {
-    OutlinedTextField(
+    TextField(
         value = textoBusqueda,
         onValueChange = onValueChange,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(56.dp)
+            .clip(RoundedCornerShape(16.dp)),
         placeholder = { Text("Buscar", color = surfaceDimColor) },
         leadingIcon = {
             Icon(Icons.Default.Search, "Buscar", tint = Color.Gray)
@@ -749,171 +745,28 @@ fun CustomSearchBar(
 }
 
 // ============ TEXTFIELD DE FECHA ============ //
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDateField(
     value: String,
-    onValueChange: (String) -> Unit,
-    label: String
+    label: String,
+    onShowDatePicker: () -> Unit
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = if (value.isNotBlank()) {
-            try {
-                val millis = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(value)?.time
-                    ?: System.currentTimeMillis()
-
-                if (millis < System.currentTimeMillis() - 86400000) {
-                    System.currentTimeMillis()
-                } else {
-                    millis
-                }
-            } catch (e: Exception) {
-                System.currentTimeMillis()
-            }
-        } else {
-            System.currentTimeMillis()
-        },
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis >= System.currentTimeMillis() - 86400000
-            }
-        }
-    )
-
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                IconButton(
-                    onClick = {
-                        showDatePicker = false
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val sdf = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-                            onValueChange(sdf.format(millis))
-                        }
-                    },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = MaterialTheme.colorScheme.onPrimary)
-                }
-            },
-            dismissButton = {
-                IconButton(onClick = { showDatePicker = false },colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)) {
-                    Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = MaterialTheme.colorScheme.onPrimary)
-                }
-            },
-            colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            DatePicker(
-                state = datePickerState,
-                title = {
-                    Text(
-                        "Seleccionar fecha",
-                        modifier = Modifier.padding(
-                            start = 24.dp,
-                            end = 12.dp,
-                            top = 16.dp,
-                            bottom = 12.dp
-                        )
-                    )
-                },
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.secondary,
-                    headlineContentColor = MaterialTheme.colorScheme.onSurface,
-                    subheadContentColor = MaterialTheme.colorScheme.onSurface,
-                    selectedDayContainerColor = MaterialTheme.colorScheme.secondary,
-                    navigationContentColor = MaterialTheme.colorScheme.onSurface,
-                    weekdayContentColor = MaterialTheme.colorScheme.primary,
-                )
-            )
-        }
-    }
-
     CustomTextField(value = formatearFechaParaMostrar(value),
         onValueChange = {  },
         label = label,
         icon = Icons.Default.DateRange,
         readOnly = true,
         isClickable = true,
-        onClick = { showDatePicker = true }
+        onClick = onShowDatePicker
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTimeField(
     value: String,
-    onValueChange: (String) -> Unit,
-    label: String
+    label: String,
+    onShowTimePicker: () -> Unit
 ) {
-    var showTimePicker by remember { mutableStateOf(false) }
-
-    val (initialHour, initialMinute) = remember(value) {
-        if (value.isNotBlank() && value.contains(":")) {
-            try {
-                val parts = value.split(":")
-                parts[0].toInt() to parts[1].toInt()
-            } catch (e: Exception) {
-                val cal = java.util.Calendar.getInstance()
-                cal.get(java.util.Calendar.HOUR_OF_DAY) to cal.get(java.util.Calendar.MINUTE)
-            }
-        } else {
-            val cal = java.util.Calendar.getInstance()
-            cal.get(java.util.Calendar.HOUR_OF_DAY) to cal.get(java.util.Calendar.MINUTE)
-        }
-    }
-
-    val timePickerState = rememberTimePickerState(
-        initialHour = initialHour,
-        initialMinute = initialMinute,
-        is24Hour = true
-    )
-
-    if (showTimePicker) {
-        AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            confirmButton = {
-                IconButton(
-                    onClick = {
-                        showTimePicker = false
-                        val formattedTime = String.format(Locale.getDefault(), "%02d:%02d", timePickerState.hour, timePickerState.minute)
-                        onValueChange(formattedTime)
-                    },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = MaterialTheme.colorScheme.onPrimary)
-                }
-            },
-            dismissButton = {
-                IconButton(
-                    onClick = { showTimePicker = false },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)
-                ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = MaterialTheme.colorScheme.onPrimary)
-                }
-            },
-            text = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        "Seleccionar hora",
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 20.dp)
-                    )
-                    TimePicker(state = timePickerState)
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    }
-
     CustomTextField(
         value = value,
         onValueChange = { },
@@ -921,7 +774,7 @@ fun CustomTimeField(
         icon = Icons.Outlined.AccessTime,
         readOnly = true,
         isClickable = true,
-        onClick = { showTimePicker = true }
+        onClick = onShowTimePicker
     )
 }
 

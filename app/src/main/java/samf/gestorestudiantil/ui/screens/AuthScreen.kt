@@ -269,8 +269,8 @@ fun LoginPanel(
             CustomTextField(
                 value = email,
                 onValueChange = { email = it },
-                icon = Icons.Outlined.Email,
                 label = "Email",
+                icon = Icons.Outlined.Email,
                 readOnly = isLoading,
                 isClickable = !isLoading
             )
@@ -383,8 +383,8 @@ fun RegistroPanelStep1(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                CustomTextField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person, label = "Nombre completo", readOnly = isLoading, isClickable = !isLoading)
-                CustomTextField(value = email, onValueChange = { email = it }, icon = Icons.Outlined.Email, label = "Email", readOnly = isLoading, isClickable = !isLoading)
+                CustomTextField(value = name, onValueChange = { name = it }, label = "Nombre completo", icon = Icons.Outlined.Person, readOnly = isLoading, isClickable = !isLoading)
+                CustomTextField(value = email, onValueChange = { email = it }, label = "Email", icon = Icons.Outlined.Email, readOnly = isLoading, isClickable = !isLoading)
                 CustomPasswordTextField(state = passwordState)
                 CustomPasswordTextField(state = confirmPasswordState, isLast = true)
             }
