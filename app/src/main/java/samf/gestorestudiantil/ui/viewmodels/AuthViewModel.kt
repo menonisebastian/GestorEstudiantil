@@ -2,19 +2,21 @@ package samf.gestorestudiantil.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.repositories.AuthRepository
+import samf.gestorestudiantil.domain.repositories.CourseRepository
+import samf.gestorestudiantil.domain.repositories.UserRepository
+import samf.gestorestudiantil.domain.usecases.CompleteGoogleSetupUseCase
+import samf.gestorestudiantil.domain.usecases.RegisterUserUseCase
+import javax.inject.Inject
 
 data class AuthState(
     val isLoading: Boolean = false,
@@ -24,15 +26,18 @@ data class AuthState(
     val requireGooglePasswordSetup: Boolean = false
 )
 
-class AuthViewModel : ViewModel() {
-
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
+    private val courseRepository: CourseRepository,
+    private val registerUserUseCase: RegisterUserUseCase,
+    private val completeGoogleSetupUseCase: CompleteGoogleSetupUseCase
+) : ViewModel() {
 
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    // Listas para los Dropdowns en el Registro
     private val _centros = MutableStateFlow<List<Centro>>(emptyList())
     val centros: StateFlow<List<Centro>> = _centros.asStateFlow()
 
@@ -44,15 +49,10 @@ class AuthViewModel : ViewModel() {
         loadCentros()
     }
 
-    // ====================================================================
-    // CARGA DE DATOS PARA SELECTORES (DROPDOWNS)
-    // ====================================================================
     private fun loadCentros() {
         viewModelScope.launch {
             try {
-                val snapshot = db.collection("centros").get().await()
-                val lista = snapshot.toObjects(Centro::class.java)
-                _centros.value = lista
+                _centros.value = courseRepository.getCentros()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -62,24 +62,17 @@ class AuthViewModel : ViewModel() {
     fun loadCursosPorCentro(centroId: String) {
         viewModelScope.launch {
             try {
-                val snapshot = db.collection("cursos")
-                    .whereEqualTo("centroId", centroId)
-                    .get().await()
-                val lista = snapshot.toObjects(Curso::class.java)
-                _cursos.value = lista
+                _cursos.value = courseRepository.getCursosPorCentro(centroId)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    // ====================================================================
-    // FLUJOS DE SESIÓN Y REGISTRO
-    // ====================================================================
     private fun checkCurrentUser() {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            viewModelScope.launch { fetchUserFromFirestore(currentUser.uid) }
+        val uid = authRepository.getCurrentUserUid()
+        if (uid != null) {
+            viewModelScope.launch { fetchUserFromFirestore(uid) }
         }
     }
 
@@ -91,21 +84,18 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                val result = auth.signInWithEmailAndPassword(email, pass).await()
-                result.user?.uid?.let { fetchUserFromFirestore(it) }
+                val uid = authRepository.loginWithEmail(email, pass)
+                fetchUserFromFirestore(uid)
             } catch (_: Exception) {
                 _authState.value = AuthState(errorMessage = "Credenciales incorrectas")
             }
         }
     }
 
-    // ====================================================================
-    // REGISTRO CON LÓGICA DE ROLES, ESTADOS Y FOTO DE PERFIL
-    // ====================================================================
     fun registerWithEmail(
         email: String, pass: String, name: String,
         rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String, turno: String,
-        imgUrl: String // <-- NUEVO PARÁMETRO DE CLOUDINARY
+        imgUrl: String
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
             _authState.value = AuthState(errorMessage = "Faltan datos obligatorios")
@@ -115,60 +105,9 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                var finalRol = rolSeleccionado
-                var estadoInicial = "ACTIVO"
-                var areaOCurso = cursoNombre
-
-                if (rolSeleccionado == "ESTUDIANTE") {
-                    estadoInicial = "PENDIENTE"
-                    // Formato: ACRONIMO + LETRA TURNO + CICLO (ej: DAM M 1)
-                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                    areaOCurso = "${cursoNombre}${letraTurno}1"
-                } else if (rolSeleccionado == "PROFESOR") {
-                    areaOCurso = "Sin asignar"
-                    val admins = db.collection("usuarios")
-                        .whereEqualTo("centroId", centroId)
-                        .whereEqualTo("rol", "ADMIN")
-                        .get().await()
-
-                    if (admins.isEmpty) {
-                        finalRol = "ADMIN"
-                    }
-                }
-
-                val result = auth.createUserWithEmailAndPassword(email, pass).await()
-                val uid = result.user?.uid ?: throw Exception("Error Auth")
-
-                // CREAMOS EL USUARIO CON LA FOTO INCLUIDA
-                val newUser = User(
-                    id = uid, nombre = name, email = email,
-                    rol = finalRol, cursoId = cursoId, cursoOArea = areaOCurso,
-                    centroId = centroId, estado = estadoInicial, 
-                    turno = turno.lowercase().trim(),
-                    cicloNum = 1, // Por defecto siempre el primer ciclo
-                    imgUrl = imgUrl // <-- GUARDADO EN FIRESTORE
+                val newUser = registerUserUseCase(
+                    email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, imgUrl
                 )
-
-                db.collection("usuarios").document(uid).set(newUser).await()
-                
-                // Si es estudiante, incrementar el contador del curso y de sus asignaturas
-                if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
-                    // Incrementar en el curso
-                    db.collection("cursos").document(cursoId)
-                        .update("numEstudiantes", FieldValue.increment(1))
-                    
-                    // Incrementar en todas sus asignaturas (mismo curso, ciclo y turno)
-                    db.collection("asignaturas")
-                        .whereEqualTo("cursoId", cursoId)
-                        .whereEqualTo("ciclo", 1) // En registro siempre es ciclo 1
-                        .whereEqualTo("turno", turno)
-                        .get().addOnSuccessListener { snapshot ->
-                            for (doc in snapshot.documents) {
-                                doc.reference.update("numEstudiantesCurso", FieldValue.increment(1))
-                            }
-                        }
-                }
-
                 _authState.value = AuthState(isSuccess = true, user = newUser)
 
             } catch (_: FirebaseAuthUserCollisionException) {
@@ -179,27 +118,15 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // ====================================================================
-    // INICIO DE SESIÓN CON GOOGLE
-    // ====================================================================
     fun loginWithGoogleToken(idToken: String) {
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                val credential = GoogleAuthProvider.getCredential(idToken, null)
-                val result = auth.signInWithCredential(credential).await()
-                val firebaseUser = result.user ?: throw Exception("No se pudo obtener el usuario")
+                val uid = authRepository.signInWithGoogle(idToken)
+                val user = userRepository.getUser(uid)
 
-                val doc = db.collection("usuarios").document(firebaseUser.uid).get().await()
-
-                if (doc.exists()) {
-                    val user = doc.toObject(User::class.java)
-                    if (user != null && user.rol.isNotBlank()) { // Ensure the user actually finished setup
-                        _authState.value = AuthState(isSuccess = true, user = user)
-                    } else {
-                        // User exists but might be incomplete (e.g. they logged in with Google but never finished step 2)
-                        _authState.value = AuthState(requireGooglePasswordSetup = true)
-                    }
+                if (user != null && user.rol.isNotBlank()) {
+                    _authState.value = AuthState(isSuccess = true, user = user)
                 } else {
                     _authState.value = AuthState(requireGooglePasswordSetup = true)
                 }
@@ -209,83 +136,23 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // En AuthViewModel.kt
-
     fun completeGoogleSetup(
         password: String,
         rolSeleccionado: String,
         centroId: String,
         cursoId: String,
         cursoNombre: String,
-        turno: String
+        turno: String,
+        name: String,
+        email: String,
+        imgUrl: String
     ) {
-        val firebaseUser = auth.currentUser ?: return
-
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
-                // 1. Actualizar contraseña
-                firebaseUser.updatePassword(password).await()
-
-                // 2. Lógica de Roles y Estados (Igual que en registerWithEmail)
-                var finalRol = rolSeleccionado
-                var estadoInicial = "ACTIVO"
-                var areaOCurso = cursoNombre
-
-                if (rolSeleccionado == "ESTUDIANTE") {
-                    estadoInicial = "PENDIENTE"
-                    // Formato: ACRONIMO + LETRA TURNO + CICLO (ej: DAM M 1)
-                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                    areaOCurso = "${cursoNombre}${letraTurno}1"
-                } else if (rolSeleccionado == "PROFESOR") {
-                    areaOCurso = "Sin asignar"
-                    // Verificar si es el primer profesor del centro para hacerlo ADMIN
-                    val admins = db.collection("usuarios")
-                        .whereEqualTo("centroId", centroId)
-                        .whereEqualTo("rol", "ADMIN")
-                        .get().await()
-
-                    if (admins.isEmpty) {
-                        finalRol = "ADMIN"
-                    }
-                }
-
-                // 3. Crear objeto Usuario
-                val newUser = User(
-                    id = firebaseUser.uid,
-                    nombre = firebaseUser.displayName ?: "Usuario de Google",
-                    email = firebaseUser.email ?: "",
-                    rol = finalRol,
-                    cursoId = if (rolSeleccionado == "ESTUDIANTE") cursoId else "",
-                    cursoOArea = areaOCurso,
-                    centroId = centroId,
-                    estado = estadoInicial,
-                    turno = turno.lowercase().trim(),
-                    cicloNum = 1, // Por defecto al registrarse siempre 1er ciclo
-                    imgUrl = firebaseUser.photoUrl?.toString() ?: ""
+                val newUser = completeGoogleSetupUseCase(
+                    password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, name, email, imgUrl
                 )
-
-                // 4. Guardar en Firestore
-                db.collection("usuarios").document(firebaseUser.uid).set(newUser).await()
-
-                // Si es estudiante, incrementar el contador del curso y de sus asignaturas
-                if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
-                    // Incrementar en el curso
-                    db.collection("cursos").document(cursoId)
-                        .update("numEstudiantes", FieldValue.increment(1))
-                    
-                    // Incrementar en todas sus asignaturas (mismo curso, ciclo y turno)
-                    db.collection("asignaturas")
-                        .whereEqualTo("cursoId", cursoId)
-                        .whereEqualTo("ciclo", 1) // En registro siempre es ciclo 1
-                        .whereEqualTo("turno", turno)
-                        .get().addOnSuccessListener { snapshot ->
-                            for (doc in snapshot.documents) {
-                                doc.reference.update("numEstudiantesCurso", FieldValue.increment(1))
-                            }
-                        }
-                }
-
                 _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -296,8 +163,7 @@ class AuthViewModel : ViewModel() {
 
     private suspend fun fetchUserFromFirestore(uid: String) {
         try {
-            val doc = db.collection("usuarios").document(uid).get().await()
-            val user = doc.toObject(User::class.java)
+            val user = userRepository.getUser(uid)
             if (user != null && user.rol.isNotBlank()) {
                 _authState.value = AuthState(isSuccess = true, user = user)
             } else {

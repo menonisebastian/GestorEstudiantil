@@ -2,200 +2,122 @@ package samf.gestorestudiantil.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
-import samf.gestorestudiantil.data.models.Post
-import samf.gestorestudiantil.data.models.Unidad
+import samf.gestorestudiantil.domain.repositories.EstudianteRepository
+import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
+import javax.inject.Inject
 
 data class EstudianteState(
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val asignaturas: List<Asignatura> = emptyList(),
-    val evaluaciones: List<Evaluacion> = emptyList(),   // para CalificacionesDetalle
+    val evaluaciones: List<Evaluacion> = emptyList(),
     val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
 
-class EstudianteViewModel : ViewModel() {
-
-    private val db = FirebaseFirestore.getInstance()
+@HiltViewModel
+class EstudianteViewModel @Inject constructor(
+    private val estudianteRepository: EstudianteRepository,
+    private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase
+) : ViewModel() {
 
     private val _state = MutableStateFlow(EstudianteState())
     val state: StateFlow<EstudianteState> = _state.asStateFlow()
 
-    private var asignaturasListener: ListenerRegistration? = null
-    private var postsListener: ListenerRegistration? = null
-    private var horariosListener: ListenerRegistration? = null
+    private var asignaturasJob: Job? = null
+    private var postsJob: Job? = null
+    private var horariosJob: Job? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
 
-    // ====================================================================
-    // 1. ASIGNATURAS DEL CURSO DEL ESTUDIANTE (tiempo real)
-    // ====================================================================
     fun cargarAsignaturas(cursoId: String, turno: String, cicloNum: Int, ultimaVezAsignaturas: Map<String, Long> = emptyMap()) {
-        val turnoNormalizado = turno.lowercase().trim()
         currentUltimaVez = ultimaVezAsignaturas
-        _state.value = _state.value.copy(isLoading = true)
-        asignaturasListener?.remove()
-
-        asignaturasListener = db.collection("asignaturas")
-            .whereEqualTo("cursoId", cursoId)
-            .whereEqualTo("turno", turnoNormalizado)
-            .whereEqualTo("cicloNum", cicloNum)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = "Error al cargar asignaturas: ${error.localizedMessage}"
-                    )
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    val asignaturas = snapshot.toObjects(Asignatura::class.java)
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        asignaturas = asignaturas
-                    )
-                    
-                    // Iniciar/actualizar listener de posts para cambios en tiempo real
-                    observarCambiosEnPosts(asignaturas.map { it.idFirestore })
-                    
-                    // Conteo inicial
-                    contarNotificaciones(asignaturas, currentUltimaVez)
-                }
+        _state.update { it.copy(isLoading = true) }
+        
+        asignaturasJob?.cancel()
+        asignaturasJob = viewModelScope.launch {
+            estudianteRepository.getAsignaturas(cursoId, turno, cicloNum).collect { asignaturas ->
+                _state.update { it.copy(isLoading = false, asignaturas = asignaturas) }
+                observarCambiosEnPosts(asignaturas.map { it.idFirestore })
+                recalcularNotificaciones(asignaturas, currentUltimaVez)
             }
+        }
     }
 
     private fun observarCambiosEnPosts(asignaturaIds: List<String>) {
-        postsListener?.remove()
-        if (asignaturaIds.isEmpty()) return
-
-        // Escuchamos cualquier cambio en la colección de posts de estas asignaturas
-        // Nota: whereIn tiene un límite de 30 elementos, suficiente para asignaturas de un curso.
-        postsListener = db.collection("posts")
-            .whereIn("asignaturaId", asignaturaIds)
-            .addSnapshotListener { _, _ ->
-                // Cuando hay cualquier cambio en posts, recalculamos notificaciones
-                contarNotificaciones(_state.value.asignaturas, currentUltimaVez)
+        postsJob?.cancel()
+        postsJob = viewModelScope.launch {
+            estudianteRepository.observePostsChanges(asignaturaIds).collect {
+                recalcularNotificaciones(_state.value.asignaturas, currentUltimaVez)
             }
+        }
     }
 
     fun actualizarTiemposLectura(map: Map<String, Long>) {
         if (currentUltimaVez == map) return
         currentUltimaVez = map
-        contarNotificaciones(_state.value.asignaturas, map)
+        recalcularNotificaciones(_state.value.asignaturas, map)
     }
 
-    private fun contarNotificaciones(asignaturas: List<Asignatura>, ultimaVezAsignaturas: Map<String, Long>) {
+    private fun recalcularNotificaciones(asignaturas: List<Asignatura>, ultimaVezAsignaturas: Map<String, Long>) {
         viewModelScope.launch {
-            val nuevasAsignaturas = asignaturas.map { asignatura ->
-                val lastRead = ultimaVezAsignaturas[asignatura.idFirestore] ?: 0L
-
-                try {
-                    val postsSnapshot = db.collection("posts")
-                        .whereEqualTo("asignaturaId", asignatura.idFirestore)
-                        .whereGreaterThan("fechaCreacion", lastRead)
-                        .get()
-                        .await()
-
-                    val numNotifs = postsSnapshot.size()
-                    asignatura.copy(numNotificaciones = numNotifs)
-                } catch (e: Exception) {
-                    asignatura
-                }
-            }
+            val nuevasAsignaturas = calculateUnreadNotificationsUseCase(asignaturas, ultimaVezAsignaturas)
             _state.update { it.copy(asignaturas = nuevasAsignaturas) }
         }
     }
 
     fun marcarAsignaturaComoLeida(usuarioId: String, asignaturaId: String) {
         val ahora = System.currentTimeMillis()
-        
-        // Actualizar mapa local para feedback inmediato
         val nuevoMapa = currentUltimaVez.toMutableMap()
         nuevoMapa[asignaturaId] = ahora
         currentUltimaVez = nuevoMapa
 
-        db.collection("usuarios").document(usuarioId)
-            .update("ultimaVezAsignaturas.$asignaturaId", ahora)
-
-        // Limpiar el contador localmente para feedback visual instantáneo
-        _state.update { currentState ->
-            val nuevas = currentState.asignaturas.map {
-                if (it.idFirestore == asignaturaId) it.copy(numNotificaciones = 0) else it
-            }
-            currentState.copy(asignaturas = nuevas)
-        }
-    }
-
-    // ====================================================================
-    // 2. EVALUACIONES DE UNA ASIGNATURA CONCRETA (una sola vez)
-    // ====================================================================
-    fun cargarEvaluaciones(asignaturaId: String) {
-        _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {
             try {
-                val snapshot = db.collection("evaluaciones")
-                    .whereEqualTo("asignaturaId", asignaturaId)
-                    .get().await()
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    evaluaciones = snapshot.toObjects(Evaluacion::class.java)
-                )
+                estudianteRepository.marcarAsignaturaLeida(usuarioId, asignaturaId, ahora)
+                _state.update { currentState ->
+                    val nuevas = currentState.asignaturas.map {
+                        if (it.idFirestore == asignaturaId) it.copy(numNotificaciones = 0) else it
+                    }
+                    currentState.copy(asignaturas = nuevas)
+                }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorMessage = "Error al cargar evaluaciones: ${e.localizedMessage}"
-                )
+                _state.update { it.copy(errorMessage = e.localizedMessage) }
             }
         }
     }
 
-    // ====================================================================
-    // 3. HORARIOS DEL CURSO (tiempo real)
-    // ====================================================================
-    fun cargarHorarios(cursoId: String, turno: String, cicloNum: Int) {
-        val turnoNormalizado = turno.lowercase().trim()
-        _state.value = _state.value.copy(isLoading = true)
-        horariosListener?.remove()
-
-        horariosListener = db.collection("horarios")
-            .whereEqualTo("cursoId", cursoId)
-            .whereEqualTo("turno", turnoNormalizado)
-            .whereEqualTo("cicloNum", cicloNum)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = "Error al cargar horarios: ${error.localizedMessage}"
-                    )
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    val horarios = snapshot.toObjects(Horario::class.java)
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        horarios = horarios
-                    )
-                }
+    fun cargarEvaluaciones(asignaturaId: String) {
+        _state.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            try {
+                val evaluations = estudianteRepository.getEvaluaciones(asignaturaId)
+                _state.update { it.copy(isLoading = false, evaluaciones = evaluations) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, errorMessage = e.localizedMessage) }
             }
+        }
+    }
+
+    fun cargarHorarios(cursoId: String, turno: String, cicloNum: Int) {
+        _state.update { it.copy(isLoading = true) }
+        horariosJob?.cancel()
+        horariosJob = viewModelScope.launch {
+            estudianteRepository.getHorarios(cursoId, turno, cicloNum).collect { horarios ->
+                _state.update { it.copy(isLoading = false, horarios = horarios) }
+            }
+        }
     }
 
     fun clearError() {
-        _state.value = _state.value.copy(errorMessage = null)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        asignaturasListener?.remove()
-        postsListener?.remove()
-        horariosListener?.remove()
+        _state.update { it.copy(errorMessage = null) }
     }
 }

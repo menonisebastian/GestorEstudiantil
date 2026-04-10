@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.2.7] - 2026-04-10
+- Architecture: Completed full refactor to Clean Architecture + MVVM.
+- Architecture: Implemented Repository Pattern for all data sources (Auth, User, Course, Admin, Estudiante, Profesor, Recordatorio).
+- Architecture: Introduced Domain layer with Use Cases for complex business logic (Registration, Database Seeding, Notifications, etc.).
+- Dependency Injection: Migrated all ViewModels to Hilt (`@HiltViewModel`).
+- Dependency Injection: Created `FirebaseModule` and `RepositoryModule` for Hilt provider/binding management.
+- Improvement: ViewModels now use `StateFlow` for state management and are decoupled from Firebase SDKs.
+- Improvement: Removed `ListenerRegistration` manual handling in ViewModels by using `callbackFlow` in Repositories.
+
 ## [v0.2.6] - 2026-04-10
 - Feature: Integrated Hilt for Dependency Injection.
 - Infrastructure: Configured KSP (Kotlin Symbol Processing) for Hilt code generation.

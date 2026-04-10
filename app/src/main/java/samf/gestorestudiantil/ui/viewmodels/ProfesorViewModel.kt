@@ -2,20 +2,20 @@ package samf.gestorestudiantil.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.repositories.ProfesorRepository
+import javax.inject.Inject
 
 data class ProfesorState(
     val isLoading: Boolean = false,
@@ -29,93 +29,83 @@ data class ProfesorState(
     val errorMessage: String? = null
 )
 
-class ProfesorViewModel : ViewModel() {
-    private val db = FirebaseFirestore.getInstance()
+@HiltViewModel
+class ProfesorViewModel @Inject constructor(
+    private val profesorRepository: ProfesorRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfesorState())
     val state: StateFlow<ProfesorState> = _state.asStateFlow()
-
-    private var asignaturasListener: ListenerRegistration? = null
-    private var estudiantesListener: ListenerRegistration? = null
-    private var evaluacionesListener: ListenerRegistration? = null
-    private var unidadesListener: ListenerRegistration? = null
-    private var postsListener: ListenerRegistration? = null
-    private var horariosListener: ListenerRegistration? = null
 
     // ====================================================================
     // 0. GESTIÓN DE UNIDADES Y POSTS (PROFESORES)
     // ====================================================================
     fun cargarUnidadesYPosts(asignaturaId: String) {
-        unidadesListener?.remove()
-        postsListener?.remove()
-
-        unidadesListener = db.collection("unidades")
-            .whereEqualTo("asignaturaId", asignaturaId)
-            .addSnapshotListener { snapshot, error ->
-                if (snapshot != null) {
-                    _state.update { it.copy(unidades = snapshot.toObjects(Unidad::class.java).sortedBy { u -> u.orden }) }
+        viewModelScope.launch {
+            launch {
+                profesorRepository.getUnidades(asignaturaId).collect { lista ->
+                    _state.update { it.copy(unidades = lista) }
                 }
             }
-
-        postsListener = db.collection("posts")
-            .whereEqualTo("asignaturaId", asignaturaId)
-            .addSnapshotListener { snapshot, _ ->
-                if (snapshot != null) {
-                    _state.update { it.copy(posts = snapshot.toObjects(Post::class.java).sortedByDescending { p -> p.fechaCreacion }) }
+            launch {
+                profesorRepository.getPosts(asignaturaId).collect { lista ->
+                    _state.update { it.copy(posts = lista) }
                 }
             }
+        }
     }
 
     fun crearUnidad(asignaturaId: String, nombre: String, descripcion: String, visible: Boolean) {
-        val nuevaUnidad = Unidad(
-            asignaturaId = asignaturaId,
-            nombre = nombre,
-            descripcion = descripcion,
-            visible = visible,
-            orden = (_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1
-        )
-        db.collection("unidades").add(nuevaUnidad)
+        viewModelScope.launch {
+            val nuevaUnidad = Unidad(
+                asignaturaId = asignaturaId,
+                nombre = nombre,
+                descripcion = descripcion,
+                visible = visible,
+                orden = (_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1
+            )
+            profesorRepository.crearUnidad(nuevaUnidad)
+        }
     }
 
     fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean) {
-        db.collection("unidades").document(unidadId)
-            .update(
-                "nombre", nombre,
-                "descripcion", descripcion,
-                "visible", visible
-            )
+        viewModelScope.launch {
+            profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible)
+        }
     }
 
     fun eliminarUnidad(unidadId: String) {
-        // Opcional: Eliminar también los posts asociados
-        db.collection("unidades").document(unidadId).delete()
+        viewModelScope.launch {
+            profesorRepository.eliminarUnidad(unidadId)
+        }
     }
 
     fun crearPost(asignaturaId: String, unidadId: String, titulo: String, contenido: String, autorId: String, autorNombre: String, visible: Boolean) {
-        val nuevoPost = Post(
-            asignaturaId = asignaturaId,
-            unidadId = unidadId,
-            titulo = titulo,
-            contenido = contenido,
-            autorId = autorId,
-            autorNombre = autorNombre,
-            fechaCreacion = System.currentTimeMillis(),
-            visible = visible
-        )
-        db.collection("posts").add(nuevoPost)
+        viewModelScope.launch {
+            val nuevoPost = Post(
+                asignaturaId = asignaturaId,
+                unidadId = unidadId,
+                titulo = titulo,
+                contenido = contenido,
+                autorId = autorId,
+                autorNombre = autorNombre,
+                fechaCreacion = System.currentTimeMillis(),
+                visible = visible
+            )
+            profesorRepository.crearPost(nuevoPost)
+        }
     }
 
     fun editarPost(postId: String, titulo: String, contenido: String, visible: Boolean) {
-        db.collection("posts").document(postId)
-            .update(
-                "titulo", titulo,
-                "contenido", contenido,
-                "visible", visible
-            )
+        viewModelScope.launch {
+            profesorRepository.editarPost(postId, titulo, contenido, visible)
+        }
     }
 
     fun eliminarPost(postId: String) {
-        db.collection("posts").document(postId).delete()
+        viewModelScope.launch {
+            profesorRepository.eliminarPost(postId)
+        }
     }
 
     // ====================================================================
@@ -123,23 +113,13 @@ class ProfesorViewModel : ViewModel() {
     // ====================================================================
     fun cargarAsignaturas(profesorId: String) {
         _state.update { it.copy(isLoading = true) }
-        asignaturasListener?.remove()
-
-        asignaturasListener = db.collection("asignaturas")
-            .whereEqualTo("profesorId", profesorId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    _state.update { it.copy(isLoading = false, errorMessage = error.localizedMessage) }
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    val lista = snapshot.toObjects(Asignatura::class.java)
-                    _state.update { it.copy(isLoading = false, asignaturas = lista) }
-                    
-                    // Al cargar asignaturas, necesitamos conocer a todos los estudiantes de esos cursos para la pestaña global
-                    cargarTodosMisEstudiantes(lista.map { it.cursoId }.distinct())
-                }
+        viewModelScope.launch {
+            profesorRepository.getAsignaturas(profesorId).collect { lista ->
+                _state.update { it.copy(isLoading = false, asignaturas = lista) }
+                // Al cargar asignaturas, necesitamos conocer a todos los estudiantes de esos cursos para la pestaña global
+                cargarTodosMisEstudiantes(lista.map { it.cursoId }.distinct())
             }
+        }
     }
 
     // ====================================================================
@@ -150,16 +130,11 @@ class ProfesorViewModel : ViewModel() {
             _state.update { it.copy(todosMisEstudiantes = emptyList()) }
             return
         }
-        estudiantesListener?.remove()
-
-        estudiantesListener = db.collection("usuarios")
-            .whereEqualTo("rol", "ESTUDIANTE")
-            .whereIn("cursoId", cursoIds)
-            .addSnapshotListener { snapshot, error ->
-                if (error == null && snapshot != null) {
-                    _state.update { it.copy(todosMisEstudiantes = snapshot.toObjects(User::class.java)) }
-                }
+        viewModelScope.launch {
+            profesorRepository.getEstudiantesPorCursos(cursoIds).collect { lista ->
+                _state.update { it.copy(todosMisEstudiantes = lista) }
             }
+        }
     }
 
     // ====================================================================
@@ -167,31 +142,25 @@ class ProfesorViewModel : ViewModel() {
     // ====================================================================
     fun cargarEstudiantesPorCurso(cursoId: String) {
         _state.update { it.copy(isLoading = true) }
-        db.collection("usuarios")
-            .whereEqualTo("rol", "ESTUDIANTE")
-            .whereEqualTo("cursoId", cursoId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                _state.update { it.copy(isLoading = false, estudiantes = snapshot.toObjects(User::class.java)) }
-            }
-            .addOnFailureListener { e ->
+        viewModelScope.launch {
+            try {
+                val estudiantes = profesorRepository.getEstudiantesPorCurso(cursoId)
+                _state.update { it.copy(isLoading = false, estudiantes = estudiantes) }
+            } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = e.localizedMessage) }
             }
+        }
     }
 
     // ====================================================================
     // 4. EVALUACIONES DE UN ALUMNO EN UNA ASIGNATURA (tiempo real)
     // ====================================================================
     fun cargarEvaluacionesEstudiante(estudianteId: String, asignaturaId: String) {
-        evaluacionesListener?.remove()
-        evaluacionesListener = db.collection("evaluaciones")
-            .whereEqualTo("estudianteId", estudianteId)
-            .whereEqualTo("asignaturaId", asignaturaId)
-            .addSnapshotListener { snapshot, error ->
-                if (error == null && snapshot != null) {
-                    _state.update { it.copy(evaluaciones = snapshot.toObjects(Evaluacion::class.java)) }
-                }
+        viewModelScope.launch {
+            profesorRepository.getEvaluacionesEstudiante(estudianteId, asignaturaId).collect { lista ->
+                _state.update { it.copy(evaluaciones = lista) }
             }
+        }
     }
 
     // ====================================================================
@@ -200,13 +169,7 @@ class ProfesorViewModel : ViewModel() {
     fun guardarEvaluacion(evaluacion: Evaluacion) {
         viewModelScope.launch {
             try {
-                val docRef = if (evaluacion.id.isEmpty()) {
-                    db.collection("evaluaciones").document()
-                } else {
-                    db.collection("evaluaciones").document(evaluacion.id)
-                }
-                val finalEval = evaluacion.copy(id = docRef.id)
-                docRef.set(finalEval).await()
+                profesorRepository.guardarEvaluacion(evaluacion)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar: ${e.localizedMessage}") }
             }
@@ -216,7 +179,7 @@ class ProfesorViewModel : ViewModel() {
     fun eliminarEvaluacion(evaluacion: Evaluacion) {
         viewModelScope.launch {
             try {
-                db.collection("evaluaciones").document(evaluacion.id).delete().await()
+                profesorRepository.eliminarEvaluacion(evaluacion.id)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al eliminar: ${e.localizedMessage}") }
             }
@@ -228,27 +191,10 @@ class ProfesorViewModel : ViewModel() {
     // ====================================================================
     fun cargarHorariosProfesor(profesorId: String) {
         _state.update { it.copy(isLoading = true) }
-        horariosListener?.remove()
-
-        horariosListener = db.collection("horarios")
-            .whereEqualTo("profesorId", profesorId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    _state.update { it.copy(isLoading = false, errorMessage = error.localizedMessage) }
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    val lista = snapshot.toObjects(Horario::class.java)
-                    _state.update { it.copy(isLoading = false, horarios = lista) }
-                }
+        viewModelScope.launch {
+            profesorRepository.getHorarios(profesorId).collect { lista ->
+                _state.update { it.copy(isLoading = false, horarios = lista) }
             }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        asignaturasListener?.remove()
-        estudiantesListener?.remove()
-        evaluacionesListener?.remove()
-        horariosListener?.remove()
+        }
     }
 }
