@@ -7,10 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.cloudinary.android.MediaManager
+import dagger.hilt.android.AndroidEntryPoint
 import samf.gestorestudiantil.ui.navigation.AppNavigation
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
 
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -23,6 +23,9 @@ nav3Core = "1.0.1"
 navigationRuntimeKtx = "2.9.7"
 gson = "2.13.2"
 godaddy-colorpicker = "0.7.0"
+hilt = "2.59.2"
+androidxHiltNavigationCompose = "1.2.0"
+ksp = "2.1.0-1.0.29"
 
 [libraries]
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
@@ -60,6 +63,9 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 godaddy-colorpicker = { module = "com.godaddy.android.colorpicker:compose-color-picker", version.ref = "godaddy-colorpicker" }
 godaddy-colorpicker-android = { module = "com.godaddy.android.colorpicker:compose-color-picker-android", version.ref = "godaddy-colorpicker" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -67,3 +73,6 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

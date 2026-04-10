@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [v0.2.5] - 2026-04-09
+## [v0.2.6] - 2026-04-10
+- Feature: Integrated Hilt for Dependency Injection.
+- Infrastructure: Configured KSP (Kotlin Symbol Processing) for Hilt code generation.
+- Infrastructure: Added `GestorEstudiantilApp` and `@AndroidEntryPoint` in `MainActivity`.
+- Infrastructure: Added `hilt-navigation-compose` for ViewModel integration in Compose.
+
+## [v0.2.5] - 2026-04-10
 - Feature: Schedule is now fully data-driven from Firestore.
 - Feature: Schedule synchronization between student and teacher schedules.
 - Feature: Implemented `HorariosProfesorPanel` for teacher schedules.
