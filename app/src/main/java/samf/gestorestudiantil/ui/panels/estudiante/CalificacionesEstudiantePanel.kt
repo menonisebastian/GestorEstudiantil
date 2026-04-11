@@ -55,7 +55,7 @@ fun CalificacionesEstudiantePanel(
                 items(asignaturas)
                 {
                     asignatura ->
-                    AsignaturaCard(asignatura, onClick = {
+                    AsignaturaCard(asignatura, userRole = "ESTUDIANTE", onClick = {
                         onAsignaturaClick(asignatura)
                     })
                 }

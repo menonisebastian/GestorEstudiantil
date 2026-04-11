@@ -57,6 +57,7 @@ sealed class DialogState {
 
     data class EditUser(
         val user: User,
+        val cursos: List<Curso> = emptyList(),
         val onSave: (User) -> Unit
     ) : DialogState()
 

@@ -148,6 +148,8 @@ fun GoogleAcademicSetupScreen(
     var cursoAcronimo by remember { mutableStateOf("") }
 
     var turno by remember { mutableStateOf("Seleccionar Turno...") }
+    var cicloSeleccionado by remember { mutableStateOf("Primer Año") }
+    val ciclos = listOf("Primer Año", "Segundo Año")
 
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
@@ -268,6 +270,14 @@ fun GoogleAcademicSetupScreen(
                                 icon = Icons.Default.Schedule,
                                 label = "Turno"
                             )
+
+                            CustomOptionsTextField(
+                                texto = cicloSeleccionado,
+                                onValueChange = { cicloSeleccionado = it },
+                                opciones = ciclos,
+                                label = "Año / Ciclo",
+                                icon = Icons.Default.Class
+                            )
                         }
                     } else if (rolSeleccionado == "PROFESOR") {
                         CustomOptionsTextField(
@@ -300,6 +310,7 @@ fun GoogleAcademicSetupScreen(
                             } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
                                 Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
                             } else {
+                                val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
                                 authViewModel.completeGoogleSetup(
                                     password = passwordValue,
                                     rolSeleccionado = rolSeleccionado,
@@ -307,6 +318,7 @@ fun GoogleAcademicSetupScreen(
                                     cursoId = cursoId,
                                     cursoNombre = cursoAcronimo,
                                     turno = turno,
+                                    ciclo = cicloNum,
                                     name = authState.user?.nombre ?: "",
                                     email = authState.user?.email ?: "",
                                     imgUrl = authState.user?.imgUrl ?: ""
@@ -323,6 +335,7 @@ fun GoogleAcademicSetupScreen(
                                     cursoId = "",
                                     cursoNombre = "Docente",
                                     turno = turno,
+                                    ciclo = 1,
                                     name = authState.user?.nombre ?: "",
                                     email = authState.user?.email ?: "",
                                     imgUrl = authState.user?.imgUrl ?: ""

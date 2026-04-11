@@ -606,9 +606,18 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditUser> { route ->
+                        val adminState by adminViewModel.adminState.collectAsState()
+                        
+                        LaunchedEffect(route.user.centroId) {
+                            if (adminState.cursos.isEmpty()) {
+                                adminViewModel.cargarCursosPorCentro(route.user.centroId)
+                            }
+                        }
+
                         EditUserScreen(
                             state = DialogState.EditUser(
                                 user = route.user,
+                                cursos = adminState.cursos,
                                 onSave = { adminViewModel.guardarUsuario(it) }
                             ),
                             onBack = { pageBackStack.removeLastOrNull() }

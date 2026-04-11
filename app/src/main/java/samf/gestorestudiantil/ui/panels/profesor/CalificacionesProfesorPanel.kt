@@ -195,7 +195,7 @@ fun CalificacionesProfesorPanel(
                 }
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(filteredAsignaturas) { asignatura ->
-                        AsignaturaCard(asignatura, onClick = {
+                        AsignaturaCard(asignatura, userRole = "PROFESOR", onClick = {
                             onAsignaturaClick(asignatura)
                         })
                     }

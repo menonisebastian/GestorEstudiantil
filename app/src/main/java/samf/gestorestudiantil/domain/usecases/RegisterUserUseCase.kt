@@ -14,7 +14,7 @@ class RegisterUserUseCase @Inject constructor(
     suspend operator fun invoke(
         email: String, pass: String, name: String,
         rolSeleccionado: String, centroId: String, cursoId: String, 
-        cursoNombre: String, turno: String, imgUrl: String
+        cursoNombre: String, turno: String, ciclo: Int, imgUrl: String
     ): User {
         // 1. LÓGICA DE NEGOCIO: Determinar rol, estado y área
         var finalRol = rolSeleccionado
@@ -24,7 +24,7 @@ class RegisterUserUseCase @Inject constructor(
         if (rolSeleccionado == "ESTUDIANTE") {
             estadoInicial = "PENDIENTE"
             val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-            areaOCurso = "${cursoNombre}${letraTurno}1"
+            areaOCurso = "${cursoNombre}${letraTurno}${ciclo}"
         } else if (rolSeleccionado == "PROFESOR") {
             areaOCurso = "Sin asignar"
             val hasAdmins = userRepository.checkAdminsInCenter(centroId)
@@ -43,7 +43,7 @@ class RegisterUserUseCase @Inject constructor(
             cursoOArea = areaOCurso,
             centroId = centroId, estado = estadoInicial, 
             turno = turno.lowercase().trim(),
-            cicloNum = 1, 
+            cicloNum = ciclo, 
             imgUrl = imgUrl 
         )
 
@@ -52,7 +52,7 @@ class RegisterUserUseCase @Inject constructor(
 
         // 5. LÓGICA DE NEGOCIO: Incrementar contadores si es estudiante
         if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
-            courseRepository.incrementStudentCount(cursoId, turno, 1)
+            courseRepository.incrementStudentCount(cursoId, turno, ciclo)
         }
 
         return newUser

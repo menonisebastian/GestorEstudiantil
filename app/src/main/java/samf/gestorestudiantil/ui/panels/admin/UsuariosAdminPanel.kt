@@ -81,9 +81,10 @@ fun UsuariosAdminPanel(
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
 
-    // Cargamos los usuarios al iniciar la pantalla
+    // Cargamos los usuarios y cursos al iniciar la pantalla
     LaunchedEffect(Unit) {
         adminViewModel.cargarUsuariosPorCentro(usuarioActual.centroId)
+        adminViewModel.cargarCursosPorCentro(usuarioActual.centroId)
     }
 
     // Mostramos errores si los hay
@@ -232,7 +233,8 @@ fun UsuariosAdminPanel(
                             onUserDialog = {
                                 onOpenDialog(DialogState.UserProfile(usuario))
                             },
-                            onOpenDialog = onOpenDialog
+                            onOpenDialog = onOpenDialog,
+                            adminState = adminState
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -251,7 +253,8 @@ fun UsuarioCardAdmin(
     onRechazar: () -> Unit,
     onUserDialog: () -> Unit,
     onOpenDialog: (DialogState) -> Unit,
-    adminViewModel: AdminViewModel = viewModel()
+    adminViewModel: AdminViewModel = viewModel(),
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState // <--- AÑADIDO
 ) {
     val softRed = Color(0xFFD74132)
     Card(
@@ -287,6 +290,7 @@ fun UsuarioCardAdmin(
                             onClick = {
                                 onOpenDialog(DialogState.EditUser(
                                     user = usuario,
+                                    cursos = adminState.cursos,
                                     onSave = { updated ->
                                         adminViewModel.guardarUsuario(updated)
                                     }

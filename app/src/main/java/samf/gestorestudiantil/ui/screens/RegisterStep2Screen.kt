@@ -83,6 +83,8 @@ fun RegisterStep2Screen(
     var cursoAcronimo by remember { mutableStateOf("") }
 
     var turno by remember { mutableStateOf("Seleccionar Turno...") }
+    var cicloSeleccionado by remember { mutableStateOf("Primer Año") }
+    val ciclos = listOf("Primer Año", "Segundo Año")
 
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
@@ -181,6 +183,14 @@ fun RegisterStep2Screen(
                                     label = "Turno",
                                     icon = Icons.Default.Schedule
                                 )
+
+                                CustomOptionsTextField(
+                                    texto = cicloSeleccionado,
+                                    onValueChange = { cicloSeleccionado = it },
+                                    opciones = ciclos,
+                                    label = "Año / Ciclo",
+                                    icon = Icons.Default.Class
+                                )
                             }
                         } else if (rolSeleccionado == "PROFESOR") {
                             CustomOptionsTextField(
@@ -236,6 +246,7 @@ fun RegisterStep2Screen(
                                 } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
                                     Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
                                 } else {
+                                    val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
                                     authViewModel.registerWithEmail(
                                         email = route.email,
                                         pass = route.pass,
@@ -245,6 +256,7 @@ fun RegisterStep2Screen(
                                         cursoId = cursoId,
                                         cursoNombre = cursoAcronimo,
                                         turno = turno,
+                                        ciclo = cicloNum,
                                         imgUrl = route.fotoUrl
                                     )
                                 }
@@ -261,6 +273,7 @@ fun RegisterStep2Screen(
                                         cursoId = "",
                                         cursoNombre = "Docente",
                                         turno = turno,
+                                        ciclo = 1,
                                         imgUrl = route.fotoUrl
                                     )
                                 }

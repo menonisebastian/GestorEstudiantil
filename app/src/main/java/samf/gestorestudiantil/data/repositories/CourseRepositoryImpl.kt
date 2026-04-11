@@ -20,7 +20,7 @@ class CourseRepositoryImpl @Inject constructor(
         // Incremento en asignaturas
         val snapshot = db.collection("asignaturas")
             .whereEqualTo("cursoId", cursoId)
-            .whereEqualTo("ciclo", ciclo) 
+            .whereEqualTo("cicloNum", ciclo)
             .whereEqualTo("turno", turno)
             .get().await()
             

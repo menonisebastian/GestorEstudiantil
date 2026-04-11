@@ -364,7 +364,12 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
 }
 
 @Composable
-fun AsignaturaCard(asignatura: Asignatura, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
+fun AsignaturaCard(
+    asignatura: Asignatura,
+    userRole: String, // "ADMIN", "PROFESOR" o "ESTUDIANTE"
+    onClick: () -> Unit,
+    onEdit: (() -> Unit)? = null
+) {
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
@@ -420,10 +425,13 @@ fun AsignaturaCard(asignatura: Asignatura, onClick: () -> Unit, onEdit: (() -> U
                     Icon(Icons.Outlined.AccessTime, "Horas", tint = surfaceDimColor, modifier = iconModifier)
                     Text(text = "${asignatura.horasSemanales}h", color = surfaceDimColor, fontSize = 10.sp)
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    // SOLO VISIBLE PARA ADMIN O PROFESOR
+                    if (userRole != "ESTUDIANTE") {
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                    Icon(Icons.Outlined.Groups, "Alumnos", tint = surfaceDimColor, modifier = iconModifier)
-                    Text(text = "${asignatura.numEstudiantesCurso}", color = surfaceDimColor, fontSize = 10.sp)
+                        Icon(Icons.Outlined.Groups, "Alumnos", tint = surfaceDimColor, modifier = iconModifier)
+                        Text(text = "${asignatura.numEstudiantesCurso}", color = surfaceDimColor, fontSize = 10.sp)
+                    }
                 }
             }
 
@@ -607,7 +615,7 @@ fun CustomOptionsTextField(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
     ) {
         TextField(
             value = texto,
@@ -642,12 +650,12 @@ fun CustomOptionsTextField(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = backgroundColor, // Mantiene tu tema actual
+            containerColor = surfaceColor, // Corregido para usar surfaceColor y ser consistente
             shape = RoundedCornerShape(16.dp)
         ) {
             opciones.forEach { opcion ->
                 DropdownMenuItem(
-                    text = { Text(opcion) },
+                    text = { Text(opcion, color = textColor) },
                     onClick = {
                         onValueChange(opcion)
                         expanded = false
@@ -657,7 +665,7 @@ fun CustomOptionsTextField(
 
                 // Mantenemos tu divisor visual
                 if (opcion != opciones.last()) {
-                    HorizontalDivider()
+                    HorizontalDivider(color = surfaceDimColor.copy(alpha = 0.2f))
                 }
             }
         }

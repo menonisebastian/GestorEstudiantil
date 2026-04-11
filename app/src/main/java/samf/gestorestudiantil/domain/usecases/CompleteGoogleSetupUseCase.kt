@@ -18,6 +18,7 @@ class CompleteGoogleSetupUseCase @Inject constructor(
         cursoId: String,
         cursoNombre: String,
         turno: String,
+        ciclo: Int,
         name: String,
         email: String,
         imgUrl: String
@@ -33,7 +34,7 @@ class CompleteGoogleSetupUseCase @Inject constructor(
         if (rolSeleccionado == "ESTUDIANTE") {
             estadoInicial = "PENDIENTE"
             val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-            areaOCurso = "${cursoNombre}${letraTurno}1"
+            areaOCurso = "${cursoNombre}${letraTurno}${ciclo}"
         } else if (rolSeleccionado == "PROFESOR") {
             areaOCurso = "Sin asignar"
             val hasAdmins = userRepository.checkAdminsInCenter(centroId)
@@ -55,7 +56,7 @@ class CompleteGoogleSetupUseCase @Inject constructor(
             centroId = centroId,
             estado = estadoInicial,
             turno = turno.lowercase().trim(),
-            cicloNum = 1,
+            cicloNum = ciclo,
             imgUrl = imgUrl
         )
 
@@ -64,7 +65,7 @@ class CompleteGoogleSetupUseCase @Inject constructor(
 
         // 5. Incrementar contadores si es estudiante
         if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
-            courseRepository.incrementStudentCount(cursoId, turno, 1)
+            courseRepository.incrementStudentCount(cursoId, turno, ciclo)
         }
 
         return newUser

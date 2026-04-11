@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.2] - 2026-04-12
+- Admin UI Improvements: Standardized icons in `CentrosAdminPanel` for FP levels (Specialization: `AutoAwesome`, Superior: `School`, Middle: `MenuBook`, Basic: `ImportContacts`).
+- Admin UI Improvements: Refactored Course selection in user editing (Dialog and Screen) from manual text to a database-driven dropdown of acronyms (e.g., "DAM", "DAW").
+- Admin UI Improvements: Synchronized `cursoId` and `cursoOArea` in user editing; selecting a course now automatically updates both the internal ID and the visual label (e.g., "DAMV1").
+- Component Standardization: Unified `CustomOptionsTextField` visual style with `CustomTextField` (surfaceColor, 16dp corners, borderless) and fixed dropdown menu clipping/colors.
+- Data Integrity: Added reactive loading of course data (`cargarCursosPorCentro`) when entering user management or editing screens to ensure dropdown availability.
+- Bugfix: Corrected `DialogState.EditUser` implementation in `HomeScreen.kt` and `UsuariosAdminPanel.kt` to pass the full `List<Curso>` instead of just acronyms.
+
 ## [v0.3.1] - 2026-04-11
 - UI Standardization: Replaced all `OutlinedTextField` instances with a unified `CustomTextField` featuring a borderless design, 16dp rounded corners, and `surfaceColor` background.
 - Admin Management: Implemented `EditUserDialog` for comprehensive user editing, featuring role-based conditional fields (Shift, Cycle, Course/Area).

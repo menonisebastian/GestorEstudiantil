@@ -291,12 +291,15 @@ fun EditUserScreen(
 ) {
     var nombre by remember { mutableStateOf(state.user.nombre) }
     var rol by remember { mutableStateOf(state.user.rol) }
+    var cursoId by remember { mutableStateOf(state.user.cursoId) }
     var cursoOArea by remember { mutableStateOf(state.user.cursoOArea) }
     var turno by remember { mutableStateOf(state.user.turno) }
     var cicloNum by remember { mutableStateOf(state.user.cicloNum.toString()) }
 
     val roles = listOf("ESTUDIANTE", "PROFESOR", "ADMIN")
     val turnos = listOf("matutino", "vespertino", "")
+
+    val acronimosCursos = remember(state.cursos) { state.cursos.map { it.acronimo } }
 
     Scaffold(
         containerColor = backgroundColor,
@@ -326,6 +329,7 @@ fun EditUserScreen(
                             val updatedUser = state.user.copy(
                                 nombre = nombre,
                                 rol = rol,
+                                cursoId = cursoId,
                                 cursoOArea = cursoOArea,
                                 turno = turno,
                                 cicloNum = cicloNum.toIntOrNull() ?: 1
@@ -358,19 +362,56 @@ fun EditUserScreen(
                 label = "Rol"
             )
 
-            CustomTextField(value = cursoOArea, onValueChange = { cursoOArea = it }, label = "Curso o Área")
+            if (rol == "ESTUDIANTE" && state.cursos.isNotEmpty()) {
+                Text("Curso", style = MaterialTheme.typography.labelLarge)
+                CustomOptionsTextField(
+                    texto = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea,
+                    onValueChange = { acronimo ->
+                        val cursoSeleccionado = state.cursos.find { it.acronimo == acronimo }
+                        cursoSeleccionado?.let {
+                            cursoId = it.id
+                            val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                            cursoOArea = "${it.acronimo}${letraTurno}${cicloNum}"
+                        }
+                    },
+                    opciones = acronimosCursos,
+                    label = "Curso"
+                )
+            } else {
+                CustomTextField(
+                    value = cursoOArea,
+                    onValueChange = { cursoOArea = it },
+                    label = if (rol == "ESTUDIANTE") "Curso" else "Departamento / Área"
+                )
+            }
 
             Text("Turno", style = MaterialTheme.typography.labelLarge)
             CustomOptionsTextField(
                 texto = turno,
-                onValueChange = { turno = it },
+                onValueChange = { 
+                    turno = it
+                    // Actualizar cursoOArea cuando cambia el turno
+                    if (rol == "ESTUDIANTE") {
+                        val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
+                        val letraTurno = if (it.lowercase().contains("matutino")) "M" else "V"
+                        cursoOArea = "${acronimo}${letraTurno}${cicloNum}"
+                    }
+                },
                 opciones = turnos.map { if(it.isEmpty()) "N/A" else it },
                 label = "Turno"
             )
 
             CustomTextField(
                 value = cicloNum,
-                onValueChange = { if (it.all { c -> c.isDigit() }) cicloNum = it },
+                onValueChange = { 
+                    if (it.all { c -> c.isDigit() }) {
+                        cicloNum = it
+                        // Actualizar cursoOArea cuando cambia el ciclo
+                        val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
+                        val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                        cursoOArea = "${acronimo}${letraTurno}${cicloNum}"
+                    }
+                },
                 label = "Ciclo (1 o 2)"
             )
             Spacer(modifier = Modifier.height(16.dp))

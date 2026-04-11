@@ -95,7 +95,7 @@ class AuthViewModel @Inject constructor(
     fun registerWithEmail(
         email: String, pass: String, name: String,
         rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String, turno: String,
-        imgUrl: String
+        ciclo: Int, imgUrl: String
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
             _authState.value = AuthState(errorMessage = "Faltan datos obligatorios")
@@ -106,7 +106,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val newUser = registerUserUseCase(
-                    email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, imgUrl
+                    email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, imgUrl
                 )
                 _authState.value = AuthState(isSuccess = true, user = newUser)
 
@@ -143,6 +143,7 @@ class AuthViewModel @Inject constructor(
         cursoId: String,
         cursoNombre: String,
         turno: String,
+        ciclo: Int,
         name: String,
         email: String,
         imgUrl: String
@@ -151,7 +152,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val newUser = completeGoogleSetupUseCase(
-                    password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, name, email, imgUrl
+                    password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, name, email, imgUrl
                 )
                 _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {

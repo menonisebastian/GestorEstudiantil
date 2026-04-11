@@ -24,6 +24,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ImportContacts
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -213,7 +216,12 @@ fun AsignaturasScreen(
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             items(asignaturas) { asignatura ->
-                AsignaturaCard(asignatura = asignatura, onClick = { onAsignaturaClick(asignatura) }, onEdit = { onEditAsignatura(asignatura) })
+                AsignaturaCard(
+                    asignatura = asignatura,
+                    userRole = "ADMIN",
+                    onClick = { onAsignaturaClick(asignatura) },
+                    onEdit = { onEditAsignatura(asignatura) }
+                )
             }
         }
     }
@@ -299,6 +307,14 @@ fun CentroCard(centro: Centro, onClick: () -> Unit, onEdit: (() -> Unit)? = null
 
 @Composable
 fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
+    val icon = when {
+        tipo.contains("Especialización", ignoreCase = true) -> Icons.Default.AutoAwesome
+        tipo.contains("Superior", ignoreCase = true) -> Icons.Default.School
+        tipo.contains("Medio", ignoreCase = true) -> Icons.AutoMirrored.Filled.MenuBook
+        tipo.contains("Básico", ignoreCase = true) -> Icons.Default.ImportContacts
+        else -> Icons.Default.Category
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -308,10 +324,10 @@ fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Category, contentDescription = null, tint = primaryColor)
+            Icon(icon, contentDescription = null, tint = primaryColor)
             Spacer(modifier = Modifier.width(16.dp))
             Text(text = tipo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor, modifier = Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.Gray)
+            Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
         }
     }
 }

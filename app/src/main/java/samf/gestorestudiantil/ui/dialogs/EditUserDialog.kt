@@ -51,11 +51,14 @@ fun EditUserDialog(
     var rol by remember { mutableStateOf(state.user.rol) }
     var turno by remember { mutableStateOf(state.user.turno) }
     var ciclo by remember { mutableIntStateOf(state.user.cicloNum) }
+    var cursoId by remember { mutableStateOf(state.user.cursoId) }
     var cursoOArea by remember { mutableStateOf(state.user.cursoOArea) }
 
     val roles = listOf("ESTUDIANTE", "PROFESOR", "ADMIN")
     val turnos = listOf("matutino", "vespertino")
     val ciclos = listOf("1", "2")
+
+    val acronimosCursos = remember(state.cursos) { state.cursos.map { it.acronimo } }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -101,24 +104,55 @@ fun EditUserDialog(
                 if (rol == "ESTUDIANTE" || rol == "PROFESOR") {
                     CustomOptionsTextField(
                         texto = turno,
-                        onValueChange = { turno = it },
+                        onValueChange = { 
+                            turno = it 
+                            // Actualizar cursoOArea cuando cambia el turno
+                            if (rol == "ESTUDIANTE") {
+                                val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
+                                val letraTurno = if (it.lowercase().contains("matutino")) "M" else "V"
+                                cursoOArea = "${acronimo}${letraTurno}${ciclo}"
+                            }
+                        },
                         opciones = turnos,
                         label = "Turno",
                         icon = Icons.Outlined.Schedule
                     )
 
-                    CustomTextField(
-                        value = cursoOArea,
-                        onValueChange = { cursoOArea = it },
-                        label = if (rol == "ESTUDIANTE") "Curso" else "Departamento / Área",
-                        icon = Icons.Outlined.School
-                    )
+                    if (rol == "ESTUDIANTE" && state.cursos.isNotEmpty()) {
+                        CustomOptionsTextField(
+                            texto = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea,
+                            onValueChange = { acronimo ->
+                                val cursoSeleccionado = state.cursos.find { it.acronimo == acronimo }
+                                cursoSeleccionado?.let {
+                                    cursoId = it.id
+                                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                                    cursoOArea = "${it.acronimo}${letraTurno}${ciclo}"
+                                }
+                            },
+                            opciones = acronimosCursos,
+                            label = "Curso",
+                            icon = Icons.Outlined.School
+                        )
+                    } else {
+                        CustomTextField(
+                            value = cursoOArea,
+                            onValueChange = { cursoOArea = it },
+                            label = if (rol == "ESTUDIANTE") "Curso" else "Departamento / Área",
+                            icon = Icons.Outlined.School
+                        )
+                    }
                 }
 
                 if (rol == "ESTUDIANTE") {
                     CustomOptionsTextField(
                         texto = ciclo.toString(),
-                        onValueChange = { ciclo = it.toInt() },
+                        onValueChange = { 
+                            ciclo = it.toInt() 
+                            // Actualizar cursoOArea cuando cambia el ciclo
+                            val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
+                            val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                            cursoOArea = "${acronimo}${letraTurno}${ciclo}"
+                        },
                         opciones = ciclos,
                         label = "Ciclo",
                         icon = Icons.Outlined.Groups
@@ -134,6 +168,7 @@ fun EditUserDialog(
                         rol = rol,
                         turno = turno,
                         cicloNum = ciclo,
+                        cursoId = cursoId,
                         cursoOArea = cursoOArea
                     )
                     state.onSave(updatedUser)
