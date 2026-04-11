@@ -21,6 +21,7 @@ credentials = "1.5.0"
 googleid = "1.2.0"
 nav3Core = "1.0.1"
 navigationRuntimeKtx = "2.9.7"
+datastore = "1.1.2"
 gson = "2.13.2"
 godaddy-colorpicker = "0.7.0"
 hilt = "2.59.2"
@@ -62,6 +63,7 @@ googleid = { module = "com.google.android.libraries.identity.googleid:googleid",
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 godaddy-colorpicker = { module = "com.godaddy.android.colorpicker:compose-color-picker", version.ref = "godaddy-colorpicker" }
 godaddy-colorpicker-android = { module = "com.godaddy.android.colorpicker:compose-color-picker-android", version.ref = "godaddy-colorpicker" }

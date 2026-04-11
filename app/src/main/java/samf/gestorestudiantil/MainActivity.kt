@@ -11,8 +11,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,12 +28,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import samf.gestorestudiantil.ui.navigation.AppNavigation
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
+import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private var targetAsignaturaId by mutableStateOf<String?>(null)
     private val authViewModel: AuthViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +48,14 @@ class MainActivity : ComponentActivity() {
             // Ignorar si ya está inicializado
         }
         setContent {
-            GestorEstudiantilTheme {
+            val themePreference by settingsViewModel.themePreference.collectAsState()
+            val darkTheme = when (themePreference) {
+                "LIGHT" -> false
+                "DARK" -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            GestorEstudiantilTheme(darkTheme = darkTheme) {
                 RequestNotificationPermission()
                 RegisterFcmToken()
                 AppNavigation(

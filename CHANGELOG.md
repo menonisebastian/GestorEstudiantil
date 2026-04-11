@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.7] - 2026-04-16
+- Feature: Added a theme selector (Light, Dark, Automatic) in the Profile screen for a personalized visual experience.
+- Feature: Implemented a local switch to enable/disable push notifications in the user profile.
+- Infrastructure: Migrated user settings (theme and notifications) to `DataStore` for efficient local persistence, reducing Firestore write operations.
+- Refactor: Removed `notificationsEnabled` from the `User` model to clean up the database schema.
+- Improvement: Updated `MyFirebaseMessagingService` to respect the local notification preference before showing alerts.
+
 ## [v0.3.6] - 2026-04-15
 - Feature: Fully implemented Recordatorios (Reminders) CRUD across all layers (Firestore, Repository, ViewModel, and UI).
 - UI Improvement: Enhanced `CustomNotificationCard` with a visual "clip" adornment and standardized date formatting using `formatearFechaParaMostrar`.

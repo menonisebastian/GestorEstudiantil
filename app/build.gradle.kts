@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.datastore.preferences)
 
     // Credential Manager
     implementation(libs.androidx.credentials)

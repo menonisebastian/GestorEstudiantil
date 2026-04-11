@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
@@ -15,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 
 @Composable
 fun AddUnidadDialog(
@@ -53,7 +56,16 @@ fun AddUnidadDialog(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Visible para estudiantes")
-                    Switch(checked = visible, onCheckedChange = null)
+                    Switch(
+                        checked = visible,
+                        onCheckedChange = null,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = primaryColor,
+                            checkedTrackColor = primaryColor.copy(alpha = 0.5f),
+                            uncheckedThumbColor = surfaceDimColor,
+                            uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                        )
+                    )
                 }
             }
         },

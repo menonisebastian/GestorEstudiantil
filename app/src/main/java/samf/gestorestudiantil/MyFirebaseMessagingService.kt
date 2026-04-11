@@ -9,16 +9,41 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import samf.gestorestudiantil.data.repositories.SettingsRepository
+import javax.inject.Inject
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        // Solo mostramos notificación manual si la app está en primer plano
-        // Si está en segundo plano, el sistema usa el campo 'notification' del JSON
-        remoteMessage.notification?.let {
-            showNotification(it.title, it.body, remoteMessage.data)
+        scope.launch {
+            val enabled = settingsRepository.notificationsEnabled.first()
+            if (enabled) {
+                // Solo mostramos notificación manual si la app está en primer plano
+                // Si está en segundo plano, el sistema usa el campo 'notification' del JSON
+                remoteMessage.notification?.let {
+                    showNotification(it.title, it.body, remoteMessage.data)
+                }
+            }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
     }
 
     private fun showNotification(title: String?, message: String?, data: Map<String, String>) {
