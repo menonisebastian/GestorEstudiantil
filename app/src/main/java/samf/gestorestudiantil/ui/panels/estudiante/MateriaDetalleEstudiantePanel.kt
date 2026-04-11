@@ -14,27 +14,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MateriaDetalleEstudiantePanel(
     asignatura: Asignatura,
+    estudiante: User,
     onBackClick: () -> Unit,
     onOpenDialog: (DialogState) -> Unit
 ) {
-    // Reutilizamos el ViewModel de Profesor para cargar unidades y posts ya que la lógica es la misma (lectura)
-    val viewModel: ProfesorViewModel = viewModel()
-    val state by viewModel.state.collectAsState()
+    val viewModel: EstudianteViewModel = viewModel()
+    val profesorViewModel: ProfesorViewModel = viewModel()
+    val state by profesorViewModel.state.collectAsState()
 
     LaunchedEffect(asignatura.id) {
-        viewModel.cargarUnidadesYPosts(asignatura.id)
-        viewModel.cargarProfesor(asignatura.profesorId)
+        profesorViewModel.cargarContenidoAsignatura(asignatura.id)
+        profesorViewModel.cargarProfesor(asignatura.profesorId)
     }
 
     Scaffold(
@@ -89,7 +92,7 @@ fun MateriaDetalleEstudiantePanel(
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
             item {
-                val profesor by viewModel.profesor.collectAsState()
+                val profesor by profesorViewModel.profesor.collectAsState()
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -130,10 +133,35 @@ fun MateriaDetalleEstudiantePanel(
 
             items(unidadesVisibles) { unidad ->
                 val postsVisibles = state.posts.filter { it.unidadId == unidad.id && it.visible }
+                val tareasVisibles = state.tareas.filter { it.unidadId == unidad.id && it.visible }
                 UnidadCard(
                     unidad = unidad,
                     posts = postsVisibles,
-                    onAddPost = null // Estudiantes no pueden añadir posts
+                    tareas = tareasVisibles,
+                    onAddPost = null, // Estudiantes no pueden añadir posts
+                    onTareaClick = { tarea ->
+                        onOpenDialog(
+                            DialogState.TareaDetalleEstudiante(
+                                tarea = tarea,
+                                onEntregar = { fileData, fileName ->
+                                    viewModel.realizarEntrega(
+                                        samf.gestorestudiantil.data.models.Entrega(
+                                            tareaId = tarea.id,
+                                            estudianteId = estudiante.id,
+                                            estudianteNombre = estudiante.nombre,
+                                            profesorId = tarea.profesorId,
+                                            asignaturaId = tarea.asignaturaId
+                                        ),
+                                        fileData,
+                                        fileName
+                                    )
+                                },
+                                onEliminarEntrega = {
+                                    // Se maneja dentro del diálogo o vía un Confirmación
+                                }
+                            )
+                        )
+                    }
                 )
             }
         }

@@ -6,6 +6,7 @@ import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.data.models.Tarea
 import java.util.UUID
 
 sealed class DialogState {
@@ -116,5 +117,24 @@ sealed class DialogState {
     data class TimePicker(
         val initialTime: String,
         val onTimeSelected: (String) -> Unit
+    ) : DialogState()
+
+    // 8. Diálogos para Tareas (Hybrid)
+    data class AddTarea(
+        val asignaturaId: String,
+        val unidadId: String,
+        val tareaExistente: Tarea? = null,
+        val onSave: (Tarea, ByteArray?, String?) -> Unit // Tarea, fileData, fileName
+    ) : DialogState()
+
+    data class TareaDetalleEstudiante(
+        val tarea: Tarea,
+        val onEntregar: (ByteArray, String) -> Unit,
+        val onEliminarEntrega: () -> Unit
+    ) : DialogState()
+
+    data class VerEntregasProfesor(
+        val tarea: Tarea,
+        val onCalificar: (String, Float, String?) -> Unit // entregaId, nota, comentario
     ) : DialogState()
 }

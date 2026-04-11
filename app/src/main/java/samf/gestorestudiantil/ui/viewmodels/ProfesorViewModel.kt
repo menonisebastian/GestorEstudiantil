@@ -1,6 +1,9 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.auth.oauth2.GoogleCredentials
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -19,12 +23,16 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Post
+import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
+import samf.gestorestudiantil.domain.repositories.TareaRepository
+import java.io.IOException
 import javax.inject.Inject
 
 data class ProfesorState(
@@ -35,6 +43,7 @@ data class ProfesorState(
     val evaluaciones: List<Evaluacion> = emptyList(),
     val unidades: List<Unidad> = emptyList(),
     val posts: List<Post> = emptyList(),
+    val tareas: List<Tarea> = emptyList(),
     val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
@@ -42,6 +51,7 @@ data class ProfesorState(
 @HiltViewModel
 class ProfesorViewModel @Inject constructor(
     private val profesorRepository: ProfesorRepository,
+    private val tareaRepository: TareaRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -67,9 +77,9 @@ class ProfesorViewModel @Inject constructor(
     }
 
     // ====================================================================
-    // 0. GESTIÓN DE UNIDADES Y POSTS (PROFESORES)
+    // 0. GESTIÓN DE UNIDADES, POSTS Y TAREAS (PROFESORES)
     // ====================================================================
-    fun cargarUnidadesYPosts(asignaturaId: String) {
+    fun cargarContenidoAsignatura(asignaturaId: String) {
         viewModelScope.launch {
             launch {
                 profesorRepository.getUnidades(asignaturaId).collect { lista ->
@@ -79,6 +89,11 @@ class ProfesorViewModel @Inject constructor(
             launch {
                 profesorRepository.getPosts(asignaturaId).collect { lista ->
                     _state.update { it.copy(posts = lista) }
+                }
+            }
+            launch {
+                tareaRepository.getTareasPorAsignatura(asignaturaId).collect { lista ->
+                    _state.update { it.copy(tareas = lista) }
                 }
             }
         }
@@ -191,6 +206,87 @@ class ProfesorViewModel @Inject constructor(
     fun eliminarPost(postId: String) {
         viewModelScope.launch {
             profesorRepository.eliminarPost(postId)
+        }
+    }
+
+    // ====================================================================
+    // 0.1 GESTIÓN DE TAREAS (Hybrid Firebase + Supabase)
+    // ====================================================================
+    fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            try {
+                tareaRepository.crearTarea(tarea, fileData, fileName)
+            } catch (e: Exception) {
+                _state.update { it.copy(errorMessage = "Error al crear tarea: ${e.localizedMessage}") }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            try {
+                tareaRepository.editarTarea(tarea, fileData, fileName)
+            } catch (e: Exception) {
+                _state.update { it.copy(errorMessage = "Error al editar tarea: ${e.localizedMessage}") }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun eliminarTarea(tarea: Tarea) {
+        viewModelScope.launch {
+            try {
+                tareaRepository.eliminarTarea(tarea)
+            } catch (e: Exception) {
+                _state.update { it.copy(errorMessage = "Error al eliminar tarea: ${e.localizedMessage}") }
+            }
+        }
+    }
+
+    private val _entregas = MutableStateFlow<List<Entrega>>(emptyList())
+    val entregas = _entregas.asStateFlow()
+
+    fun cargarEntregas(tareaId: String) {
+        viewModelScope.launch {
+            tareaRepository.getEntregasPorTarea(tareaId).collect { lista ->
+                _entregas.value = lista
+            }
+        }
+    }
+
+    fun calificarEntrega(entregaId: String, nota: Float, comentario: String?) {
+        viewModelScope.launch {
+            try {
+                val entregaRef = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("entregas").document(entregaId)
+                
+                entregaRef.update(
+                    "calificacion", nota,
+                    "comentarioProfesor", comentario
+                ).await()
+                
+                Toast.makeText(context, "Calificación guardada", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al calificar: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun descargarArchivo(supabasePath: String) {
+        viewModelScope.launch {
+            try {
+                val url = tareaRepository.getUrlFirmada(supabasePath)
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al obtener URL: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

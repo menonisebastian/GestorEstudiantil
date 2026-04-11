@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
@@ -35,7 +36,7 @@ fun MateriaDetalleProfesorPanel(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(asignatura.id) {
-        viewModel.cargarUnidadesYPosts(asignatura.id)
+        viewModel.cargarContenidoAsignatura(asignatura.id)
     }
 
     Scaffold(
@@ -125,9 +126,11 @@ fun MateriaDetalleProfesorPanel(
 
             items(state.unidades) { unidad ->
                 val postsDeUnidad = state.posts.filter { it.unidadId == unidad.id }
+                val tareasDeUnidad = state.tareas.filter { it.unidadId == unidad.id }
                 UnidadCard(
                     unidad = unidad,
                     posts = postsDeUnidad,
+                    tareas = tareasDeUnidad,
                     onAddPost = {
                         onOpenDialog(
                             DialogState.AddPost(
@@ -143,6 +146,21 @@ fun MateriaDetalleProfesorPanel(
                                         autorNombre = profesor.nombre,
                                         visible = visible
                                     )
+                                }
+                            )
+                        )
+                    },
+                    onAddTarea = {
+                        onOpenDialog(
+                            DialogState.AddTarea(
+                                asignaturaId = asignatura.id,
+                                unidadId = unidad.id,
+                                tareaExistente = Tarea(
+                                    profesorId = profesor.id,
+                                    centroId = asignatura.centroId
+                                ),
+                                onSave = { nuevaTarea, fileData, fileName ->
+                                    viewModel.crearTarea(nuevaTarea, fileData, fileName)
                                 }
                             )
                         )
@@ -191,6 +209,37 @@ fun MateriaDetalleProfesorPanel(
                                 title = "Eliminar Publicación",
                                 content = "¿Estás seguro de que deseas eliminar esta publicación?",
                                 onConfirm = { viewModel.eliminarPost(post.id) }
+                            )
+                        )
+                    },
+                    onEditTarea = { tarea ->
+                        onOpenDialog(
+                            DialogState.AddTarea(
+                                asignaturaId = asignatura.id,
+                                unidadId = unidad.id,
+                                tareaExistente = tarea,
+                                onSave = { tareaEditada, fileData, fileName ->
+                                    viewModel.editarTarea(tareaEditada, fileData, fileName)
+                                }
+                            )
+                        )
+                    },
+                    onDeleteTarea = { tarea ->
+                        onOpenDialog(
+                            DialogState.Confirmation(
+                                title = "Eliminar Tarea",
+                                content = "¿Estás seguro de que deseas eliminar esta tarea y todas sus entregas?",
+                                onConfirm = { viewModel.eliminarTarea(tarea) }
+                            )
+                        )
+                    },
+                    onTareaClick = { tarea ->
+                        onOpenDialog(
+                            DialogState.VerEntregasProfesor(
+                                tarea = tarea,
+                                onCalificar = { entregaId, nota, comentario ->
+                                    viewModel.calificarEntrega(entregaId, nota, comentario)
+                                }
                             )
                         )
                     }

@@ -23,20 +23,28 @@ import samf.gestorestudiantil.ui.theme.textColor
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import samf.gestorestudiantil.data.models.Tarea
 
 @Composable
 fun UnidadCard(
     unidad: Unidad,
     posts: List<Post>,
+    tareas: List<Tarea> = emptyList(),
     onAddPost: (() -> Unit)? = null, // null if student
+    onAddTarea: (() -> Unit)? = null,
     onEditUnidad: (() -> Unit)? = null,
     onDeleteUnidad: (() -> Unit)? = null,
     onEditPost: ((Post) -> Unit)? = null,
-    onDeletePost: ((Post) -> Unit)? = null
+    onDeletePost: ((Post) -> Unit)? = null,
+    onEditTarea: ((Tarea) -> Unit)? = null,
+    onDeleteTarea: ((Tarea) -> Unit)? = null,
+    onTareaClick: ((Tarea) -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -92,14 +100,19 @@ fun UnidadCard(
                             Icon(Icons.Default.Add, contentDescription = "Añadir Post", tint = primaryColor)
                         }
                     }
+                    if (onAddTarea != null) {
+                        IconButton(onClick = onAddTarea) {
+                            Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = "Añadir Tarea", tint = primaryColor)
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (posts.isEmpty()) {
+            if (posts.isEmpty() && tareas.isEmpty()) {
                 Text(
-                    text = "No hay publicaciones en esta unidad.",
+                    text = "No hay contenido en esta unidad.",
                     style = MaterialTheme.typography.bodySmall,
                     color = surfaceDimColor,
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -110,6 +123,123 @@ fun UnidadCard(
                         post = post,
                         onEdit = onEditPost?.let { { it(post) } },
                         onDelete = onDeletePost?.let { { it(post) } }
+                    )
+                }
+                tareas.forEach { tarea ->
+                    TareaCard(
+                        tarea = tarea,
+                        onEdit = onEditTarea?.let { { it(tarea) } },
+                        onDelete = onDeleteTarea?.let { { it(tarea) } },
+                        onClick = onTareaClick?.let { { it(tarea) } }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TareaCard(
+    tarea: Tarea,
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        onClick = { onClick?.invoke() },
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        border = androidx.compose.foundation.BorderStroke(1.dp, primaryColor.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Assignment,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = tarea.titulo,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                    if (onEdit != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (tarea.visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = null,
+                            tint = if (tarea.visible) primaryColor else surfaceDimColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
+                if (onEdit != null || onDelete != null) {
+                    Row {
+                        onEdit?.let {
+                            IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                        onDelete?.let {
+                            IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (tarea.descripcion.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = tarea.descripcion,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor.copy(alpha = 0.8f),
+                    maxLines = 2
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                val limite = dateFormat.format(tarea.fechaLimiteEntrega.toDate())
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Description,
+                        contentDescription = null,
+                        tint = surfaceDimColor,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Entrega hasta: $limite",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = surfaceDimColor
+                    )
+                }
+
+                if (tarea.adjunto != null) {
+                    Text(
+                        text = "Con adjunto",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = primaryColor,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

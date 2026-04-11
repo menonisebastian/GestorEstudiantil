@@ -408,6 +408,7 @@ fun HomeScreen(
                         } else {
                             MateriaDetalleEstudiantePanel(
                                 asignatura = route.asignatura,
+                                estudiante = usuario,
                                 onBackClick = { pageBackStack.removeLastOrNull() },
                                 onOpenDialog = onOpenDialog
                             )

@@ -1,5 +1,9 @@
+
+import com.android.build.api.dsl.ApplicationExtension
+
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.serialization)
@@ -7,7 +11,9 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-android {
+// 1. Reemplazamos el bloque 'android { ... }' por 'configure<ApplicationExtension> { ... }'
+// para evitar la advertencia de deprecación de BaseAppModuleExtension.
+configure<ApplicationExtension> {
     namespace = "samf.gestorestudiantil"
     compileSdk = 36
 
@@ -19,6 +25,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -30,17 +38,39 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     buildFeatures {
         compose = true
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/INDEX.LIST"
+        }
+    }
+}
+
+// 3. ¡CORRECCIÓN IMPORTANTE! El bloque ksp DEBE ir fuera de la configuración de Android
+ksp {
+    arg("hilt.correctErrorTypes", "true")
+}
+
+// Configuración global de Kotlin fuera de android { }
+kotlin {
+    jvmToolchain(17)
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "io.grpc") {
+            useVersion("1.62.2") // Versión estable compatible con Firestore 26.2.0
         }
     }
 }
@@ -66,6 +96,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
     // Importar la plataforma Firebase BOM
     implementation(platform(libs.firebase.bom))
 
@@ -94,10 +125,17 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
-    
+
     implementation(libs.gson)
 
     implementation(libs.godaddy.colorpicker)
+
+    // Supabase
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.core)
+    implementation(libs.supabase.storage)
+    implementation(libs.supabase.postgrest)
+    implementation(libs.ktor.client.android)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -105,5 +143,7 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     // Google Auth Library for FCM HTTP v1 (Teacher app only)
-    implementation(libs.google.auth.library)
+    implementation(libs.google.auth.library) {
+        exclude(group = "io.grpc", module = "grpc-netty-shaded")
+    }
 }

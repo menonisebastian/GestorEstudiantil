@@ -13,7 +13,10 @@ import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
+import samf.gestorestudiantil.data.models.Entrega
+import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
+import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
 import javax.inject.Inject
 
@@ -21,6 +24,8 @@ data class EstudianteState(
     val isLoading: Boolean = false,
     val asignaturas: List<Asignatura> = emptyList(),
     val evaluaciones: List<Evaluacion> = emptyList(),
+    val tareas: List<Tarea> = emptyList(),
+    val miEntrega: Entrega? = null,
     val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
@@ -28,6 +33,7 @@ data class EstudianteState(
 @HiltViewModel
 class EstudianteViewModel @Inject constructor(
     private val estudianteRepository: EstudianteRepository,
+    private val tareaRepository: TareaRepository,
     private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase
 ) : ViewModel() {
 
@@ -127,5 +133,43 @@ class EstudianteViewModel @Inject constructor(
 
     fun clearError() {
         _state.update { it.copy(errorMessage = null) }
+    }
+
+    // ====================================================================
+    // GESTIÓN DE TAREAS Y ENTREGAS (Estudiante)
+    // ====================================================================
+    fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            try {
+                tareaRepository.realizarEntrega(entrega, fileData, fileName)
+            } catch (e: Exception) {
+                _state.update { it.copy(errorMessage = "Error al entregar: ${e.localizedMessage}") }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun eliminarEntrega(entrega: Entrega) {
+        viewModelScope.launch {
+            try {
+                tareaRepository.eliminarEntrega(entrega)
+            } catch (e: Exception) {
+                _state.update { it.copy(errorMessage = "Error al eliminar entrega: ${e.localizedMessage}") }
+            }
+        }
+    }
+
+    fun cargarMiEntrega(tareaId: String, estudianteId: String) {
+        viewModelScope.launch {
+            tareaRepository.getEntregaEstudiante(tareaId, estudianteId).collect { entrega ->
+                _state.update { it.copy(miEntrega = entrega) }
+            }
+        }
+    }
+
+    suspend fun getUrlFirmada(path: String): String {
+        return tareaRepository.getUrlFirmada(path)
     }
 }

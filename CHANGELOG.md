@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.9] - 2026-04-18
+- Refactor: Rediseñado el diálogo de creación de tareas (`AddTareaDialog`) separando los campos de fecha y hora en una disposición vertical para mejorar la usabilidad.
+- UI: Implementados selectores nativos de fecha (`DatePicker`) y hora (`TimePicker`) con corrección de desfase por zona horaria (UTC a Local).
+- Infrastructure: Corregida la asignación de metadatos críticos (`profesorId`, `centroId`) al crear nuevas tareas desde el panel del profesor.
+- Improvement: Añadido manejo de errores y cierre seguro de flujos en la selección de archivos adjuntos.
+- Status: **PENDIENTE** - La creación de tareas en Firestore aún no es funcional debido a errores de conectividad de red persistentes (`firestore.googleapis.com`) y validaciones de formato de fecha pendientes.
+
 ## [v0.3.8] - 2026-04-17
 - Feature: Added an "Edit Profile" dialog in `ProfileScreen` allowing users to update their basic information (Name) directly.
 - Refactor: Removed `SettingsScreen` and consolidated all user preferences and profile management into the `ProfileScreen`.

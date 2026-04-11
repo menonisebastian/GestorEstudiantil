@@ -116,6 +116,21 @@ fun DialogOrchestrator(
                     onDismissRequest = dismissAction
                 )
             }
+
+            is DialogState.AddTarea -> {
+                AddTareaDialog(
+                    state = state,
+                    onDismissRequest = dismissAction
+                )
+            }
+
+            is DialogState.TareaDetalleEstudiante,
+            is DialogState.VerEntregasProfesor -> {
+                VerEntregasProfesorDialog(
+                    state = state as DialogState.VerEntregasProfesor,
+                    onDismissRequest = dismissAction
+                )
+            }
         }
     }
 }

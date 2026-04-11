@@ -10,6 +10,7 @@ import samf.gestorestudiantil.data.repositories.CourseRepositoryImpl
 import samf.gestorestudiantil.data.repositories.EstudianteRepositoryImpl
 import samf.gestorestudiantil.data.repositories.ProfesorRepositoryImpl
 import samf.gestorestudiantil.data.repositories.RecordatorioRepositoryImpl
+import samf.gestorestudiantil.data.repositories.TareaRepositoryImpl
 import samf.gestorestudiantil.data.repositories.UserRepositoryImpl
 import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.domain.repositories.AuthRepository
@@ -17,6 +18,7 @@ import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
+import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Singleton
 
@@ -65,4 +67,10 @@ abstract class RepositoryModule {
     abstract fun bindRecordatorioRepository(
         recordatorioRepositoryImpl: RecordatorioRepositoryImpl
     ): RecordatorioRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTareaRepository(
+        tareaRepositoryImpl: TareaRepositoryImpl
+    ): TareaRepository
 }
