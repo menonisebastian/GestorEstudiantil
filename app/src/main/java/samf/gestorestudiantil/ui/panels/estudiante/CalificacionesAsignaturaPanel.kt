@@ -78,7 +78,12 @@ fun CalificacionesAsignaturaPanel(
 
             Row(modifier = Modifier.padding(end = 16.dp)) {
                 Spacer(modifier = Modifier.weight(1f))
-                Text("Nota media: $notaMedia", fontSize = 16.sp, color = textColor)
+                Text(
+                    text = String.format(java.util.Locale.getDefault(), "Nota media: %.2f", notaMedia),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
             }
         }
     }

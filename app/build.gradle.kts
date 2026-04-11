@@ -37,6 +37,12 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+        }
+    }
 }
 
 dependencies {
@@ -63,9 +69,10 @@ dependencies {
     // Importar la plataforma Firebase BOM
     implementation(platform(libs.firebase.bom))
 
-    // Librerías de Firebase (Auth y Firestore)
+    // Librerías de Firebase (Auth, Firestore y Messaging)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
 
     // Librería para Google Sign-In
     implementation(libs.play.services.auth)
@@ -95,4 +102,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // Google Auth Library for FCM HTTP v1 (Teacher app only)
+    implementation(libs.google.auth.library)
 }

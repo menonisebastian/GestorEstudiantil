@@ -28,6 +28,14 @@ fun DialogOrchestrator(
                 )
             }
 
+            is DialogState.EditRecordatorio -> {
+                EditRecordatorioDialog(
+                    state = state,
+                    onShowDialog = onShowDialog,
+                    onDismissRequest = dismissAction
+                )
+            }
+
             is DialogState.Filter -> {
                 FilterByDialog(
                     state = state,

@@ -31,7 +31,9 @@ import samf.gestorestudiantil.ui.theme.textColor
 fun RecordatoriosEstudiantePanel(
     recordatorios: List<Recordatorio>,
     paddingValues: PaddingValues,
-    onOpenDialog: (DialogState) -> Unit
+    onOpenDialog: (DialogState) -> Unit,
+    onDelete: (String) -> Unit,
+    onUpdate: (Recordatorio) -> Unit
 )
 {
     var textoBusqueda by remember { mutableStateOf("") }
@@ -89,8 +91,19 @@ fun RecordatoriosEstudiantePanel(
                 Text(text = "No hay recordatorios", color = surfaceDimColor, fontSize = 16.sp)
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    items(recordatoriosFiltrados) { notificacion ->
-                        CustomNotificationCard(notificacion)
+                    items(recordatoriosFiltrados) { recordatorio ->
+                        CustomNotificationCard(
+                            recordatorio = recordatorio,
+                            onClick = {
+                                onOpenDialog(
+                                    DialogState.EditRecordatorio(
+                                        recordatorio = recordatorio,
+                                        onSave = onUpdate
+                                    )
+                                )
+                            },
+                            onDelete = { onDelete(recordatorio.id) }
+                        )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
                 }

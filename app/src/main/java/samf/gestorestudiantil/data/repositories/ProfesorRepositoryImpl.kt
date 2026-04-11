@@ -150,4 +150,13 @@ class ProfesorRepositoryImpl @Inject constructor(
             null
         }
     }
+
+    override suspend fun getEstudiante(estudianteId: String): User? {
+        return try {
+            val doc = db.collection("usuarios").document(estudianteId).get().await()
+            doc.toObject(User::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

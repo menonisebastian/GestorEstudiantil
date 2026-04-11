@@ -16,5 +16,6 @@ data class User(
     var cicloNum: Int = 1, // Ciclo en el que está matriculado (1 o 2)
     var imgUrl: String = "",
     var fotoUrl: String = "", // URL de la foto de perfil en Firestore
+    var fcmToken: String = "", // Token para notificaciones individuales
     var ultimaVezAsignaturas: Map<String, Long> = emptyMap() // Map<AsignaturaId, Timestamp>
 )

@@ -76,6 +76,16 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    fun actualizarRecordatorio(recordatorio: Recordatorio) {
+        viewModelScope.launch {
+            try {
+                recordatorioRepository.actualizarRecordatorio(recordatorio)
+            } catch (e: Exception) {
+                _state.update { it.copy(errorMessage = "Error al actualizar recordatorio: ${e.localizedMessage}") }
+            }
+        }
+    }
+
     fun clearError() {
         _state.update { it.copy(errorMessage = null) }
     }

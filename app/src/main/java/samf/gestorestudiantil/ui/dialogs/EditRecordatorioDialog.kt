@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.ui.components.CustomDateField
-import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomTimeField
 import androidx.compose.foundation.clickable
@@ -45,16 +44,17 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
-fun AddRecordatorioDialog(
-    state: DialogState.AddRecordatorio,
-    onShowDialog: (DialogState) -> Unit, // Nuevo parámetro
+fun EditRecordatorioDialog(
+    state: DialogState.EditRecordatorio,
+    onShowDialog: (DialogState) -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    var titulo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
-    var hora by remember { mutableStateOf("") }
-    var tipo by remember { mutableStateOf(tipoRecordatorio.EXAMEN) }
+    val recordatorio = state.recordatorio
+    var titulo by remember { mutableStateOf(recordatorio.titulo) }
+    var descripcion by remember { mutableStateOf(recordatorio.descripcion) }
+    var fecha by remember { mutableStateOf(recordatorio.fecha) }
+    var hora by remember { mutableStateOf(recordatorio.hora) }
+    var tipo by remember { mutableStateOf(recordatorio.tipo) }
 
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
@@ -64,7 +64,7 @@ fun AddRecordatorioDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Añadir Recordatorio",
+                "Editar Recordatorio",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor
@@ -150,7 +150,15 @@ fun AddRecordatorioDialog(
                 Spacer(modifier = Modifier.width(8.dp))
                 FilledIconButton(
                     onClick = {
-                        state.onSave(titulo, descripcion, fecha, hora, tipo)
+                        state.onSave(
+                            recordatorio.copy(
+                                titulo = titulo,
+                                descripcion = descripcion,
+                                fecha = fecha,
+                                hora = hora,
+                                tipo = tipo
+                            )
+                        )
                         onDismissRequest()
                     },
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = primaryColor)

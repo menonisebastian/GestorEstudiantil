@@ -2,6 +2,7 @@ package samf.gestorestudiantil.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,9 +47,16 @@ class EstudianteViewModel @Inject constructor(
         asignaturasJob = viewModelScope.launch {
             estudianteRepository.getAsignaturas(cursoId, turno, cicloNum).collect { asignaturas ->
                 _state.update { it.copy(isLoading = false, asignaturas = asignaturas) }
+                subscribeToAsignaturas(asignaturas.map { it.id })
                 observarCambiosEnPosts(asignaturas.map { it.id })
                 recalcularNotificaciones(asignaturas, currentUltimaVez)
             }
+        }
+    }
+
+    private fun subscribeToAsignaturas(asignaturaIds: List<String>) {
+        asignaturaIds.forEach { id ->
+            FirebaseMessaging.getInstance().subscribeToTopic("asignatura_$id")
         }
     }
 

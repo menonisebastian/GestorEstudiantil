@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.6] - 2026-04-15
+- Feature: Fully implemented Recordatorios (Reminders) CRUD across all layers (Firestore, Repository, ViewModel, and UI).
+- UI Improvement: Enhanced `CustomNotificationCard` with a visual "clip" adornment and standardized date formatting using `formatearFechaParaMostrar`.
+- UI Interaction: Integrated full edit/delete lifecycle for reminders in `RecordatoriosEstudiantePanel` and `RecordatoriosProfesorPanel`.
+- Dialog Management: Added `EditRecordatorioDialog` to `DialogOrchestrator` for consistent state-driven editing.
+- Infrastructure: Implemented `actualizarRecordatorio` in `RecordatorioRepository` with Firestore-backed atomic updates.
+- Infrastructure: Migrated push notification logic from Cloud Functions to direct Firebase API integration for improved efficiency.
+- Refactor: Wired `AppViewModel` reminder actions to `HomeScreen` callbacks to ensure reactive UI updates across different user roles.
+
+## [v0.3.5] - 2026-04-14
+- Feature: Implemented push notification system using Firebase Cloud Messaging and Cloud Functions.
+- Navigation: Internal "Deep Linking" support to open subject details from notifications.
+- Infrastructure: Dynamic subscription to Firebase topics based on student enrollment.
+- UI: Implemented intent handling in MainActivity and synchronization with Navigation 3 backstack.
+
 ## [v0.3.4] - 2026-04-13
 - Feature: Implemented Firebase password recovery flow.
 - UI Improvement: Added `ForgotPasswordPanel` and `ForgotPasswordSuccessPanel` with automated navigation and success state feedback.

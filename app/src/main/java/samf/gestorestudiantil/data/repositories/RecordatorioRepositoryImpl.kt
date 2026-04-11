@@ -37,4 +37,11 @@ class RecordatorioRepositoryImpl @Inject constructor(
             .delete()
             .await()
     }
+
+    override suspend fun actualizarRecordatorio(recordatorio: Recordatorio) {
+        db.collection("recordatorios")
+            .document(recordatorio.id)
+            .set(recordatorio)
+            .await()
+    }
 }

@@ -113,7 +113,8 @@ val itemsAdmin: Map<String, ImageVector> = mapOf(
 @Composable
 fun HomeScreen(
     usuario: User,
-
+    targetAsignaturaId: String? = null,
+    onNotificationHandled: () -> Unit = {},
     onLogout: () -> Unit,
     onNavigateProfile: () -> Unit = {},
     onNavigateSettings: () -> Unit = {}
@@ -173,6 +174,13 @@ fun HomeScreen(
         }
     }
 
+    // ✅ Mapa de backstacks locales por cada tab para persistir estado y manejar scroll/FAB
+    val tabBackStacks = remember(tabs) {
+        tabs.associateWith { tab ->
+            mutableStateListOf<Any>(tabToRoute(tab, usuario.rol))
+        }
+    }
+
     // ✅ Back stack INTERNO de HomeScreen (independiente del de AppNavigation)
     val homeBackStack = remember {
         mutableStateListOf<Any>(tabToRoute(tabs.first(), usuario.rol))
@@ -186,10 +194,37 @@ fun HomeScreen(
         dialogStack.add(newState)
     }
 
-    // ✅ Mapa de backstacks locales por cada tab para persistir estado y manejar scroll/FAB
-    val tabBackStacks = remember(tabs) {
-        tabs.associateWith { tab ->
-            mutableStateListOf<Any>(tabToRoute(tab, usuario.rol))
+    // ✅ Manejo de Redirección por Notificación
+    LaunchedEffect(targetAsignaturaId, estudianteState.asignaturas, profesorState.asignaturas) {
+        if (targetAsignaturaId != null) {
+            val asignaturas = if (usuario.rol == "PROFESOR") profesorState.asignaturas else estudianteState.asignaturas
+            val asignatura = asignaturas.find { it.id == targetAsignaturaId }
+            
+            if (asignatura != null) {
+                // 1. Identificar la tab de Materias
+                val materiasTab = "Asignaturas"
+                val index = tabs.indexOf(materiasTab)
+                
+                if (index != -1) {
+                    // 2. Cambiar a esa tab si no estamos en ella
+                    if (pagerState.currentPage != index) {
+                        pagerState.animateScrollToPage(index)
+                    }
+                    
+                    // 3. Añadir el detalle al backstack de esa tab
+                    val pageBackStack = tabBackStacks[materiasTab]
+                    if (pageBackStack != null) {
+                        // Evitar duplicados si ya estamos ahí
+                        val currentTop = pageBackStack.lastOrNull()
+                        if (currentTop !is Routes.HomeRoutes.MateriaDetalle || (currentTop as? Routes.HomeRoutes.MateriaDetalle)?.asignatura?.id != asignatura.id) {
+                            pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
+                        }
+                    }
+                    
+                    // 4. Notificar que ya se manejó
+                    onNotificationHandled()
+                }
+            }
         }
     }
 
@@ -468,7 +503,9 @@ fun HomeScreen(
                         RecordatoriosEstudiantePanel(
                             recordatorios = appState.recordatorios,
                             paddingValues = PaddingValues(0.dp),
-                            onOpenDialog = onOpenDialog
+                            onOpenDialog = onOpenDialog,
+                            onDelete = { appViewModel.eliminarRecordatorio(it) },
+                            onUpdate = { appViewModel.actualizarRecordatorio(it) }
                         )
                     }
                     // Admin

@@ -98,6 +98,8 @@ import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.data.interfaces.ChipOption
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.enums.tipoEvaluacion
+import java.util.Locale
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.uploadToCloudinary
@@ -315,7 +317,11 @@ fun ProfileImagePicker(
 // ==========================================
 
 @Composable
-fun CustomNotificationCard(recordatorio: Recordatorio) {
+fun CustomNotificationCard(
+    recordatorio: Recordatorio,
+    onClick: () -> Unit = {},
+    onDelete: () -> Unit = {}
+) {
     val iconModifier = Modifier
         .size(16.dp)
         .padding(end = 4.dp)
@@ -323,7 +329,10 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
     val softRed = Color(0xDDD23B3B)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
     ) {
         Row(
@@ -339,7 +348,7 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.DateRange, "Fecha", tint = surfaceDimColor, modifier = iconModifier)
-                    Text(recordatorio.fecha, color = surfaceDimColor, fontSize = 10.sp)
+                    Text(formatearFechaParaMostrar(recordatorio.fecha), color = surfaceDimColor, fontSize = 10.sp)
 
                     Spacer(modifier = Modifier.width(16.dp))
 
@@ -355,7 +364,7 @@ fun CustomNotificationCard(recordatorio: Recordatorio) {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Outlined.Delete, "Eliminar", tint = softRed, modifier = Modifier.size(20.dp))
                 }
             }
@@ -452,7 +461,8 @@ fun AsignaturaCard(
 fun EvaluacionCard(evaluacion: Evaluacion) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = surfaceColor)
+        colors = CardDefaults.cardColors(containerColor = surfaceColor),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -460,13 +470,18 @@ fun EvaluacionCard(evaluacion: Evaluacion) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 TypeChip(option = evaluacion.tipoEvaluacion)
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(text = evaluacion.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Text("Nota: ${evaluacion.nota}", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
+            Text(
+                text = String.format(Locale.getDefault(), "%.1f", evaluacion.nota),
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 18.sp,
+                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
+            )
         }
     }
 }

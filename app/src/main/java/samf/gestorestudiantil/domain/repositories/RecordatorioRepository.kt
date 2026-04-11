@@ -7,4 +7,5 @@ interface RecordatorioRepository {
     fun getRecordatorios(usuarioId: String): Flow<List<Recordatorio>>
     suspend fun guardarRecordatorio(recordatorio: Recordatorio)
     suspend fun eliminarRecordatorio(recordatorioId: String)
+    suspend fun actualizarRecordatorio(recordatorio: Recordatorio)
 }

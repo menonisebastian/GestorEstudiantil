@@ -1,13 +1,23 @@
 package samf.gestorestudiantil.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.auth.oauth2.GoogleCredentials
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
@@ -31,7 +41,8 @@ data class ProfesorState(
 
 @HiltViewModel
 class ProfesorViewModel @Inject constructor(
-    private val profesorRepository: ProfesorRepository
+    private val profesorRepository: ProfesorRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfesorState())
@@ -111,6 +122,63 @@ class ProfesorViewModel @Inject constructor(
                 visible = visible
             )
             profesorRepository.crearPost(nuevoPost)
+            if (visible) {
+                val asignatura = _state.value.asignaturas.find { it.id == asignaturaId }
+                enviarNotificacion(asignaturaId, titulo, autorNombre, asignatura?.acronimo ?: "")
+            }
+        }
+    }
+
+    private fun enviarNotificacion(asignaturaId: String, tituloPost: String, nombreProfesor: String, acronimoAsignatura: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val topic = "asignatura_$asignaturaId"
+                val accessToken = getAccessToken(context) ?: return@launch
+
+                val client = OkHttpClient()
+                val notificationTitle = "Nuevo post de $nombreProfesor en $acronimoAsignatura"
+                
+                val json = JSONObject().apply {
+                    put("message", JSONObject().apply {
+                        put("topic", topic)
+                        put("notification", JSONObject().apply {
+                            put("title", notificationTitle)
+                            put("body", tituloPost)
+                        })
+                        put("data", JSONObject().apply {
+                            put("target_asignatura_id", asignaturaId)
+                        })
+                    })
+                }
+
+                val body = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = Request.Builder()
+                    .url("https://fcm.googleapis.com/v1/projects/gestorinstituto-tfg/messages:send")
+                    .post(body)
+                    .addHeader("Authorization", "Bearer $accessToken")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        println("Error enviando notificación: ${response.body?.string()}")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun getAccessToken(context: Context): String? {
+        return try {
+            val inputStream = context.assets.open("service-account.json")
+            val googleCredentials = GoogleCredentials.fromStream(inputStream)
+                .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
+            googleCredentials.refreshIfExpired()
+            googleCredentials.accessToken.tokenValue
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
@@ -188,8 +256,57 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 profesorRepository.guardarEvaluacion(evaluacion)
+                // Enviar notificación al estudiante
+                enviarNotificacionCalificacion(evaluacion)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar: ${e.localizedMessage}") }
+            }
+        }
+    }
+
+    private fun enviarNotificacionCalificacion(evaluacion: Evaluacion) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val estudiante = profesorRepository.getEstudiante(evaluacion.estudianteId)
+                val token = estudiante?.fcmToken
+                if (token.isNullOrEmpty()) return@launch
+
+                val asignatura = _state.value.asignaturas.find { it.id == evaluacion.asignaturaId }
+                val acronimo = asignatura?.acronimo ?: ""
+                val accessToken = getAccessToken(context) ?: return@launch
+
+                val client = OkHttpClient()
+                val notificationTitle = "Nueva calificación en $acronimo"
+                val notificationBody = "Se ha publicado la nota de: ${evaluacion.nombre}"
+
+                val json = JSONObject().apply {
+                    put("message", JSONObject().apply {
+                        put("token", token)
+                        put("notification", JSONObject().apply {
+                            put("title", notificationTitle)
+                            put("body", notificationBody)
+                        })
+                        put("data", JSONObject().apply {
+                            put("target_asignatura_id", evaluacion.asignaturaId)
+                            put("type", "calificacion")
+                        })
+                    })
+                }
+
+                val body = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = Request.Builder()
+                    .url("https://fcm.googleapis.com/v1/projects/gestorinstituto-tfg/messages:send")
+                    .post(body)
+                    .addHeader("Authorization", "Bearer $accessToken")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        println("Error enviando notificación individual: ${response.body?.string()}")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

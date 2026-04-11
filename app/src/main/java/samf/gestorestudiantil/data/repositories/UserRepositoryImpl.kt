@@ -26,4 +26,8 @@ class UserRepositoryImpl @Inject constructor(
             .get().await()
         return !admins.isEmpty
     }
+
+    override suspend fun updateFcmToken(uid: String, token: String) {
+        db.collection("usuarios").document(uid).update("fcmToken", token).await()
+    }
 }

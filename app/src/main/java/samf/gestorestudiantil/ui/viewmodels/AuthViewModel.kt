@@ -200,4 +200,14 @@ class AuthViewModel @Inject constructor(
     fun clearError() {
         _authState.value = _authState.value.copy(errorMessage = null)
     }
+
+    fun updateFcmToken(userId: String, token: String) {
+        viewModelScope.launch {
+            try {
+                userRepository.updateFcmToken(userId, token)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

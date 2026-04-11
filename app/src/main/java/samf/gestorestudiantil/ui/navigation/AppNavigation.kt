@@ -20,8 +20,11 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.screens.AuthScreen
 import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
@@ -34,10 +37,11 @@ import samf.gestorestudiantil.ui.screens.SettingsScreen
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
-import com.google.firebase.firestore.ListenerRegistration
-
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    targetAsignaturaId: String? = null,
+    onNotificationHandled: () -> Unit = {}
+) {
     val authViewModel: AuthViewModel = hiltViewModel()
     var currentUser by remember { mutableStateOf<User?>(null) }
     var isCheckingSession by remember { mutableStateOf(true) }
@@ -205,6 +209,8 @@ fun AppNavigation() {
                 if (currentUser != null) {
                     HomeScreen(
                         usuario = currentUser!!,
+                        targetAsignaturaId = targetAsignaturaId,
+                        onNotificationHandled = onNotificationHandled,
                         onLogout = {
                             FirebaseAuth.getInstance().signOut()
                         },

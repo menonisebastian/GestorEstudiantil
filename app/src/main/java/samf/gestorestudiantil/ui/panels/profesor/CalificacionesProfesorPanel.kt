@@ -29,6 +29,8 @@ import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.User
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import samf.gestorestudiantil.data.enums.tipoEvaluacion
+import samf.gestorestudiantil.ui.components.TypeChip
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.components.CustomTextField
@@ -374,6 +376,15 @@ fun CalificacionesDetalleEstudiante(
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(8.dp))
+                val notaMedia = if (state.evaluaciones.isNotEmpty()) state.evaluaciones.map { it.nota }.average() else 0.0
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = String.format(java.util.Locale.getDefault(), "Media: %.2f", notaMedia),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (notaMedia >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
+                    )
+                }
                 Spacer(modifier = Modifier.weight(1f))
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
@@ -448,11 +459,12 @@ fun EvaluacionProfesorItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
+                TypeChip(option = evaluacion.tipoEvaluacion)
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(evaluacion.nombre, fontWeight = FontWeight.Bold, color = textColor)
-                Text(evaluacion.tipoEvaluacion.label, fontSize = 11.sp, color = surfaceDimColor)
             }
             Text(
-                text = evaluacion.nota.toString(),
+                text = String.format(java.util.Locale.getDefault(), "%.2f", evaluacion.nota),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
@@ -493,18 +505,48 @@ fun AddEditCalificacionDialog(
 ) {
     var nombre by remember { mutableStateOf(evaluacion.nombre) }
     var nota by remember { mutableStateOf(evaluacion.nota.toString()) }
+    var tipoSeleccionado by remember { mutableStateOf(evaluacion.tipoEvaluacion) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación") },
+        title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 CustomTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = "Nombre del trabajo/examen",
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                Column {
+                    Text("Tipo de evaluación", fontSize = 12.sp, color = surfaceDimColor, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        tipoEvaluacion.entries.forEach { tipo ->
+                            val isSelected = tipoSeleccionado == tipo
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) tipo.color.copy(alpha = 0.2f) else surfaceColor)
+                                    .clickable { tipoSeleccionado = tipo }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = tipo.label,
+                                    color = if (isSelected) tipo.color else surfaceDimColor,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
                 CustomTextField(
                     value = nota,
                     onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) nota = it },
@@ -515,14 +557,18 @@ fun AddEditCalificacionDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                onSave(evaluacion.copy(nombre = nombre, nota = nota.toDoubleOrNull() ?: 0.0))
-            }) {
-                Text("Guardar")
+            Button(
+                onClick = {
+                    onSave(evaluacion.copy(nombre = nombre, nota = nota.toDoubleOrNull() ?: 0.0, tipoEvaluacion = tipoSeleccionado))
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+            ) {
+                Text("Guardar", color = textColor)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = primaryColor) }
         }
     )
 }
