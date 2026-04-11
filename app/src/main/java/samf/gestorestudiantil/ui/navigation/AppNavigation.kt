@@ -33,7 +33,6 @@ import samf.gestorestudiantil.ui.screens.HomeScreen
 import samf.gestorestudiantil.ui.screens.PendingApprovalScreen
 import samf.gestorestudiantil.ui.screens.ProfileScreen
 import samf.gestorestudiantil.ui.screens.RegisterStep2Screen
-import samf.gestorestudiantil.ui.screens.SettingsScreen
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
@@ -121,8 +120,7 @@ fun AppNavigation(
 
                 // Navegar solo si el destino es diferente (evita recargas innecesarias)
                 if (currentDestination != targetDestination &&
-                    currentDestination !is Routes.Profile &&
-                    currentDestination !is Routes.Settings) {
+                    currentDestination !is Routes.Profile) {
 
                     backStack.clear()
                     backStack.add(targetDestination)
@@ -214,8 +212,7 @@ fun AppNavigation(
                         onLogout = {
                             FirebaseAuth.getInstance().signOut()
                         },
-                        onNavigateProfile = { backStack.add(Routes.Profile) },
-                        onNavigateSettings = { backStack.add(Routes.Settings) }
+                        onNavigateProfile = { backStack.add(Routes.Profile) }
                     )
                 } else {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -233,10 +230,6 @@ fun AppNavigation(
                         currentUser = usuarioEditado
                     }
                 )
-            }
-
-            entry<Routes.Settings> {
-                SettingsScreen(onBack = { backStack.removeLastOrNull() })
             }
         }
     )

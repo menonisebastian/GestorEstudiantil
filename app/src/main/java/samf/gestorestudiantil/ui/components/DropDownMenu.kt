@@ -30,7 +30,6 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun DropDownMenu(
-    onNavigateSettings: () -> Unit,
     onLogout: () -> Unit,
     onNavigateProfile: () -> Unit = {}
 ) {
@@ -62,16 +61,6 @@ fun DropDownMenu(
                 onClick = {
                     expanded = false
                     onNavigateProfile()
-                }
-            )
-            HorizontalDivider()
-
-            DropdownMenuItem(
-                text = { Text("Preferencias") },
-                leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null, tint = textColor) },
-                onClick = {
-                    expanded = false
-                    onNavigateSettings()
                 }
             )
             HorizontalDivider()

@@ -41,6 +41,11 @@ sealed class DialogState {
         val user: User
     ) : DialogState()
 
+    data class EditSelfProfile(
+        val user: User,
+        val onSave: (String) -> Unit // Solo nombre por ahora, se puede expandir
+    ) : DialogState()
+
     // 5. Diálogos de Edición/Creación para Admin
     data class EditCentro(
         val centro: Centro? = null,

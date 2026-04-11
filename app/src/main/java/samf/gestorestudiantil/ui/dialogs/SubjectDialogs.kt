@@ -16,8 +16,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun AddUnidadDialog(
@@ -31,6 +34,7 @@ fun AddUnidadDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(if (state.unidadId == null) "Nueva Unidad" else "Editar Unidad") },
+        containerColor = backgroundColor,
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -101,6 +105,7 @@ fun EditHorarioDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text("Asignar Materia") },
+        containerColor = backgroundColor,
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -152,6 +157,54 @@ fun EditHorarioDialog(
 }
 
 @Composable
+fun EditSelfProfileDialog(
+    state: DialogState.EditSelfProfile,
+    onDismissRequest: () -> Unit
+) {
+    var nombre by remember { mutableStateOf(state.user.nombre) }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Editar Perfil", color = textColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) },
+        containerColor = backgroundColor,
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CustomTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = "Nombre"
+                )
+                Text(
+                    "El email y el rol no se pueden cambiar desde aquí.",
+                    fontSize = 12.sp,
+                    color = surfaceDimColor
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    state.onSave(nombre)
+                    onDismissRequest()
+                },
+                enabled = nombre.isNotBlank() && nombre != state.user.nombre,
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = primaryColor)
+            ) {
+                Text("Guardar", color = textColor)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancelar", color = textColor)
+            }
+        }
+    )
+}
+
+@Composable
 fun AddPostDialog(
     state: DialogState.AddPost,
     onDismissRequest: () -> Unit
@@ -163,6 +216,7 @@ fun AddPostDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(if (state.postId == null) "Nueva Publicación" else "Editar Publicación") },
+        containerColor = backgroundColor,
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.8] - 2026-04-17
+- Feature: Added an "Edit Profile" dialog in `ProfileScreen` allowing users to update their basic information (Name) directly.
+- Refactor: Removed `SettingsScreen` and consolidated all user preferences and profile management into the `ProfileScreen`.
+- UI Improvement: Cleaned up the `TopBarRow` and `DropDownMenu` by removing redundant "Settings" links.
+- Dialog Management: Introduced `EditSelfProfile` state to `DialogOrchestrator` for secure self-service profile updates.
+- Infrastructure: Integrated real-time Firestore updates for profile changes with immediate UI synchronization across the app.
+
 ## [v0.3.7] - 2026-04-16
 - Feature: Added a theme selector (Light, Dark, Automatic) in the Profile screen for a personalized visual experience.
 - Feature: Implemented a local switch to enable/disable push notifications in the user profile.

@@ -92,6 +92,13 @@ fun DialogOrchestrator(
                 )
             }
 
+            is DialogState.EditSelfProfile -> {
+                EditSelfProfileDialog(
+                    state = state,
+                    onDismissRequest = dismissAction
+                )
+            }
+
             is DialogState.EditCentro,
             is DialogState.EditCurso,
             is DialogState.EditAsignatura -> Unit

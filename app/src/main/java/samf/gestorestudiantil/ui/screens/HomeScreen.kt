@@ -116,8 +116,7 @@ fun HomeScreen(
     targetAsignaturaId: String? = null,
     onNotificationHandled: () -> Unit = {},
     onLogout: () -> Unit,
-    onNavigateProfile: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {}
 ) {
     val currentNavItems = remember(usuario.rol) {
         when (usuario.rol) {
@@ -283,7 +282,6 @@ fun HomeScreen(
                         curso = usuario.cursoOArea,
                         imgUrl = usuario.imgUrl,
                         onNavigateProfile = onNavigateProfile,
-                        onNavigateSettings = onNavigateSettings,
                         onLogout = onLogout
                     )
                 },

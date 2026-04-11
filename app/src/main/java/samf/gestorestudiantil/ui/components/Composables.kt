@@ -116,7 +116,6 @@ fun TopBarRow(
     curso: String,
     imgUrl: String = "",
     onNavigateProfile: () -> Unit,
-    onNavigateSettings: () -> Unit,
     onLogout: () -> Unit
 ) {
     Row(
@@ -129,7 +128,6 @@ fun TopBarRow(
 
         DropDownMenu(
             onNavigateProfile = { onNavigateProfile() },
-            onNavigateSettings = { onNavigateSettings() },
             onLogout = { onLogout() }
         )
     }

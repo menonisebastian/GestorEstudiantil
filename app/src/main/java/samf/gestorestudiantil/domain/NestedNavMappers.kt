@@ -75,4 +75,3 @@ fun isDetailRoute(route: Any): Boolean =
 //│       │                                        ↘ CalificacionesDetalle ✅
 //│       └── Página 3 → NavDisplay(pageBackStack) → Recordatorios
 //├── Routes.Profile    → ProfileScreen
-//└── Routes.Settings   → SettingsScreen

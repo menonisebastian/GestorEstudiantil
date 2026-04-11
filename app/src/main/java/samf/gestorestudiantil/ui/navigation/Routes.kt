@@ -130,7 +130,4 @@ sealed interface Routes {
 
     @Serializable
     data object Profile : Routes, NavKey
-
-    @Serializable
-    data object Settings : Routes, NavKey
 }

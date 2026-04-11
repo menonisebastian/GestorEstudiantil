@@ -271,7 +271,7 @@ fun ForgotPasswordSuccessPanel(
         val (iconRef, textRef, footerRef) = createRefs()
 
         androidx.compose.material3.Icon(
-            imageVector = androidx.compose.material.icons.Icons.Default.CheckCircle,
+            imageVector = Icons.Default.CheckCircle,
             contentDescription = null,
             tint = androidx.compose.ui.graphics.Color(0xFF4CAF50),
             modifier = Modifier

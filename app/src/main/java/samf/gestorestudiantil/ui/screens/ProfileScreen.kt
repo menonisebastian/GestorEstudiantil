@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,6 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
+import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
+import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
@@ -64,6 +68,9 @@ fun ProfileScreen(
     // Estado local para actualizar la UI inmediatamente tras la subida
     var currentPhotoUrl by remember { mutableStateOf(usuario?.imgUrl ?: "") }
     val notificationsEnabled by settingsViewModel.notificationsEnabled.collectAsState()
+
+    // Gestión de diálogos
+    val dialogStack = remember { mutableStateListOf<DialogState>() }
 
     Scaffold(
         containerColor = backgroundColor,
@@ -123,9 +130,36 @@ fun ProfileScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Datos", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Datos", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        
+                        IconButton(onClick = {
+                            if (usuario != null) {
+                                dialogStack.add(
+                                    DialogState.EditSelfProfile(
+                                        user = usuario,
+                                        onSave = { nuevoNombre ->
+                                            FirebaseFirestore.getInstance().collection("usuarios")
+                                                .document(usuario.id)
+                                                .update("nombre", nuevoNombre)
+                                                .addOnSuccessListener {
+                                                    Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+                                                    onProfileUpdated(usuario.copy(nombre = nuevoNombre))
+                                                }
+                                        }
+                                    )
+                                )
+                            }
+                        }) {
+                            Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = primaryColor)
+                        }
+                    }
 
-                    HorizontalDivider(color = surfaceDimColor.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(color = surfaceDimColor.copy(alpha = 0.2f), modifier = Modifier.padding(bottom = 8.dp))
 
                     Text("Nombre: ${usuario?.nombre ?: ""}", color = textColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text("Email: ${usuario?.email ?: ""}", color = surfaceDimColor, fontSize = 14.sp)
@@ -200,4 +234,10 @@ fun ProfileScreen(
             }
         }
     }
+
+    DialogOrchestrator(
+        states = dialogStack,
+        onShowDialog = { dialogStack.add(it) },
+        onDismiss = { dialogStack.remove(it) }
+    )
 }
