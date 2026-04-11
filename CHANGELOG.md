@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.3.4] - 2026-04-13
+- Feature: Implemented Firebase password recovery flow.
+- UI Improvement: Added `ForgotPasswordPanel` and `ForgotPasswordSuccessPanel` with automated navigation and success state feedback.
+- Navigation: Integrated password recovery into the `AuthScreen` internal backstack using Navigation 3, ensuring a clean return to Login.
+- Infrastructure: Extended `AuthRepository` and `AuthViewModel` to support password reset email triggers.
+
+## [v0.3.3] - 2026-04-13
+- UI Improvement: Replaced dropdown filters with a multi-selectable `FilterChip` system in `FilterByDialog` for a more modern and touch-friendly experience.
+- UI Improvement: Enhanced `CentrosAdminPanel` shift selection with contextual icons (Sun for Morning, Twilight for Evening).
+- UI Improvement: Standardized schedule headers in Admin panel to follow the "Acronym + Shift + Cycle" format (e.g., "DAM M2").
+- UI Improvement: Updated `MateriaDetalleEstudiantePanel` header with an interactive teacher profile row replacing the static text.
+- Bugfix: Resolved Firestore deserialization crashes in `Asignatura` (@DocumentId naming collision) and `User` (missing fields).
+- Bugfix: Corrected data type mismatch for `cicloNum` when generating new schedule entries in `HorariosAdminScreen`.
+- Data Integrity: Synchronized `imgUrl` and `fotoUrl` fields across Registration Use Cases and Profile updates to ensure avatar consistency.
+- Infrastructure: Extended `ProfesorRepository` and `ProfesorViewModel` to support fetching teacher profiles for student detail views.
+
 ## [v0.3.2] - 2026-04-12
 - Admin UI Improvements: Standardized icons in `CentrosAdminPanel` for FP levels (Specialization: `AutoAwesome`, Superior: `School`, Middle: `MenuBook`, Basic: `ImportContacts`).
 - Admin UI Improvements: Refactored Course selection in user editing (Dialog and Screen) from manual text to a database-driven dropdown of acronyms (e.g., "DAM", "DAW").

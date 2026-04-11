@@ -33,4 +33,20 @@ class AuthRepositoryImpl @Inject constructor(
     override fun getCurrentUserUid(): String? {
         return auth.currentUser?.uid
     }
+
+    override fun getCurrentUserName(): String? {
+        return auth.currentUser?.displayName
+    }
+
+    override fun getCurrentUserEmail(): String? {
+        return auth.currentUser?.email
+    }
+
+    override fun getCurrentUserPhotoUrl(): String? {
+        return auth.currentUser?.photoUrl?.toString()
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String) {
+        auth.sendPasswordResetEmail(email).await()
+    }
 }

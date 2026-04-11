@@ -12,9 +12,9 @@ class CalculateUnreadNotificationsUseCase @Inject constructor(
         ultimaVezAsignaturas: Map<String, Long>
     ): List<Asignatura> {
         return asignaturas.map { asignatura ->
-            val lastRead = ultimaVezAsignaturas[asignatura.idFirestore] ?: 0L
+            val lastRead = ultimaVezAsignaturas[asignatura.id] ?: 0L
             try {
-                val numNotifs = estudianteRepository.getCountNuevosPosts(asignatura.idFirestore, lastRead)
+                val numNotifs = estudianteRepository.getCountNuevosPosts(asignatura.id, lastRead)
                 asignatura.copy(numNotificaciones = numNotifs)
             } catch (e: Exception) {
                 asignatura

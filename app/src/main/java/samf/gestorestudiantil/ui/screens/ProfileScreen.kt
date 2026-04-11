@@ -83,12 +83,15 @@ fun ProfileScreen(
                     // 2. Guardar en Firestore
                     usuario?.id?.let { uid ->
                         FirebaseFirestore.getInstance().collection("usuarios").document(uid)
-                            .update("imgUrl", secureUrl)
+                            .update(
+                                "imgUrl", secureUrl,
+                                "fotoUrl", secureUrl
+                            )
                             .addOnSuccessListener {
                                 Toast.makeText(context, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
 
                                 // 3. CLAVE: Notificar a la App del cambio para que el Home se entere
-                                val usuarioActualizado = usuario.copy(imgUrl = secureUrl)
+                                val usuarioActualizado = usuario.copy(imgUrl = secureUrl, fotoUrl = secureUrl)
                                 onProfileUpdated(usuarioActualizado)
                             }
                     }

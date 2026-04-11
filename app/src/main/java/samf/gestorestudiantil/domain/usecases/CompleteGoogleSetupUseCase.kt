@@ -45,11 +45,16 @@ class CompleteGoogleSetupUseCase @Inject constructor(
 
         val uid = authRepository.getCurrentUserUid() ?: throw Exception("User not logged in")
 
-        // 3. Crear objeto Usuario
+        // 3. Asegurar datos de perfil si vienen vacíos (pueden venir de AuthState.user que es nulo en el primer login de Google)
+        val finalName = if (name.isBlank()) authRepository.getCurrentUserName() ?: "Usuario Google" else name
+        val finalEmail = if (email.isBlank()) authRepository.getCurrentUserEmail() ?: "" else email
+        val finalImgUrl = if (imgUrl.isBlank()) authRepository.getCurrentUserPhotoUrl() ?: "" else imgUrl
+
+        // 4. Crear objeto Usuario
         val newUser = User(
             id = uid,
-            nombre = name,
-            email = email,
+            nombre = finalName,
+            email = finalEmail,
             rol = finalRol,
             cursoId = if (rolSeleccionado == "ESTUDIANTE") cursoId else "",
             cursoOArea = areaOCurso,
@@ -57,13 +62,14 @@ class CompleteGoogleSetupUseCase @Inject constructor(
             estado = estadoInicial,
             turno = turno.lowercase().trim(),
             cicloNum = ciclo,
-            imgUrl = imgUrl
+            imgUrl = finalImgUrl,
+            fotoUrl = finalImgUrl
         )
 
-        // 4. Guardar en Firestore
+        // 5. Guardar en Firestore
         userRepository.saveUser(newUser)
 
-        // 5. Incrementar contadores si es estudiante
+        // 6. Incrementar contadores si es estudiante
         if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
             courseRepository.incrementStudentCount(cursoId, turno, ciclo)
         }

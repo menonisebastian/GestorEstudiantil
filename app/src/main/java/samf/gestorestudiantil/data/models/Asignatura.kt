@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Asignatura(
     @DocumentId
-    var idFirestore: String = "",
+    var idDocumento: String = "",
+    var id: String = "",                // Campo "id" en el documento Firestore
     var acronimo: String = "",          // "PMM", "PSP", "AD", "DWEC" ...
     var nombre: String = "",            // Nombre completo de la asignatura
     var descripcion: String = "",

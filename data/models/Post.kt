@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Post(
     @DocumentId
-    var idFirestore: String = "",
+    var id: String = "",
     var titulo: String = "",
     var contenido: String = "",
     var autorId: String = "",

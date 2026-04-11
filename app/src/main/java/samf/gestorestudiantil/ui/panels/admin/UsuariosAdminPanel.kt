@@ -98,16 +98,18 @@ fun UsuariosAdminPanel(
     // Filtrar la lista real proveniente de Firebase
     val usuariosFiltrados = remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, selectedTabIndex, adminState.usuarios) {
         val estadoFiltro = if (selectedTabIndex == 1) "PENDIENTE" else "ACTIVO"
+        val rolesSeleccionados = filtroRol.split(",").filter { it.isNotEmpty() }
+        val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
+        val ciclosSeleccionados = filtroCiclo.split(",").filter { it.isNotEmpty() }
+
         adminState.usuarios.filter {
             val coincideEstado = it.estado == estadoFiltro
             val coincideTexto = it.nombre.contains(textoBusqueda, ignoreCase = true) || 
                                 it.email.contains(textoBusqueda, ignoreCase = true)
-            val coincideRol = if (filtroRol.isEmpty()) true else it.rol.equals(filtroRol, ignoreCase = true)
-            val coincideCurso = if (filtroCurso.isEmpty()) true else it.cursoOArea.equals(filtroCurso, ignoreCase = true)
-            val coincideCiclo = if (filtroCiclo.isEmpty()) true else {
-                // Asumiendo que el ciclo está dentro de cursoOArea o una propiedad similar.
-                // Si el modelo User no tiene ciclo, se puede inferir del cursoOArea o añadirlo al modelo.
-                it.cursoOArea.contains(filtroCiclo) 
+            val coincideRol = if (rolesSeleccionados.isEmpty()) true else rolesSeleccionados.any { rol -> it.rol.equals(rol, ignoreCase = true) }
+            val coincideCurso = if (cursosSeleccionados.isEmpty()) true else cursosSeleccionados.any { curso -> it.cursoOArea.equals(curso, ignoreCase = true) }
+            val coincideCiclo = if (ciclosSeleccionados.isEmpty()) true else {
+                ciclosSeleccionados.any { ciclo -> it.cursoOArea.contains(ciclo) }
             }
             
             coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo

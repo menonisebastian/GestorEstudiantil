@@ -70,9 +70,9 @@ fun AsignarAsignaturasDialog(
                                         Text(asig.nombre, fontSize = 10.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     }
                                     IconButton(onClick = { 
-                                        adminViewModel.desasignarAsignatura(asig.idFirestore, state.profesor.id)
+                                        adminViewModel.desasignarAsignatura(asig.id, state.profesor.id)
                                         // Actualizar lista local para feedback inmediato
-                                        asignaturasProfesor = asignaturasProfesor.filter { it.idFirestore != asig.idFirestore }
+                                        asignaturasProfesor = asignaturasProfesor.filter { it.id != asig.id }
                                     }) {
                                         Icon(Icons.Default.Remove, contentDescription = "Desasignar", tint = MaterialTheme.colorScheme.error)
                                     }
@@ -103,7 +103,7 @@ fun AsignarAsignaturasDialog(
                                         Text(asig.nombre, fontSize = 10.sp)
                                     }
                                     IconButton(onClick = { 
-                                        adminViewModel.asignarAsignaturaAProfesor(asig.idFirestore, state.profesor.id)
+                                        adminViewModel.asignarAsignaturaAProfesor(asig.id, state.profesor.id)
                                         // Actualizar lista local
                                         asignaturasProfesor = asignaturasProfesor + asig
                                     }) {

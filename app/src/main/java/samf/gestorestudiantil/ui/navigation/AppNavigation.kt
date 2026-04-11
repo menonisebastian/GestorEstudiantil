@@ -38,6 +38,7 @@ import com.google.firebase.firestore.ListenerRegistration
 
 @Composable
 fun AppNavigation() {
+    val authViewModel: AuthViewModel = hiltViewModel()
     var currentUser by remember { mutableStateOf<User?>(null) }
     var isCheckingSession by remember { mutableStateOf(true) }
     var needsGoogleSetup by remember { mutableStateOf(false) }
@@ -144,6 +145,7 @@ fun AppNavigation() {
         entryProvider = entryProvider {
             entry<Routes.Auth> {
                 AuthScreen(
+                    authViewModel = authViewModel,
                     onAuthSuccess = { /* El listener maneja esto */ },
                     onRequireGoogleSetup = { needsGoogleSetup = true },
                     onNavigateToRegisterStep2 = { name, email, pass, fotoUrl ->
@@ -155,6 +157,7 @@ fun AppNavigation() {
             entry<Routes.RegisterStep2> { route ->
                 RegisterStep2Screen(
                     route = route,
+                    authViewModel = authViewModel,
                     onBack = { backStack.removeLastOrNull() },
                     onNavigateToHome = {
                         // The session listener in AppNavigation will handle the switch
@@ -174,6 +177,12 @@ fun AppNavigation() {
 
             entry<Routes.GooglePasswordSetup> {
                 GooglePasswordSetupScreen(
+                    authViewModel = authViewModel,
+                    onBack = {
+                        FirebaseAuth.getInstance().signOut()
+                        backStack.clear()
+                        backStack.add(Routes.Auth)
+                    },
                     onNext = { password: String ->
                         backStack.add(Routes.GoogleAcademicSetup(password))
                     }
@@ -182,7 +191,9 @@ fun AppNavigation() {
 
             entry<Routes.GoogleAcademicSetup> { route ->
                 GoogleAcademicSetupScreen(
+                    authViewModel = authViewModel,
                     passwordValue = route.password,
+                    onBack = { backStack.removeLastOrNull() },
                     onSetupComplete = { user ->
                         currentUser = user
                         needsGoogleSetup = false

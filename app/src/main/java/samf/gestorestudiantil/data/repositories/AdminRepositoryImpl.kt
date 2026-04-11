@@ -159,8 +159,8 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override suspend fun guardarAsignatura(asignatura: Asignatura) {
-        val ref = if (asignatura.idFirestore.isEmpty()) db.collection("asignaturas").document() else db.collection("asignaturas").document(asignatura.idFirestore)
-        if (asignatura.idFirestore.isEmpty()) asignatura.idFirestore = ref.id
+        val ref = if (asignatura.id.isEmpty()) db.collection("asignaturas").document() else db.collection("asignaturas").document(asignatura.id)
+        if (asignatura.id.isEmpty()) asignatura.id = ref.id
         ref.set(asignatura, com.google.firebase.firestore.SetOptions.merge()).await()
     }
 

@@ -14,7 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
+import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -23,14 +25,16 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 @Composable
 fun MateriaDetalleEstudiantePanel(
     asignatura: Asignatura,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOpenDialog: (DialogState) -> Unit
 ) {
     // Reutilizamos el ViewModel de Profesor para cargar unidades y posts ya que la lógica es la misma (lectura)
     val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(asignatura.idFirestore) {
-        viewModel.cargarUnidadesYPosts(asignatura.idFirestore)
+    LaunchedEffect(asignatura.id) {
+        viewModel.cargarUnidadesYPosts(asignatura.id)
+        viewModel.cargarProfesor(asignatura.profesorId)
     }
 
     Scaffold(
@@ -85,12 +89,33 @@ fun MateriaDetalleEstudiantePanel(
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
             item {
-                Text(
-                    text = "Contenido de la asignatura",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                val profesor by viewModel.profesor.collectAsState()
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 16.dp)
-                )
+                ) {
+                    AccImg(
+                        imgUrl = profesor?.imgUrl ?: "",
+                        onClick = {
+                            profesor?.let { onOpenDialog(DialogState.UserProfile(it)) }
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Profesor/a",
+                            fontSize = 12.sp,
+                            color = textColor.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = asignatura.profesorNombre.ifEmpty { "Sin asignar" },
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        )
+                    }
+                }
             }
 
             val unidadesVisibles = state.unidades.filter { it.visible }
@@ -104,7 +129,7 @@ fun MateriaDetalleEstudiantePanel(
             }
 
             items(unidadesVisibles) { unidad ->
-                val postsVisibles = state.posts.filter { it.unidadId == unidad.idFirestore && it.visible }
+                val postsVisibles = state.posts.filter { it.unidadId == unidad.id && it.visible }
                 UnidadCard(
                     unidad = unidad,
                     posts = postsVisibles,

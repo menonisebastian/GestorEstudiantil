@@ -84,7 +84,7 @@ fun EditHorarioDialog(
     var selectedAsignaturaId by remember { mutableStateOf(state.horario.asignaturaId) }
     var aula by remember { mutableStateOf(state.horario.aula) }
 
-    val selectedAsignatura = state.asignaturasDisponibles.find { it.idFirestore == selectedAsignaturaId }
+    val selectedAsignatura = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -100,7 +100,7 @@ fun EditHorarioDialog(
                     texto = selectedAsignatura?.let { "${it.acronimo} - ${it.nombre}" } ?: "Ninguna / Vacío",
                     onValueChange = { seleccion ->
                         selectedAsignaturaId = if (seleccion == "Ninguna / Vacío") "" 
-                        else state.asignaturasDisponibles.find { "${it.acronimo} - ${it.nombre}" == seleccion }?.idFirestore ?: ""
+                        else state.asignaturasDisponibles.find { "${it.acronimo} - ${it.nombre}" == seleccion }?.id ?: ""
                     },
                     opciones = listOf("Ninguna / Vacío") + state.asignaturasDisponibles.map { "${it.acronimo} - ${it.nombre}" },
                     label = "Asignatura"
@@ -116,7 +116,7 @@ fun EditHorarioDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val asig = state.asignaturasDisponibles.find { it.idFirestore == selectedAsignaturaId }
+                    val asig = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
                     val updated = state.horario.copy(
                         asignaturaId = selectedAsignaturaId,
                         asignaturaAcronimo = asig?.acronimo ?: "",

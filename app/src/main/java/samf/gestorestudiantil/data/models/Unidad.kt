@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Unidad(
     @DocumentId
-    var idFirestore: String = "",
+    var id: String = "",
     var nombre: String = "",
     var descripcion: String = "",
     var asignaturaId: String = "",

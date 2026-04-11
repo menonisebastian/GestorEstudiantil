@@ -37,6 +37,24 @@ class ProfesorViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProfesorState())
     val state: StateFlow<ProfesorState> = _state.asStateFlow()
 
+    private val _profesor = MutableStateFlow<User?>(null)
+    val profesor: StateFlow<User?> = _profesor.asStateFlow()
+
+    fun cargarProfesor(profesorId: String) {
+        if (profesorId.isEmpty()) {
+            _profesor.value = null
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val user = profesorRepository.getProfesor(profesorId)
+                _profesor.value = user
+            } catch (e: Exception) {
+                _profesor.value = null
+            }
+        }
+    }
+
     // ====================================================================
     // 0. GESTIÓN DE UNIDADES Y POSTS (PROFESORES)
     // ====================================================================

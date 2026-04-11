@@ -141,4 +141,13 @@ class ProfesorRepositoryImpl @Inject constructor(
             }
         awaitClose { subscription.remove() }
     }
+
+    override suspend fun getProfesor(profesorId: String): User? {
+        return try {
+            val doc = db.collection("usuarios").document(profesorId).get().await()
+            doc.toObject(User::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

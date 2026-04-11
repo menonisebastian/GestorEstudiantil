@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ImportContacts
 import androidx.compose.material.icons.filled.School
@@ -238,10 +240,13 @@ fun HorariosAdminScreen(
 ) {
     val slots = if (turno == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
     val dias = Horario.DIAS_SEMANA
-    val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
+    val turnoLetra = if (turno.lowercase() == "matutino") "M" else "V"
+    val cicloNumStr = ciclo.trim().firstOrNull()?.toString() ?: "1"
+    val cicloNumInt = cicloNumStr.toIntOrNull() ?: 1
+    val tituloHorario = "${curso.acronimo} $turnoLetra$cicloNumStr"
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Horario - $ciclo", onBack)
+        AdminHeader("Horario - $tituloHorario", onBack)
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 80.dp)) {
             items(slots) { slot ->
                 val isReceso = slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")
@@ -250,13 +255,13 @@ fun HorariosAdminScreen(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         dias.forEach { dia ->
                             val h = adminState.horarios.find { it.dia == dia && "${it.horaInicio} - ${it.horaFin}" == slot }
-                            val asig = adminState.asignaturas.find { it.idFirestore == h?.asignaturaId }
+                            val asig = adminState.asignaturas.find { it.id == h?.asignaturaId }
                             Box(modifier = Modifier.weight(1f).height(60.dp), contentAlignment = Alignment.Center) {
                                 Card(
                                     modifier = Modifier.fillMaxSize(),
                                     colors = CardDefaults.cardColors(containerColor = if (asig != null) Color(asig.colorFondoHex.toColorInt()) else Color.LightGray.copy(alpha = 0.3f)),
                                     onClick = {
-                                        val nuevoHorario = h ?: Horario(cursoId = curso.id, cicloNum = cicloNum, turno = turno, dia = dia, horaInicio = slot.split(" - ")[0], horaFin = slot.split(" - ")[1])
+                                        val nuevoHorario = h ?: Horario(cursoId = curso.id, cicloNum = cicloNumInt, turno = turno, dia = dia, horaInicio = slot.split(" - ")[0], horaFin = slot.split(" - ")[1])
                                         onEditHorario(nuevoHorario)
                                     }
                                 ) {
@@ -308,6 +313,8 @@ fun CentroCard(centro: Centro, onClick: () -> Unit, onEdit: (() -> Unit)? = null
 @Composable
 fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
     val icon = when {
+        tipo.contains("Matutino", ignoreCase = true) -> Icons.Default.LightMode
+        tipo.contains("Vespertino", ignoreCase = true) -> Icons.Default.WbTwilight
         tipo.contains("Especialización", ignoreCase = true) -> Icons.Default.AutoAwesome
         tipo.contains("Superior", ignoreCase = true) -> Icons.Default.School
         tipo.contains("Medio", ignoreCase = true) -> Icons.AutoMirrored.Filled.MenuBook

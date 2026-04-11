@@ -44,7 +44,8 @@ class RegisterUserUseCase @Inject constructor(
             centroId = centroId, estado = estadoInicial, 
             turno = turno.lowercase().trim(),
             cicloNum = ciclo, 
-            imgUrl = imgUrl 
+            imgUrl = imgUrl,
+            fotoUrl = imgUrl
         )
 
         // 4. GUARDAR USUARIO

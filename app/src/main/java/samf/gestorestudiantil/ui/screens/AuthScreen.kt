@@ -18,7 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.AppRegistration
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
@@ -134,12 +136,11 @@ fun AuthScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { /*Text(centro, fontWeight = FontWeight.ExtraBold, color = textColor)*/
+                title = {
                     Row (
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(end = 16.dp).fillMaxWidth()) {
-                        //IconLogo(100.dp)
                         TitleLogo(150.dp)
                     }
                 },
@@ -150,7 +151,6 @@ fun AuthScreen(
             )
         },
         bottomBar = {
-
             BottomNavBar(
                 items = itemsAuth,
                 selectedItem = tabs[pagerState.currentPage],
@@ -170,7 +170,6 @@ fun AuthScreen(
                 userScrollEnabled = !authState.isLoading
             ) { page ->
 
-                // ✅ NavDisplay por página (igual que HomeScreen)
                 val pageRoute = authTabToRoute(tabs.getOrNull(page) ?: "Ingresar")
                 val pageBackStack = remember(pageRoute) {
                     mutableStateListOf<Any>(pageRoute)
@@ -207,8 +206,30 @@ fun AuthScreen(
                                     }
                                 },
                                 onForgotPassword = {
-                                    //TODO
-                                    //pageBackStack.add(Routes.AuthRoutes.ForgotPasswordScreen)
+                                    pageBackStack.add(Routes.AuthRoutes.ForgotPassword)
+                                }
+                            )
+                        }
+
+                        entry<Routes.AuthRoutes.ForgotPassword> {
+                            ForgotPasswordPanel(
+                                paddingValues = paddingValues,
+                                isLoading = authState.isLoading,
+                                onResetClick = { email ->
+                                    authViewModel.resetPassword(email) {
+                                        pageBackStack.add(Routes.AuthRoutes.ForgotPasswordSuccess)
+                                    }
+                                },
+                                onBack = { pageBackStack.removeLastOrNull() }
+                            )
+                        }
+
+                        entry<Routes.AuthRoutes.ForgotPasswordSuccess> {
+                            ForgotPasswordSuccessPanel(
+                                paddingValues = paddingValues,
+                                onBackToLogin = {
+                                    pageBackStack.clear()
+                                    pageBackStack.add(Routes.AuthRoutes.Login)
                                 }
                             )
                         }
@@ -231,6 +252,165 @@ fun AuthScreen(
                         .background(backgroundColor),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
+            }
+        }
+    }
+}
+
+@Composable
+fun ForgotPasswordSuccessPanel(
+    paddingValues: PaddingValues,
+    onBackToLogin: () -> Unit
+) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(horizontal = 16.dp)
+    ) {
+        val (iconRef, textRef, footerRef) = createRefs()
+
+        androidx.compose.material3.Icon(
+            imageVector = androidx.compose.material.icons.Icons.Default.CheckCircle,
+            contentDescription = null,
+            tint = androidx.compose.ui.graphics.Color(0xFF4CAF50),
+            modifier = Modifier
+                .size(100.dp)
+                .constrainAs(iconRef) {
+                    centerHorizontallyTo(parent)
+                    bottom.linkTo(textRef.top, margin = 24.dp)
+                }
+        )
+
+        Column(
+            modifier = Modifier
+                .constrainAs(textRef) {
+                    centerTo(parent)
+                }
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "¡Correo enviado!",
+                color = textColor,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.",
+                color = surfaceDimColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+        }
+
+        Button(
+            onClick = onBackToLogin,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .constrainAs(footerRef) {
+                    top.linkTo(textRef.bottom, margin = 32.dp)
+                    centerHorizontallyTo(parent)
+                }
+        ) {
+            Text("Volver al inicio", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = whiteColor)
+        }
+    }
+}
+
+@Composable
+fun ForgotPasswordPanel(
+    paddingValues: PaddingValues,
+    isLoading: Boolean,
+    onResetClick: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(horizontal = 16.dp)
+    ) {
+        val (headerRef, inputsRef, footerRef) = createRefs()
+
+        Column(
+            modifier = Modifier.constrainAs(headerRef) {
+                bottom.linkTo(inputsRef.top, margin = 32.dp)
+                centerHorizontallyTo(parent)
+            },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Recuperar contraseña",
+                color = textColor,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Introduce tu email para recibir un enlace de recuperación",
+                color = surfaceDimColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 32.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .constrainAs(inputsRef) {
+                    centerTo(parent)
+                }
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CustomTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                icon = Icons.Outlined.Email,
+                readOnly = isLoading,
+                isClickable = !isLoading
+            )
+
+            Button(
+                onClick = {
+                    if (email.isBlank()) {
+                        Toast.makeText(context, "Por favor, introduce tu email", Toast.LENGTH_SHORT).show()
+                    } else {
+                        onResetClick(email)
+                    }
+                },
+                shape = RoundedCornerShape(16.dp),
+                enabled = !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text("Enviar enlace", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = whiteColor)
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .constrainAs(footerRef) {
+                    top.linkTo(inputsRef.bottom, margin = 16.dp)
+                    centerHorizontallyTo(parent)
+                }
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            TextButton(onClick = onBack, enabled = !isLoading) {
+                Text("Volver al inicio de sesión", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -328,12 +508,6 @@ fun LoginPanel(
             ) {
                 Text(text = "Recordar contraseña", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
-
-            //HorizontalDivider()
-
-//            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-//                Text("O entra con", color = textColor, fontSize = 16.sp)
-//            }
 
             TextDivider(text = "O ingresa con")
 

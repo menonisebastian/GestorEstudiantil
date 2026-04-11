@@ -27,4 +27,5 @@ interface ProfesorRepository {
     suspend fun eliminarEvaluacion(evaluacionId: String)
     
     fun getHorarios(profesorId: String): Flow<List<Horario>>
+    suspend fun getProfesor(profesorId: String): User?
 }

@@ -357,7 +357,7 @@ fun HomeScreen(
                                 paddingValues = PaddingValues(0.dp),
                                 onAsignaturaClick = { asignatura ->
                                     if (usuario.rol == "ESTUDIANTE") {
-                                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.idFirestore)
+                                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
                                     }
                                     pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
                                 }
@@ -375,7 +375,8 @@ fun HomeScreen(
                         } else {
                             MateriaDetalleEstudiantePanel(
                                 asignatura = route.asignatura,
-                                onBackClick = { pageBackStack.removeLastOrNull() }
+                                onBackClick = { pageBackStack.removeLastOrNull() },
+                                onOpenDialog = onOpenDialog
                             )
                         }
                     }
@@ -452,8 +453,8 @@ fun HomeScreen(
                     }
                     entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
                         // Cargar evaluaciones de la asignatura seleccionada
-                        LaunchedEffect(route.asignatura.idFirestore) {
-                            estudianteViewModel.cargarEvaluaciones(route.asignatura.idFirestore)
+                        LaunchedEffect(route.asignatura.id) {
+                            estudianteViewModel.cargarEvaluaciones(route.asignatura.id)
                         }
 
                         CalificacionesAsignaturaPanel(

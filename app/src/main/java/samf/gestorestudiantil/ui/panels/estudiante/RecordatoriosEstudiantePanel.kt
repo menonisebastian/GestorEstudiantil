@@ -40,10 +40,13 @@ fun RecordatoriosEstudiantePanel(
 
 
     val recordatoriosFiltrados = remember(textoBusqueda, filtroTipo, recordatorios) {
+        val tiposSeleccionados = filtroTipo.split(",").filter { it.isNotEmpty() }
         recordatorios.filter {
             val coincideTexto = it.titulo.contains(textoBusqueda, ignoreCase = true) ||
                     it.descripcion.contains(textoBusqueda, ignoreCase = true)
-            val coincideTipo = if (filtroTipo.isEmpty()) true else it.tipo.name.equals(filtroTipo, ignoreCase = true)
+            val coincideTipo = if (tiposSeleccionados.isEmpty()) true else {
+                tiposSeleccionados.any { tipo -> it.tipo.name.equals(tipo, ignoreCase = true) }
+            }
             
             coincideTexto && coincideTipo
         }

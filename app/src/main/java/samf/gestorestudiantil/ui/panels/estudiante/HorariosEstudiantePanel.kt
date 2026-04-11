@@ -118,7 +118,7 @@ fun HorarioDelDia(dia: String, horarios: List<Horario>, asignaturas: List<Asigna
                 val horarioSlot = "${item.horaInicio.trim()} - ${item.horaFin.trim()}"
                 item.dia.equals(dia, ignoreCase = true) && horarioSlot == slot.trim()
             }
-            val asig = asignaturas.find { it.idFirestore == h?.asignaturaId }
+            val asig = asignaturas.find { it.id == h?.asignaturaId }
             
             ItemHorario(slot, h, asig)
         }

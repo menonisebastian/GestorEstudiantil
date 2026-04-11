@@ -59,7 +59,7 @@ fun AsignarProfesorDialog(
                         ) {
                             Text(state.asignatura.profesorNombre, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
                             IconButton(onClick = { 
-                                adminViewModel.desasignarAsignatura(state.asignatura.idFirestore, state.asignatura.profesorId)
+                                adminViewModel.desasignarAsignatura(state.asignatura.id, state.asignatura.profesorId)
                                 onDismissRequest()
                             }) {
                                 Icon(Icons.Default.Remove, contentDescription = "Quitar", tint = MaterialTheme.colorScheme.error)
@@ -82,7 +82,7 @@ fun AsignarProfesorDialog(
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
-                                    adminViewModel.asignarAsignaturaAProfesor(state.asignatura.idFirestore, profe.id)
+                                    adminViewModel.asignarAsignaturaAProfesor(state.asignatura.id, profe.id)
                                     onDismissRequest()
                                 }
                             ) {

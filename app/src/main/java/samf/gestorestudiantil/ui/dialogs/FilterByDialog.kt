@@ -3,16 +3,22 @@ package samf.gestorestudiantil.ui.dialogs
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -23,16 +29,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterByDialog(
     state: DialogState.Filter,
@@ -54,7 +62,8 @@ fun FilterByDialog(
         Column(
             modifier = Modifier
                 .background(backgroundColor, RoundedCornerShape(16.dp))
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -64,7 +73,7 @@ fun FilterByDialog(
                 color = textColor
             )
 
-            // Filtro de Rol/Tipo (Depende del contexto)
+            // Filtro Principal (Depende del contexto)
             val labelPrincipal = when(state.tipo) {
                 "Usuario" -> "Tipo de Usuario"
                 "Recordatorio" -> "Tipo de Recordatorio"
@@ -84,42 +93,52 @@ fun FilterByDialog(
             }
 
             if (opcionesPrincipales.isNotEmpty()) {
-                CustomOptionsTextField(
-                    texto = tempFilters[keyPrincipal] ?: "",
+                FilterChipGroup(
                     label = labelPrincipal,
-                    onValueChange = { tempFilters = tempFilters + (keyPrincipal to it) },
-                    opciones = opcionesPrincipales,
-                    icon = Icons.Default.FormatListNumbered
+                    options = opcionesPrincipales,
+                    selectedOptions = tempFilters[keyPrincipal]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList(),
+                    onSelectionChanged = { options ->
+                        val newValue = options.joinToString(",")
+                        tempFilters = if (newValue.isEmpty()) tempFilters - keyPrincipal else tempFilters + (keyPrincipal to newValue)
+                    }
                 )
             }
 
-            // Filtros adicionales para Usuarios
+            // Filtros adicionales para Usuarios / Calificaciones
             if (state.tipo == "Usuario" || state.tipo == "Calificaciones") {
-                CustomOptionsTextField(
-                    texto = tempFilters["curso"] ?: "",
-                    label = "Curso",
-                    onValueChange = { tempFilters = tempFilters + ("curso" to it) },
-                    opciones = cursoOptions,
-                    icon = Icons.Default.FormatListNumbered
-                )
+                if (cursoOptions.isNotEmpty()) {
+                    FilterChipGroup(
+                        label = "Curso",
+                        options = cursoOptions,
+                        selectedOptions = tempFilters["curso"]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList(),
+                        onSelectionChanged = { options ->
+                            val newValue = options.joinToString(",")
+                            tempFilters = if (newValue.isEmpty()) tempFilters - "curso" else tempFilters + ("curso" to newValue)
+                        }
+                    )
+                }
 
                 if (state.tipo == "Usuario") {
-                    CustomOptionsTextField(
-                        texto = tempFilters["ciclo"] ?: "",
+                    FilterChipGroup(
                         label = "Ciclo",
-                        onValueChange = { tempFilters = tempFilters + ("ciclo" to it) },
-                        opciones = cicloOptions,
-                        icon = Icons.Default.FormatListNumbered
+                        options = cicloOptions,
+                        selectedOptions = tempFilters["ciclo"]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList(),
+                        onSelectionChanged = { options ->
+                            val newValue = options.joinToString(",")
+                            tempFilters = if (newValue.isEmpty()) tempFilters - "ciclo" else tempFilters + ("ciclo" to newValue)
+                        }
                     )
                 }
                 
                 if (state.tipo == "Calificaciones" && asignaturaOptions.isNotEmpty()) {
-                    CustomOptionsTextField(
-                        texto = tempFilters["asignatura"] ?: "",
+                    FilterChipGroup(
                         label = "Asignatura",
-                        onValueChange = { tempFilters = tempFilters + ("asignatura" to it) },
-                        opciones = asignaturaOptions,
-                        icon = Icons.Default.FormatListNumbered
+                        options = asignaturaOptions,
+                        selectedOptions = tempFilters["asignatura"]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList(),
+                        onSelectionChanged = { options ->
+                            val newValue = options.joinToString(",")
+                            tempFilters = if (newValue.isEmpty()) tempFilters - "asignatura" else tempFilters + ("asignatura" to newValue)
+                        }
                     )
                 }
             }
@@ -158,6 +177,58 @@ fun FilterByDialog(
                 ) {
                     Icon(Icons.Default.Done, contentDescription = "Aplicar")
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun FilterChipGroup(
+    label: String,
+    options: List<String>,
+    selectedOptions: List<String>,
+    onSelectionChanged: (List<String>) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = surfaceDimColor
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            options.forEach { option ->
+                val isSelected = selectedOptions.contains(option)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = {
+                        val newSelection = if (isSelected) {
+                            selectedOptions - option
+                        } else {
+                            selectedOptions + option
+                        }
+                        onSelectionChanged(newSelection)
+                    },
+                    label = { Text(option) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = surfaceColor,
+                        labelColor = textColor,
+                        selectedContainerColor = primaryColor,
+                        selectedLabelColor = textColor
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = Color.Transparent,
+                        selectedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
             }
         }
     }

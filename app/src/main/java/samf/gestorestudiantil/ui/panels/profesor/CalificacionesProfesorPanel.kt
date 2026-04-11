@@ -150,11 +150,16 @@ fun CalificacionesProfesorPanel(
             0 -> { // Pestaña Estudiantes
                 val filteredEstudiantes = state.todosMisEstudiantes.filter {
                     val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true)
-                    val coincideCurso = filtroCurso.isEmpty() || it.cursoOArea == filtroCurso
+                    
+                    val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
+                    val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
+                        cursosSeleccionados.contains(it.cursoOArea)
+                    }
 
                     // Si hay filtro de asignatura, el estudiante debe pertenecer al curso de esa asignatura
-                    val coincideAsignatura = if (filtroAsignatura.isEmpty()) true else {
-                        state.asignaturas.any { asig -> asig.acronimo == filtroAsignatura && asig.cursoId == it.cursoId }
+                    val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
+                    val coincideAsignatura = if (asignaturasSeleccionadas.isEmpty()) true else {
+                        state.asignaturas.any { asig -> asignaturasSeleccionadas.contains(asig.acronimo) && asig.cursoId == it.cursoId }
                     }
 
                     coincideBusqueda && coincideCurso && coincideAsignatura
@@ -162,9 +167,10 @@ fun CalificacionesProfesorPanel(
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(filteredEstudiantes) { estudiante ->
                         // En esta pestaña, necesitamos saber qué asignatura del profesor dar a este alumno
-                        // Si hay filtro de asignatura, usamos esa. Si no, la primera que coincida con el curso del alumno.
-                        val asigDelProfesorParaEsteAlumno = if (filtroAsignatura.isNotEmpty()) {
-                            state.asignaturas.find { it.acronimo == filtroAsignatura && it.cursoId == estudiante.cursoId }
+                        // Si hay filtro de asignatura, usamos la primera seleccionada. Si no, la primera que coincida con el curso del alumno.
+                        val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
+                        val asigDelProfesorParaEsteAlumno = if (asignaturasSeleccionadas.isNotEmpty()) {
+                            state.asignaturas.find { asignaturasSeleccionadas.contains(it.acronimo) && it.cursoId == estudiante.cursoId }
                         } else {
                             state.asignaturas.find { it.cursoId == estudiante.cursoId }
                         }
@@ -185,11 +191,17 @@ fun CalificacionesProfesorPanel(
             1 -> { // Pestaña Asignaturas
                 val filteredAsignaturas = state.asignaturas.filter {
                     val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)
-                    val coincideAsignatura = filtroAsignatura.isEmpty() || it.acronimo == filtroAsignatura
+                    
+                    val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
+                    val coincideAsignatura = if (asignaturasSeleccionadas.isEmpty()) true else {
+                        asignaturasSeleccionadas.contains(it.acronimo)
+                    }
 
                     // En la pestaña de asignaturas, el filtro de curso se aplica al cursoId/acrónimo del curso
-                    // Nota: state.asignaturas ya está filtrado por profesorId en el ViewModel
-                    val coincideCurso = filtroCurso.isEmpty() || it.cursoId.contains(filtroCurso) // O una comparación más exacta si se tiene el acrónimo del curso en Asignatura
+                    val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
+                    val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
+                        cursosSeleccionados.any { curso -> it.cursoId.contains(curso, ignoreCase = true) }
+                    }
 
                     coincideBusqueda && coincideAsignatura && coincideCurso
                 }
@@ -235,7 +247,7 @@ fun EstudiantesAsignaturaLista(
                     color = textColor
                 )
                 val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                val cursoAcronimo = try { asignatura.idFirestore.substringAfter("_").substringBefore("_").uppercase() } catch (e: Exception) { "" }
+                val cursoAcronimo = try { asignatura.id.substringAfter("_").substringBefore("_").uppercase() } catch (e: Exception) { "" }
                 Text(
                     text = "$cursoAcronimo - [$cursoAcronimo$turnoLetra${asignatura.cicloNum}]",
                     fontSize = 12.sp,
@@ -323,8 +335,8 @@ fun CalificacionesDetalleEstudiante(
     var showDialog by remember { mutableStateOf(false) }
     var evaluacionAEditar by remember { mutableStateOf<Evaluacion?>(null) }
 
-    LaunchedEffect(estudiante.id, asignatura.idFirestore) {
-        viewModel.cargarEvaluacionesEstudiante(estudiante.id, asignatura.idFirestore)
+    LaunchedEffect(estudiante.id, asignatura.id) {
+        viewModel.cargarEvaluacionesEstudiante(estudiante.id, asignatura.id)
     }
 
     Scaffold(
@@ -332,7 +344,7 @@ fun CalificacionesDetalleEstudiante(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.idFirestore)
+                    evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id)
                     showDialog = true
                 },
                 containerColor = primaryColor

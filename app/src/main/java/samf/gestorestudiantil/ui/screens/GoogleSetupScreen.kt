@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Class
 import androidx.compose.material.icons.filled.Schedule
@@ -22,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -54,6 +56,7 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GooglePasswordSetupScreen(
+    onBack: () -> Unit,
     onNext: (String) -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -66,6 +69,15 @@ fun GooglePasswordSetupScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Seguridad", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
+                            contentDescription = "Atrás",
+                            tint = textColor
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         }
@@ -131,6 +143,7 @@ fun GooglePasswordSetupScreen(
 @Composable
 fun GoogleAcademicSetupScreen(
     passwordValue: String,
+    onBack: () -> Unit,
     onSetupComplete: (User) -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -173,25 +186,30 @@ fun GoogleAcademicSetupScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Datos Académicos", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
+                            contentDescription = "Atrás",
+                            tint = textColor
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         }
     ) { paddingValues ->
-        ConstraintLayout(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            val (headerRef, inputsRef, footerRef) = createRefs()
-
             Column(
-                modifier = Modifier
-                    .constrainAs(headerRef) {
-                        top.linkTo(parent.top, margin = 16.dp)
-                        centerHorizontallyTo(parent)
-                    },
+                modifier = Modifier.padding(bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
@@ -209,12 +227,7 @@ fun GoogleAcademicSetupScreen(
             }
 
             Column(
-                modifier = Modifier
-                    .constrainAs(inputsRef) {
-                        top.linkTo(headerRef.bottom, margin = 24.dp)
-                        centerHorizontallyTo(parent)
-                    }
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 CustomOptionsTextField(
@@ -293,11 +306,7 @@ fun GoogleAcademicSetupScreen(
 
             Column(
                 modifier = Modifier
-                    .constrainAs(footerRef) {
-                        top.linkTo(inputsRef.bottom, margin = 32.dp)
-                        bottom.linkTo(parent.bottom, margin = 16.dp)
-                        centerHorizontallyTo(parent)
-                    }
+                    .padding(top = 32.dp, bottom = 16.dp)
                     .fillMaxWidth()
             ) {
                 Button(

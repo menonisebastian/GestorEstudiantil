@@ -18,6 +18,12 @@ sealed interface Routes {
 
         @Serializable
         data object Register : AuthRoutes
+
+        @Serializable
+        data object ForgotPassword : AuthRoutes
+
+        @Serializable
+        data object ForgotPasswordSuccess : AuthRoutes
     }
 
     @Serializable

@@ -128,7 +128,15 @@ class AuthViewModel @Inject constructor(
                 if (user != null && user.rol.isNotBlank()) {
                     _authState.value = AuthState(isSuccess = true, user = user)
                 } else {
-                    _authState.value = AuthState(requireGooglePasswordSetup = true)
+                    // Pre-poblamos con datos de Google para el proceso de configuración
+                    val googleUser = User(
+                        id = uid,
+                        nombre = authRepository.getCurrentUserName() ?: "",
+                        email = authRepository.getCurrentUserEmail() ?: "",
+                        imgUrl = authRepository.getCurrentUserPhotoUrl() ?: "",
+                        rol = ""
+                    )
+                    _authState.value = AuthState(requireGooglePasswordSetup = true, user = googleUser)
                 }
             } catch (e: Exception) {
                 _authState.value = AuthState(errorMessage = e.localizedMessage ?: "Error con Google Sign-In")
@@ -173,6 +181,19 @@ class AuthViewModel @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             _authState.value = AuthState(errorMessage = "Error al leer datos")
+        }
+    }
+
+    fun resetPassword(email: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _authState.value = _authState.value.copy(isLoading = true)
+            try {
+                authRepository.sendPasswordResetEmail(email)
+                _authState.value = _authState.value.copy(isLoading = false)
+                onSuccess()
+            } catch (e: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = e.message)
+            }
         }
     }
 

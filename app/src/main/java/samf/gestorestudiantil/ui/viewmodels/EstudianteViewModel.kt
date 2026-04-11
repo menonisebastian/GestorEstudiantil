@@ -46,7 +46,7 @@ class EstudianteViewModel @Inject constructor(
         asignaturasJob = viewModelScope.launch {
             estudianteRepository.getAsignaturas(cursoId, turno, cicloNum).collect { asignaturas ->
                 _state.update { it.copy(isLoading = false, asignaturas = asignaturas) }
-                observarCambiosEnPosts(asignaturas.map { it.idFirestore })
+                observarCambiosEnPosts(asignaturas.map { it.id })
                 recalcularNotificaciones(asignaturas, currentUltimaVez)
             }
         }
@@ -85,7 +85,7 @@ class EstudianteViewModel @Inject constructor(
                 estudianteRepository.marcarAsignaturaLeida(usuarioId, asignaturaId, ahora)
                 _state.update { currentState ->
                     val nuevas = currentState.asignaturas.map {
-                        if (it.idFirestore == asignaturaId) it.copy(numNotificaciones = 0) else it
+                        if (it.id == asignaturaId) it.copy(numNotificaciones = 0) else it
                     }
                     currentState.copy(asignaturas = nuevas)
                 }

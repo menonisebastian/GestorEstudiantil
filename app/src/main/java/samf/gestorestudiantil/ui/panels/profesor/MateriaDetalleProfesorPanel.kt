@@ -34,8 +34,8 @@ fun MateriaDetalleProfesorPanel(
     val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(asignatura.idFirestore) {
-        viewModel.cargarUnidadesYPosts(asignatura.idFirestore)
+    LaunchedEffect(asignatura.id) {
+        viewModel.cargarUnidadesYPosts(asignatura.id)
     }
 
     Scaffold(
@@ -86,9 +86,9 @@ fun MateriaDetalleProfesorPanel(
                 onClick = {
                     onOpenDialog(
                         DialogState.AddUnidad(
-                            asignaturaId = asignatura.idFirestore,
+                            asignaturaId = asignatura.id,
                             onSave = { nombre, desc, visible ->
-                                viewModel.crearUnidad(asignatura.idFirestore, nombre, desc, visible)
+                                viewModel.crearUnidad(asignatura.id, nombre, desc, visible)
                             }
                         )
                     )
@@ -124,19 +124,19 @@ fun MateriaDetalleProfesorPanel(
             }
 
             items(state.unidades) { unidad ->
-                val postsDeUnidad = state.posts.filter { it.unidadId == unidad.idFirestore }
+                val postsDeUnidad = state.posts.filter { it.unidadId == unidad.id }
                 UnidadCard(
                     unidad = unidad,
                     posts = postsDeUnidad,
                     onAddPost = {
                         onOpenDialog(
                             DialogState.AddPost(
-                                asignaturaId = asignatura.idFirestore,
-                                unidadId = unidad.idFirestore,
+                                asignaturaId = asignatura.id,
+                                unidadId = unidad.id,
                                 onSave = { titulo, contenido, visible ->
                                     viewModel.crearPost(
-                                        asignaturaId = asignatura.idFirestore,
-                                        unidadId = unidad.idFirestore,
+                                        asignaturaId = asignatura.id,
+                                        unidadId = unidad.id,
                                         titulo = titulo,
                                         contenido = contenido,
                                         autorId = profesor.id,
@@ -150,13 +150,13 @@ fun MateriaDetalleProfesorPanel(
                     onEditUnidad = {
                         onOpenDialog(
                             DialogState.AddUnidad(
-                                asignaturaId = asignatura.idFirestore,
-                                unidadId = unidad.idFirestore,
+                                asignaturaId = asignatura.id,
+                                unidadId = unidad.id,
                                 nombreInicial = unidad.nombre,
                                 descripcionInicial = unidad.descripcion,
                                 visibleInicial = unidad.visible,
                                 onSave = { nombre, desc, visible ->
-                                    viewModel.editarUnidad(unidad.idFirestore, nombre, desc, visible)
+                                    viewModel.editarUnidad(unidad.id, nombre, desc, visible)
                                 }
                             )
                         )
@@ -166,21 +166,21 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Unidad",
                                 content = "¿Estás seguro de que deseas eliminar esta unidad y todo su contenido?",
-                                onConfirm = { viewModel.eliminarUnidad(unidad.idFirestore) }
+                                onConfirm = { viewModel.eliminarUnidad(unidad.id) }
                             )
                         )
                     },
                     onEditPost = { post ->
                         onOpenDialog(
                             DialogState.AddPost(
-                                asignaturaId = asignatura.idFirestore,
-                                unidadId = unidad.idFirestore,
-                                postId = post.idFirestore,
+                                asignaturaId = asignatura.id,
+                                unidadId = unidad.id,
+                                postId = post.id,
                                 tituloInicial = post.titulo,
                                 contenidoInicial = post.contenido,
                                 visibleInicial = post.visible,
                                 onSave = { titulo, contenido, visible ->
-                                    viewModel.editarPost(post.idFirestore, titulo, contenido, visible)
+                                    viewModel.editarPost(post.id, titulo, contenido, visible)
                                 }
                             )
                         )
@@ -190,7 +190,7 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Publicación",
                                 content = "¿Estás seguro de que deseas eliminar esta publicación?",
-                                onConfirm = { viewModel.eliminarPost(post.idFirestore) }
+                                onConfirm = { viewModel.eliminarPost(post.id) }
                             )
                         )
                     }
