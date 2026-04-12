@@ -112,13 +112,7 @@ fun TareaDetalleEstudianteDialog(
                 tarea.adjunto?.let { adjunto ->
                     OutlinedCard(
                         onClick = { 
-                            try {
-                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(adjunto.urlDescarga))
-                                intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                android.widget.Toast.makeText(context, "No se puede abrir el archivo", android.widget.Toast.LENGTH_SHORT).show()
-                            }
+                            viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.outlinedCardColors(containerColor = backgroundColor)

@@ -185,4 +185,8 @@ class TareaRepositoryImpl @Inject constructor(
     override suspend fun getUrlFirmada(supabasePath: String): String {
         return storage.from("gestor-estudiantil").createSignedUrl(supabasePath, expiresIn = 2.hours)
     }
+
+    override suspend fun descargarArchivo(path: String): ByteArray {
+        return storage.from("gestor-estudiantil").downloadPublic(path)
+    }
 }

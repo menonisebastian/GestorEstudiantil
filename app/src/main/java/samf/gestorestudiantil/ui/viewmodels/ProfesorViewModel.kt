@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.auth.oauth2.GoogleCredentials
@@ -32,6 +33,8 @@ import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
@@ -349,15 +352,44 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun descargarArchivo(supabasePath: String) {
+    fun descargarArchivo(supabasePath: String, nombreArchivo: String) {
         viewModelScope.launch {
             try {
-                val url = tareaRepository.getUrlFirmada(supabasePath)
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                context.startActivity(intent)
+                _state.update { it.copy(isLoading = true) }
+                val bytes = tareaRepository.descargarArchivo(supabasePath)
+                val file = File(context.cacheDir, nombreArchivo)
+                FileOutputStream(file).use { it.write(bytes) }
+
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+
+                val mimeType = context.contentResolver.getType(uri) ?: when (file.extension.lowercase()) {
+                    "pdf" -> "application/pdf"
+                    "doc", "docx" -> "application/msword"
+                    "jpg", "jpeg" -> "image/jpeg"
+                    "png" -> "image/png"
+                    else -> "*/*"
+                }
+
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, mimeType)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+
+                val chooser = Intent.createChooser(intent, "Abrir con...")
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooser)
+
             } catch (e: Exception) {
-                Toast.makeText(context, "Error al obtener URL: ${e.message}", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al abrir: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }

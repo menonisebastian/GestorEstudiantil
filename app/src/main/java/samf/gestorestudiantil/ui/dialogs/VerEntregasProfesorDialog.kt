@@ -53,8 +53,8 @@ fun VerEntregasProfesorDialog(
                                 entrega = entrega,
                                 onCalificar = { entregaParaCalificar = entrega },
                                 onDescargar = {
-                                    entrega.adjunto?.let { 
-                                        viewModel.descargarArchivo(it.supabasePath)
+                                    entrega.adjunto.let { 
+                                        viewModel.descargarArchivo(it.supabasePath, it.nombreArchivo)
                                     }
                                 }
                             )

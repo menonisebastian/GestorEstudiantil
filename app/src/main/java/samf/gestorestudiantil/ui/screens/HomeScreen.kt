@@ -1,5 +1,9 @@
 package samf.gestorestudiantil.ui.screens
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -16,6 +20,9 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Class
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -77,6 +84,7 @@ import samf.gestorestudiantil.ui.panels.profesor.MateriaDetalleProfesorPanel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.CurrentUserUiState
@@ -260,7 +268,17 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = backgroundColor,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    shape = RoundedCornerShape(12.dp),
+                    containerColor = surfaceColor,
+                    contentColor = textColor,
+                    actionColor = primaryColor
+                )
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -361,6 +379,24 @@ fun HomeScreen(
                     if (pageBackStack.size > 1) {
                         pageBackStack.removeLastOrNull()
                     }
+                },
+                transitionSpec = {
+                    slideInHorizontally(
+                        initialOffsetX = { it },
+                        animationSpec = tween(300)
+                    ) togetherWith slideOutHorizontally(
+                        targetOffsetX = { -it },
+                        animationSpec = tween(300)
+                    )
+                },
+                popTransitionSpec = {
+                    slideInHorizontally(
+                        initialOffsetX = { -it },
+                        animationSpec = tween(300)
+                    ) togetherWith slideOutHorizontally(
+                        targetOffsetX = { it },
+                        animationSpec = tween(300)
+                    )
                 },
                 entryProvider = entryProvider {
                     // Estudiante / Profesor

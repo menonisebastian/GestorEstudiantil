@@ -1,5 +1,9 @@
 package samf.gestorestudiantil.ui.screens
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -182,6 +186,24 @@ fun AuthScreen(
                 NavDisplay(
                     backStack = pageBackStack,
                     onBack = { pageBackStack.removeLastOrNull() },
+                    transitionSpec = {
+                        slideInHorizontally(
+                            initialOffsetX = { it },
+                            animationSpec = tween(300)
+                        ) togetherWith slideOutHorizontally(
+                            targetOffsetX = { -it },
+                            animationSpec = tween(300)
+                        )
+                    },
+                    popTransitionSpec = {
+                        slideInHorizontally(
+                            initialOffsetX = { -it },
+                            animationSpec = tween(300)
+                        ) togetherWith slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(300)
+                        )
+                    },
                     entryProvider = entryProvider {
 
                         entry<Routes.AuthRoutes.Login> {

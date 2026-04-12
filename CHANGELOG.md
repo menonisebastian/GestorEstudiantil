@@ -1,222 +1,228 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Todos los cambios notables en este proyecto se documentarán en este archivo.
+
+## [v0.4.3] - 2026-04-22
+- Característica: Implementación de apertura directa de archivos adjuntos (PDF, DOCX, imágenes) mediante aplicaciones del sistema.
+- Mejora de UX: Los archivos ahora se descargan temporalmente en `cacheDir` y se comparten de forma segura usando `FileProvider`, evitando que el usuario deba buscarlos manualmente en la carpeta de descargas.
+- Infraestructura: Configurado `androidx.core.content.FileProvider` en `AndroidManifest.xml` y `file_paths.xml` para la gestión segura de URIs internos.
+- Refactorización: Migrada la lógica de descarga de `DownloadManager` (navegador/notificación externa) a un flujo integrado con `Intent.ACTION_VIEW` y selectores de aplicaciones del sistema.
+- Repositorio: Añadido soporte para descarga directa de binarios (`ByteArray`) desde Supabase Storage en `TareaRepository`.
 
 ## [v0.4.2] - 2026-04-21
-- Feature: Sistema de Snackbar Global centralizado en `AppViewModel` con soporte para acciones de "Deshacer" (Undo) mediante `SharedFlow`.
-- Feature: Implementación de flujo de borrado seguro con confirmación y "Deshacer" para todas las entidades de Administración (Centros, Cursos, Asignaturas, Horarios).
-- Feature: Integración del sistema de "Deshacer" en el panel de Profesor para la eliminación de Unidades y Posts.
-- Navigation: Refactorización de backstacks en `HomeScreen` a `NavKey` (Navigation 3) para una gestión de estado más robusta por pestaña.
-- Navigation: Bloqueo automático del scroll lateral en el `HorizontalPager` principal al navegar a rutas de detalle o edición.
-- UI Improvement: FAB contextual dinámico en `HomeScreen` que ajusta su icono y acción según la profundidad de navegación en el panel de Administración.
-- Refactor: Actualización de `DialogState` y diálogos de Horarios para incluir soporte nativo para la acción de eliminar.
-- Bugfix: Corregidos errores de coincidencia de tipos (ID vs Objeto) en las funciones de eliminación del panel de detalle de materia.
-- Cleanup: Eliminados parámetros obsoletos en casos de uso de notificaciones detectados durante la refactorización.
+- Característica: Sistema de Snackbar Global centralizado en `AppViewModel` con soporte para acciones de "Deshacer" (Undo) mediante `SharedFlow`.
+- Característica: Implementación de flujo de borrado seguro con confirmación y "Deshacer" para todas las entidades de Administración (Centros, Cursos, Asignaturas, Horarios).
+- Característica: Integración del sistema de "Deshacer" en el panel de Profesor para la eliminación de Unidades y Posts.
+- Navegación: Refactorización de backstacks en `HomeScreen` a `NavKey` (Navigation 3) para una gestión de estado más robusta por pestaña.
+- Navegación: Bloqueo automático del scroll lateral en el `HorizontalPager` principal al navegar a rutas de detalle o edición.
+- Mejora de UI: FAB contextual dinámico en `HomeScreen` que ajusta su icono y acción según la profundidad de navegación en el panel de Administración.
+- Refactorización: Actualización de `DialogState` y diálogos de Horarios para incluir soporte nativo para la acción de eliminar.
+- Corrección de errores: Corregidos errores de coincidencia de tipos (ID vs Objeto) en las funciones de eliminación del panel de detalle de materia.
+- Limpieza: Eliminados parámetros obsoletos en casos de uso de notificaciones detectados durante la refactorización.
 
 ## [v0.4.1] - 2026-04-20
-- UI/UX Refinement: Unificada la paleta de colores global (primary, secondary, tertiary) en todos los componentes y paneles.
-- UI Improvement: Personalizados los selectores de fecha (`CustomDatePickerDialog`) y hora (`CustomTimePickerDialog`) con la estética de la marca.
-- UI Standardization: Refactorizados `CustomTextField`, `CustomSearchBar` y `BottomNavBar` para usar estados visuales consistentes (foco, selección, inactividad).
+- Refinamiento de UI/UX: Unificada la paleta de colores global (primario, secundario, terciario) en todos los componentes y paneles.
+- Mejora de UI: Personalizados los selectores de fecha (`CustomDatePickerDialog`) y hora (`CustomTimePickerDialog`) con la estética de la marca.
+- Estandarización de UI: Refactorizados `CustomTextField`, `CustomSearchBar` y `BottomNavBar` para usar estados visuales consistentes (foco, selección, inactividad).
 - UI/UX: Mejorada la distinción visual en diálogos de administración (`AsignarAsignaturas`, `AsignarProfesor`) mediante el uso de colores secundarios y terciarios.
-- UI Consistency: Reemplazados múltiples colores "hardcoded" por las variables de tema (`errorColor`, `textColor`, etc.) para asegurar compatibilidad total con modos claro/oscuro.
+- Consistencia de UI: Reemplazados múltiples colores "hardcoded" por las variables de tema (`errorColor`, `textColor`, etc.) para asegurar compatibilidad total con modos claro/oscuro.
 - UI/UX: Refinadas las tarjetas de usuario y contenido (`UsuarioCardAdmin`, `UnidadCard`, `TareaCard`) eliminando bordes innecesarios para un diseño más limpio y moderno.
 
 ## [v0.4.0] - 2026-04-19
-- Bugfix: Resuelto error `mime type application/octet-stream is not supported` en Supabase Storage al subir adjuntos.
-- Fix: Implementada detección manual de MIME type y nombre de archivo original mediante `ContentResolver` y `OpenableColumns`.
-- Improvement: Añadido soporte para `contentType` en `TareaRepository`, asegurando que Supabase identifique correctamente los archivos (PDF, DOCX, etc.) con fallback a `OctetStream` en caso de error.
+- Corrección de errores: Resuelto error `mime type application/octet-stream is not supported` en Supabase Storage al subir adjuntos.
+- Corrección: Implementada detección manual de MIME type y nombre de archivo original mediante `ContentResolver` y `OpenableColumns`.
+- Mejora: Añadido soporte para `contentType` en `TareaRepository`, asegurando que Supabase identifique correctamente los archivos (PDF, DOCX, etc.) con fallback a `OctetStream` en caso de error.
 - UI/UX: Agregados mensajes de feedback (`Toast`) en el hilo principal para TODAS las acciones críticas (Unidades, Posts, Tareas, Entregas, Calificaciones, Marcado de lectura).
 - UI/UX: Los adjuntos en `TareaCard` y diálogos ahora son interactivos; permiten abrir el archivo directamente mediante `Intent.ACTION_VIEW`.
 - UI/UX: Implementada visualización del tamaño de archivo (KB/MB) en los selectores de archivos para mayor claridad del usuario.
-- Fix: Resuelto crash en `DialogOrchestrator` al intentar abrir el detalle de tarea desde el perfil de estudiante (error de casting de `DialogState`).
-- Refactor: Actualizados los diálogos y paneles de estudiante para propagar correctamente el contexto del alumno (`id`, `nombre`) a las entregas.
+- Corrección: Resuelto crash en `DialogOrchestrator` al intentar abrir el detalle de tarea desde el perfil de estudiante (error de casting de `DialogState`).
+- Refactorización: Actualizados los diálogos y paneles de estudiante para propagar correctamente el contexto del alumno (`id`, `nombre`) a las entregas.
 
 ## [v0.3.9] - 2026-04-18
-- Refactor: Rediseñado el diálogo de creación de tareas (`AddTareaDialog`) separando los campos de fecha y hora en una disposición vertical para mejorar la usabilidad.
+- Refactorización: Rediseñado el diálogo de creación de tareas (`AddTareaDialog`) separando los campos de fecha y hora en una disposición vertical para mejorar la usabilidad.
 - UI: Implementados selectores nativos de fecha (`DatePicker`) y hora (`TimePicker`) con corrección de desfase por zona horaria (UTC a Local).
-- Infrastructure: Corregida la asignación de metadatos críticos (`profesorId`, `centroId`) al crear nuevas tareas desde el panel del profesor.
-- Improvement: Añadido manejo de errores y cierre seguro de flujos en la selección de archivos adjuntos.
-- Status: **PENDIENTE** - La creación de tareas en Firestore aún no es funcional debido a errores de conectividad de red persistentes (`firestore.googleapis.com`) y validaciones de formato de fecha pendientes.
+- Infraestructura: Corregida la asignación de metadatos críticos (`profesorId`, `centroId`) al crear nuevas tareas desde el panel del profesor.
+- Mejora: Añadido manejo de errores y cierre seguro de flujos en la selección de archivos adjuntos.
+- Estado: **PENDIENTE** - La creación de tareas en Firestore aún no es funcional debido a errores de conectividad de red persistentes (`firestore.googleapis.com`) y validaciones de formato de fecha pendientes.
 
 ## [v0.3.8] - 2026-04-17
-- Feature: Added an "Edit Profile" dialog in `ProfileScreen` allowing users to update their basic information (Name) directly.
-- Refactor: Removed `SettingsScreen` and consolidated all user preferences and profile management into the `ProfileScreen`.
-- UI Improvement: Cleaned up the `TopBarRow` and `DropDownMenu` by removing redundant "Settings" links.
-- Dialog Management: Introduced `EditSelfProfile` state to `DialogOrchestrator` for secure self-service profile updates.
-- Infrastructure: Integrated real-time Firestore updates for profile changes with immediate UI synchronization across the app.
+- Característica: Añadido un diálogo de "Editar Perfil" en `ProfileScreen` que permite a los usuarios actualizar su información básica (Nombre) directamente.
+- Refactorización: Eliminado `SettingsScreen` y consolidadas todas las preferencias de usuario y gestión de perfil en `ProfileScreen`.
+- Mejora de UI: Limpiados `TopBarRow` y `DropDownMenu` eliminando enlaces redundantes a "Configuración".
+- Gestión de diálogos: Introducido el estado `EditSelfProfile` en `DialogOrchestrator` para actualizaciones de perfil de autoservicio seguras.
+- Infraestructura: Integradas actualizaciones en tiempo real de Firestore para cambios de perfil con sincronización inmediata de la UI en toda la aplicación.
 
 ## [v0.3.7] - 2026-04-16
-- Feature: Added a theme selector (Light, Dark, Automatic) in the Profile screen for a personalized visual experience.
-- Feature: Implemented a local switch to enable/disable push notifications in the user profile.
-- Infrastructure: Migrated user settings (theme and notifications) to `DataStore` for efficient local persistence, reducing Firestore write operations.
-- Refactor: Removed `notificationsEnabled` from the `User` model to clean up the database schema.
-- Improvement: Updated `MyFirebaseMessagingService` to respect the local notification preference before showing alerts.
+- Característica: Añadido un selector de tema (Claro, Oscuro, Automático) en la pantalla de Perfil para una experiencia visual personalizada.
+- Característica: Implementado un interruptor local para habilitar/deshabilitar notificaciones push en el perfil de usuario.
+- Infraestructura: Migradas las configuraciones de usuario (tema y notificaciones) a `DataStore` para una persistencia local eficiente, reduciendo las operaciones de escritura en Firestore.
+- Refactorización: Eliminado `notificationsEnabled` del modelo `User` para limpiar el esquema de la base de datos.
+- Mejora: Actualizado `MyFirebaseMessagingService` para respetar la preferencia de notificación local antes de mostrar alertas.
 
 ## [v0.3.6] - 2026-04-15
-- Feature: Fully implemented Recordatorios (Reminders) CRUD across all layers (Firestore, Repository, ViewModel, and UI).
-- UI Improvement: Enhanced `CustomNotificationCard` with a visual "clip" adornment and standardized date formatting using `formatearFechaParaMostrar`.
-- UI Interaction: Integrated full edit/delete lifecycle for reminders in `RecordatoriosEstudiantePanel` and `RecordatoriosProfesorPanel`.
-- Dialog Management: Added `EditRecordatorioDialog` to `DialogOrchestrator` for consistent state-driven editing.
-- Infrastructure: Implemented `actualizarRecordatorio` in `RecordatorioRepository` with Firestore-backed atomic updates.
-- Infrastructure: Migrated push notification logic from Cloud Functions to direct Firebase API integration for improved efficiency.
-- Refactor: Wired `AppViewModel` reminder actions to `HomeScreen` callbacks to ensure reactive UI updates across different user roles.
+- Característica: Implementado completamente el CRUD de Recordatorios en todas las capas (Firestore, Repositorio, ViewModel y UI).
+- Mejora de UI: Mejorada `CustomNotificationCard` con un adorno visual de "clip" y estandarizado el formato de fecha usando `formatearFechaParaMostrar`.
+- Interacción de UI: Integrado el ciclo de vida completo de edición/eliminación para recordatorios en `RecordatoriosEstudiantePanel` y `RecordatoriosProfesorPanel`.
+- Gestión de diálogos: Añadido `EditRecordatorioDialog` a `DialogOrchestrator` para una edición consistente basada en estados.
+- Infraestructura: Implementado `actualizarRecordatorio` en `RecordatorioRepository` con actualizaciones atómicas respaldadas por Firestore.
+- Infraestructura: Migrada la lógica de notificaciones push de Cloud Functions a la integración directa de la API de Firebase para mejorar la eficiencia.
+- Refactorización: Conectadas las acciones de recordatorio de `AppViewModel` a los callbacks de `HomeScreen` para asegurar actualizaciones reactivas de la UI en los diferentes roles de usuario.
 
 ## [v0.3.5] - 2026-04-14
-- Feature: Implemented push notification system using Firebase Cloud Messaging and Cloud Functions.
-- Navigation: Internal "Deep Linking" support to open subject details from notifications.
-- Infrastructure: Dynamic subscription to Firebase topics based on student enrollment.
-- UI: Implemented intent handling in MainActivity and synchronization with Navigation 3 backstack.
+- Característica: Implementado sistema de notificaciones push usando Firebase Cloud Messaging y Cloud Functions.
+- Navegación: Soporte de "Deep Linking" interno para abrir detalles de materias desde las notificaciones.
+- Infraestructura: Suscripción dinámica a temas de Firebase basada en la matriculación del estudiante.
+- UI: Implementado el manejo de intents en MainActivity y sincronización con el backstack de Navigation 3.
 
 ## [v0.3.4] - 2026-04-13
-- Feature: Implemented Firebase password recovery flow.
-- UI Improvement: Added `ForgotPasswordPanel` and `ForgotPasswordSuccessPanel` with automated navigation and success state feedback.
-- Navigation: Integrated password recovery into the `AuthScreen` internal backstack using Navigation 3, ensuring a clean return to Login.
-- Infrastructure: Extended `AuthRepository` and `AuthViewModel` to support password reset email triggers.
+- Característica: Implementado el flujo de recuperación de contraseña de Firebase.
+- Mejora de UI: Añadidos `ForgotPasswordPanel` y `ForgotPasswordSuccessPanel` con navegación automatizada y feedback de estado de éxito.
+- Navegación: Integrada la recuperación de contraseña en el backstack interno de `AuthScreen` usando Navigation 3, asegurando un retorno limpio al Login.
+- Infraestructura: Ampliados `AuthRepository` y `AuthViewModel` para soportar el envío de correos de restablecimiento de contraseña.
 
 ## [v0.3.3] - 2026-04-13
-- UI Improvement: Replaced dropdown filters with a multi-selectable `FilterChip` system in `FilterByDialog` for a more modern and touch-friendly experience.
-- UI Improvement: Enhanced `CentrosAdminPanel` shift selection with contextual icons (Sun for Morning, Twilight for Evening).
-- UI Improvement: Standardized schedule headers in Admin panel to follow the "Acronym + Shift + Cycle" format (e.g., "DAM M2").
-- UI Improvement: Updated `MateriaDetalleEstudiantePanel` header with an interactive teacher profile row replacing the static text.
-- Bugfix: Resolved Firestore deserialization crashes in `Asignatura` (@DocumentId naming collision) and `User` (missing fields).
-- Bugfix: Corrected data type mismatch for `cicloNum` when generating new schedule entries in `HorariosAdminScreen`.
-- Data Integrity: Synchronized `imgUrl` and `fotoUrl` fields across Registration Use Cases and Profile updates to ensure avatar consistency.
-- Infrastructure: Extended `ProfesorRepository` and `ProfesorViewModel` to support fetching teacher profiles for student detail views.
+- Mejora de UI: Reemplazados los filtros desplegables por un sistema de `FilterChip` multiseleccionable en `FilterByDialog` para una experiencia más moderna y táctil.
+- Mejora de UI: Mejorada la selección de turno en `CentrosAdminPanel` con iconos contextuales (Sol para Mañana, Atardecer para Tarde).
+- Mejora de UI: Estandarizados los encabezados de horarios en el panel de Administración para seguir el formato "Acrónimo + Turno + Ciclo" (ej., "DAM M2").
+- Mejora de UI: Actualizado el encabezado de `MateriaDetalleEstudiantePanel` con una fila de perfil de profesor interactiva que reemplaza el texto estático.
+- Corrección de errores: Resueltos cierres por deserialización de Firestore en `Asignatura` (colisión de nombres @DocumentId) y `User` (campos faltantes).
+- Corrección de errores: Corregida la discrepancia de tipo de datos para `cicloNum` al generar nuevas entradas de horario en `HorariosAdminScreen`.
+- Integridad de datos: Sincronizados los campos `imgUrl` y `fotoUrl` en los casos de uso de registro y actualizaciones de perfil para asegurar la consistencia del avatar.
+- Infraestructura: Ampliados `ProfesorRepository` y `ProfesorViewModel` para soportar la obtención de perfiles de profesores para las vistas de detalle del estudiante.
 
 ## [v0.3.2] - 2026-04-12
-- Admin UI Improvements: Standardized icons in `CentrosAdminPanel` for FP levels (Specialization: `AutoAwesome`, Superior: `School`, Middle: `MenuBook`, Basic: `ImportContacts`).
-- Admin UI Improvements: Refactored Course selection in user editing (Dialog and Screen) from manual text to a database-driven dropdown of acronyms (e.g., "DAM", "DAW").
-- Admin UI Improvements: Synchronized `cursoId` and `cursoOArea` in user editing; selecting a course now automatically updates both the internal ID and the visual label (e.g., "DAMV1").
-- Component Standardization: Unified `CustomOptionsTextField` visual style with `CustomTextField` (surfaceColor, 16dp corners, borderless) and fixed dropdown menu clipping/colors.
-- Data Integrity: Added reactive loading of course data (`cargarCursosPorCentro`) when entering user management or editing screens to ensure dropdown availability.
-- Bugfix: Corrected `DialogState.EditUser` implementation in `HomeScreen.kt` and `UsuariosAdminPanel.kt` to pass the full `List<Curso>` instead of just acronyms.
+- Mejoras de UI de Administración: Iconos estandarizados en `CentrosAdminPanel` para niveles de FP (Especialización: `AutoAwesome`, Superior: `School`, Medio: `MenuBook`, Básico: `ImportContacts`).
+- Mejoras de UI de Administración: Refactorizada la selección de Curso en la edición de usuario (Diálogo y Pantalla) de texto manual a un desplegable de acrónimos basado en la base de datos (ej., "DAM", "DAW").
+- Mejoras de UI de Administración: Sincronizados `cursoId` y `cursoOArea` en la edición de usuario; al seleccionar un curso ahora se actualizan automáticamente tanto el ID interno como la etiqueta visual (ej., "DAMV1").
+- Estandarización de componentes: Unificado el estilo visual de `CustomOptionsTextField` con `CustomTextField` (color de superficie, esquinas de 16dp, sin borde) y corregidos el recorte/colores del menú desplegable.
+- Integridad de datos: Añadida la carga reactiva de datos de cursos (`cargarCursosPorCentro`) al entrar en las pantallas de gestión o edición de usuarios para asegurar la disponibilidad del desplegable.
+- Corrección de errores: Corregida la implementación de `DialogState.EditUser` en `HomeScreen.kt` y `UsuariosAdminPanel.kt` para pasar la `List<Curso>` completa en lugar de solo acrónimos.
 
 ## [v0.3.1] - 2026-04-11
-- UI Standardization: Replaced all `OutlinedTextField` instances with a unified `CustomTextField` featuring a borderless design, 16dp rounded corners, and `surfaceColor` background.
-- Admin Management: Implemented `EditUserDialog` for comprehensive user editing, featuring role-based conditional fields (Shift, Cycle, Course/Area).
-- Admin Management: Inverted the tab order in `UsuariosAdminPanel` to display "Activos" (Active) as the primary tab.
-- Visual Grid: Refactored Subject panels from horizontal `LazyRow` to a 3-column `LazyVerticalGrid` to improve accessibility and information density.
-- Typography & Layout: Enhanced `CardItem` legibility with improved text contrast, centered alignment, and ellipsis handling for long subject names.
-- Component Refactor: Updated `CustomSearchBar` and `CustomPasswordTextField` (migrated to `TextFieldState`) to maintain visual and functional consistency across the app.
+- Estandarización de UI: Reemplazadas todas las instancias de `OutlinedTextField` por un `CustomTextField` unificado con un diseño sin bordes, esquinas redondeadas de 16dp y fondo `surfaceColor`.
+- Gestión de Administración: Implementado `EditUserDialog` para una edición integral de usuarios, con campos condicionales basados en el rol (Turno, Ciclo, Curso/Área).
+- Gestión de Administración: Invertido el orden de las pestañas en `UsuariosAdminPanel` para mostrar "Activos" como la pestaña principal.
+- Cuadrícula visual: Refactorizados los paneles de Materias de `LazyRow` horizontal a una `LazyVerticalGrid` de 3 columnas para mejorar la accesibilidad y la densidad de información.
+- Tipografía y Diseño: Mejorada la legibilidad de `CardItem` con mejor contraste de texto, alineación centrada y manejo de puntos suspensivos para nombres de materias largos.
+- Refactorización de componentes: Actualizados `CustomSearchBar` y `CustomPasswordTextField` (migrados a `TextFieldState`) para mantener la consistencia visual y funcional en toda la aplicación.
 
 ## [v0.3.0] - 2026-04-10
-- Navigation Persistence: Implemented `tabBackStacks` (map of `SnapshotStateList`) in `HomeScreen` to maintain independent navigation states for each bottom bar tab.
-- Scroll Control: Disabled `HorizontalPager` swiping on detail routes (`isDetailRoute`) to prevent accidental tab switching during nested navigation.
-- Centralized UI Management: Unified Floating Action Button (FAB) logic and backstack management within the main `HomeScreen` Scaffold for consistent behavior across all Admin levels.
-- UI Consistency: Standardized all navigation icons to `Icons.AutoMirrored.Filled.ArrowBackIos` and `Icons.AutoMirrored.Filled.ArrowForwardIos` across the entire application.
-- Visual Improvements: Updated `CursoCard` to be fully model-driven, using `iconoName`, `colorFondoHex`, and `colorIconoHex` from the `Curso` data object.
-- UX Refinement: Added `80.dp` bottom content padding to all administrative and grading `LazyColumn` lists to prevent the FAB from obscuring items.
-- Bugfix: Fixed redundant header titles in `CursosScreen` (e.g., "Cursos de Curso de...") by conditionally checking if the type name already contains the word "Curso".
+- Persistencia de navegación: Implementado `tabBackStacks` (mapa de `SnapshotStateList`) en `HomeScreen` para mantener estados de navegación independientes para cada pestaña de la barra inferior.
+- Control de desplazamiento: Deshabilitado el deslizamiento de `HorizontalPager` en rutas de detalle (`isDetailRoute`) para evitar cambios de pestaña accidentales durante la navegación anidada.
+- Gestión centralizada de UI: Unificada la lógica del Botón de Acción Flotante (FAB) y la gestión del backstack dentro del Scaffold principal de `HomeScreen` para un comportamiento consistente en todos los niveles de Administración.
+- Consistencia de UI: Estandarizados todos los iconos de navegación a `Icons.AutoMirrored.Filled.ArrowBackIos` e `Icons.AutoMirrored.Filled.ArrowForwardIos` en toda la aplicación.
+- Mejoras visuales: Actualizada `CursoCard` para que sea totalmente basada en el modelo, usando `iconoName`, `colorFondoHex` y `colorIconoHex` del objeto de datos `Curso`.
+- Refinamiento de UX: Añadido un relleno de contenido inferior de `80.dp` a todas las listas `LazyColumn` administrativas y de calificación para evitar que el FAB oculte elementos.
+- Corrección de errores: Corregidos los títulos de encabezado redundantes en `CursosScreen` (ej., "Cursos de Curso de...") comprobando condicionalmente si el nombre del tipo ya contiene la palabra "Curso".
 
 ## [v0.2.9] - 2026-04-10
-- Navigation Architecture: Centralized all Admin sub-routes (Centros, Tipos, Cursos, Asignaturas, Usuarios) in `HomeScreen` to resolve `IllegalStateException` and "Unknown screen" crashes caused by nested `NavDisplay` components.
-- Navigation Architecture: Updated `NestedNavMappers` to correctly identify detail routes within the expanded Admin hierarchy to support back-gesture priority.
-- State Management: Scoped `AdminViewModel` and `ProfesorViewModel` at the `HomeScreen` level to ensure state persistence and shared data across sub-navigation levels.
-- Refactor: Decoupled `CentrosAdminPanel` into stateless, reusable screen components (`CentrosListScreen`, `TiposCursoScreen`, `CursosScreen`, etc.).
-- Improvement: Internalized search and UI state within `EstudiantesAsignaturaLista` (Calificaciones) for better encapsulation and simplified parent logic.
-- Bugfix: Fixed icon import issues and type inference errors in the Admin navigation tree.
+- Arquitectura de navegación: Centralizadas todas las subrutas de Administración (Centros, Tipos, Cursos, Asignaturas, Usuarios) en `HomeScreen` para resolver cierres por `IllegalStateException` y "Pantalla desconocida" causados por componentes `NavDisplay` anidados.
+- Arquitectura de navegación: Actualizados los `NestedNavMappers` para identificar correctamente las rutas de detalle dentro de la jerarquía de Administración ampliada para soportar la prioridad del gesto de retroceso.
+- Gestión de estado: Definidos `AdminViewModel` y `ProfesorViewModel` a nivel de `HomeScreen` para asegurar la persistencia del estado y los datos compartidos en los niveles de subnavegación.
+- Refactorización: Desacoplado `CentrosAdminPanel` en componentes de pantalla independientes y reutilizables (`CentrosListScreen`, `TiposCursoScreen`, `CursosScreen`, etc.).
+- Mejora: Internalizado el estado de búsqueda y de UI dentro de `EstudiantesAsignaturaLista` (Calificaciones) para una mejor encapsulación y una lógica de padre simplificada.
+- Corrección de errores: Corregidos problemas de importación de iconos y errores de inferencia de tipos en el árbol de navegación de Administración.
 
 ## [v0.2.8] - 2026-04-10
-- Bugfix: Fixed student notification badge not appearing on new or edited posts.
-- Feature: Added `fechaActualizacion` to Posts to track edits and trigger notifications.
-- Improvement: Notification count now only considers visible posts.
-- Infrastructure: Updated `EstudianteRepository` and `ProfesorRepository` to handle post update timestamps.
+- Corrección de errores: Corregido el problema de que la insignia de notificación del estudiante no aparecía en los posts nuevos o editados.
+- Característica: Añadida `fechaActualizacion` a los Posts para rastrear ediciones y activar notificaciones.
+- Mejora: El recuento de notificaciones ahora solo considera los posts visibles.
+- Infraestructura: Actualizados `EstudianteRepository` y `ProfesorRepository` para manejar las marcas de tiempo de actualización de los posts.
 
 ## [v0.2.7] - 2026-04-10
-- Architecture: Completed full refactor to Clean Architecture + MVVM.
-- Architecture: Implemented Repository Pattern for all data sources (Auth, User, Course, Admin, Estudiante, Profesor, Recordatorio).
-- Architecture: Introduced Domain layer with Use Cases for complex business logic (Registration, Database Seeding, Notifications, etc.).
-- Dependency Injection: Migrated all ViewModels to Hilt (`@HiltViewModel`).
-- Dependency Injection: Created `FirebaseModule` and `RepositoryModule` for Hilt provider/binding management.
-- Improvement: ViewModels now use `StateFlow` for state management and are decoupled from Firebase SDKs.
-- Improvement: Removed `ListenerRegistration` manual handling in ViewModels by using `callbackFlow` in Repositories.
-- Refactor: Standardized Hilt ViewModel injection using `hiltViewModel()` across all screens, removing manual ViewModel passing in `AppNavigation`.
-- Bugfix: Fixed parameter mismatch and field naming in Google Setup registration flow.
-- Fix: Resolved build errors related to AGP 9.1 and Kotlin sourceSet configurations.
+- Arquitectura: Completada la refactorización total a Clean Architecture + MVVM.
+- Arquitectura: Implementado el Patrón Repositorio para todas las fuentes de datos (Auth, User, Course, Admin, Estudiante, Profesor, Recordatorio).
+- Arquitectura: Introducida la capa de Dominio con Casos de Uso para la lógica de negocio compleja (Registro, Semillado de base de datos, Notificaciones, etc.).
+- Inyección de dependencias: Migrados todos los ViewModels a Hilt (`@HiltViewModel`).
+- Inyección de dependencias: Creados `FirebaseModule` y `RepositoryModule` para la gestión de proveedores/enlaces de Hilt.
+- Mejora: Los ViewModels ahora usan `StateFlow` para la gestión del estado y están desacoplados de los SDK de Firebase.
+- Mejora: Eliminado el manejo manual de `ListenerRegistration` en los ViewModels mediante el uso de `callbackFlow` en los Repositorios.
+- Refactorización: Estandarizada la inyección de ViewModels de Hilt usando `hiltViewModel()` en todas las pantallas, eliminando el paso manual de ViewModels en `AppNavigation`.
+- Corrección de errores: Corregida la discrepancia de parámetros y el nombre de los campos en el flujo de registro de Google Setup.
+- Corrección: Resueltos errores de compilación relacionados con AGP 9.1 y las configuraciones de sourceSet de Kotlin.
 
 ## [v0.2.6] - 2026-04-10
-- Feature: Integrated Hilt for Dependency Injection.
-- Infrastructure: Configured KSP (Kotlin Symbol Processing) for Hilt code generation.
-- Infrastructure: Added `GestorEstudiantilApp` and `@AndroidEntryPoint` in `MainActivity`.
-- Infrastructure: Added `hilt-navigation-compose` for ViewModel integration in Compose.
+- Característica: Integrado Hilt para la Inyección de Dependencias.
+- Infraestructura: Configurado KSP (Kotlin Symbol Processing) para la generación de código de Hilt.
+- Infraestructura: Añadidos `GestorEstudiantilApp` y `@AndroidEntryPoint` en `MainActivity`.
+- Infraestructura: Añadido `hilt-navigation-compose` para la integración de ViewModels en Compose.
 
 ## [v0.2.5] - 2026-04-10
-- Feature: Schedule is now fully data-driven from Firestore.
-- Feature: Schedule synchronization between student and teacher schedules.
-- Feature: Implemented `HorariosProfesorPanel` for teacher schedules.
-- Feature: Added full subject names and group codes (e.g., "DAM V1") to schedule views for both roles.
-- Improvement: Standardized "turno" to lowercase across the entire system (Auth, Admin, Student) to resolve Firestore case-sensitivity issues.
-- Improvement: Enhanced schedule synchronization in `HomeScreen` to reactively load data when user profile fields (turno, cicloNum) are updated.
-- Improvement: Refactored `HorariosEstudiantePanel` with better loading states, empty states, and more flexible time slot matching.
-- Bugfix: Fixed a critical issue where schedules wouldn't display due to casing discrepancies and incomplete user profiles during initial data load.
-- Improvement: Logo and branding updated.
+- Característica: El horario ahora se basa completamente en datos de Firestore.
+- Característica: Sincronización del horario entre las vistas de estudiante y profesor.
+- Característica: Implementado `HorariosProfesorPanel` para los horarios de los profesores.
+- Característica: Añadidos nombres completos de asignaturas y códigos de grupo (ej., "DAM V1") a las vistas de horario para ambos roles.
+- Mejora: Estandarizado "turno" a minúsculas en todo el sistema (Auth, Admin, Estudiante) para resolver problemas de sensibilidad a mayúsculas en Firestore.
+- Mejora: Mejorada la sincronización del horario en `HomeScreen` para cargar datos de forma reactiva cuando se actualizan los campos del perfil de usuario (turno, cicloNum).
+- Mejora: Refactorizado `HorariosEstudiantePanel` con mejores estados de carga, estados vacíos y una coincidencia de franjas horarias más flexible.
+- Corrección de errores: Corregido un problema crítico donde los horarios no se mostraban debido a discrepancias en las mayúsculas y perfiles de usuario incompletos durante la carga inicial de datos.
+- Mejora: Logotipo y marca actualizados.
 
 ## [v0.2.4] - 2026-04-08
-- Feature: Unified "Centros" and "Asignación" into a single administrative flow.
-- Improvement: Converted all administrative edit dialogs (Centros, Cursos, Asignaturas, Usuarios) into full-screen Scaffold views.
-- Improvement: Redesigned edit screens with fixed bottom bars for primary actions (Save/Cancel).
-- Improvement: Navigation 3 routes and mappers updated to support type-safe full-screen editing.
-- Improvement: Extracted UI picker components (ColorPicker, IconPicker) into a shared library.
-- Improvement: Logo and branding updated.
-- Improvement: Redesigned the UI for the Authentication screens.
-- Change: Removed obsolete `AdminEditDialogs.kt`.
+- Característica: Unificados "Centros" y "Asignación" en un único flujo administrativo.
+- Mejora: Convertidos todos los diálogos de edición administrativa (Centros, Cursos, Asignaturas, Usuarios) en vistas Scaffold de pantalla completa.
+- Mejora: Rediseñadas las pantallas de edición con barras inferiores fijas para acciones primarias (Guardar/Cancelar).
+- Mejora: Rutas y mappers de Navigation 3 actualizados para soportar la edición de pantalla completa de tipo seguro.
+- Mejora: Extraídos los componentes de selección de UI (ColorPicker, IconPicker) a una librería compartida.
+- Mejora: Logotipo y marca actualizados.
+- Mejora: Rediseñada la UI para las pantallas de Autenticación.
+- Cambio: Eliminado el archivo obsoleto `AdminEditDialogs.kt`.
 
 ## [v0.2.3] - 2026-04-07
-- Feature: Implemented the ability to add new Cursos/Asignaturas.
-- Feature: Implemented the ability to make Unidades/Posts inside Asignaturas.
-- Feature: Implemented the ability to qualify students.
-- Feature: Implemented the ability to add Recordatorios.
-- Bugfix: Fixed the matriculation of students.
-- Change: Cursos/Asignaturas IDs are now deterministic.
-- Change: cursoOArea is now a concatenation of the course + turn + cycle.
-
+- Característica: Implementada la capacidad de añadir nuevos Cursos/Asignaturas.
+- Característica: Implementada la capacidad de crear Unidades/Posts dentro de las Asignaturas.
+- Característica: Implementada la capacidad de calificar a los estudiantes.
+- Característica: Implementada la capacidad de añadir Recordatorios.
+- Corrección de errores: Corregida la matriculación de estudiantes.
+- Cambio: Los IDs de Cursos/Asignaturas ahora son deterministas.
+- Cambio: cursoOArea ahora es una concatenación del curso + turno + ciclo.
 
 ## [v0.2.2] - 2026-04-07
-- Bugfix: Fixed the raw data from DB and .jsonl.
-- Change: Modified AdminViewModel and Navigation.
-- Feature: Filter chips for the SearchBar
-- Feature: Creation of Profesor panels.
-- Feature: Implemented the ability to modify the DB data from the AdminPanel including icons and colors from Cursos/Asignaturas.
-- Change: Cursos/Asignaturas now have their own colors.
+- Corrección de errores: Corregidos los datos brutos de la DB y .jsonl.
+- Cambio: Modificados AdminViewModel y Navegación.
+- Característica: Chips de filtro para la SearchBar.
+- Característica: Creación de paneles de Profesor.
+- Característica: Implementada la capacidad de modificar los datos de la DB desde el AdminPanel, incluyendo iconos y colores de Cursos/Asignaturas.
+- Cambio: Cursos/Asignaturas ahora tienen sus propios colores.
 
 ## [v0.2.1] - 2026-03-15
-- Improvement: Reestructured NavigationBar to be a nested navigation with backstacks.
+- Mejora: Reestructurada la NavigationBar para que sea una navegación anidada con backstacks.
 
 ## [v0.2.0] - 2026-03-15
-- Fixed: Fixed a bug in the Google OAuth login when the user's role was Student.
-- Improvement: Reestructured NavDisplay & Routes.
+- Corrección: Corregido un error en el inicio de sesión de Google OAuth cuando el rol del usuario era Estudiante.
+- Mejora: Reestructurados NavDisplay y Rutas.
 
 ## [v0.1.9] - 2026-03-09
-- Improvement: Added a new data provider for IES Comercio.
-- Improvement: Added CentrosAdminPanel.
+- Mejora: Añadido un nuevo proveedor de datos para IES Comercio.
+- Mejora: Añadido CentrosAdminPanel.
 
 ## [v0.1.8] - 2026-03-09
-- Improvement: Dialogs are now managed by DialogState and DialogOrchestrator.
-- Improvement: CustomOptionsTextField now using the ExposedDropdownMenu library.
+- Mejora: Los diálogos ahora se gestionan mediante DialogState y DialogOrchestrator.
+- Mejora: `CustomOptionsTextField` ahora usa la librería ExposedDropdownMenu.
 
 ## [v0.1.7] - 2026-03-08
-- Improvement: NavHost is now NavDisplay using Navigation 3.
+- Mejora: NavHost ahora es NavDisplay usando Navigation 3.
 
 ## [v0.1.6] - 2026-03-04
-- Improvement: Search bar filter dialog implemented.
+- Mejora: Implementado diálogo de filtro para la barra de búsqueda.
 
 ## [v0.1.5] - 2026-03-04
-- Bugfix: Fixed Google OAuth login.
-- Improvement: Encapsulated Google OAuth login.
-- Improvement: Google Screen now also asks for school data.
-- Change: Updated third-party dependencies.
-- Change: Form Screens are now ConstraintLayout.
+- Corrección de errores: Corregido el inicio de sesión de Google OAuth.
+- Mejora: Encapsulado el inicio de sesión de Google OAuth.
+- Mejora: La pantalla de Google ahora también solicita datos del centro escolar.
+- Cambio: Actualizadas las dependencias de terceros.
+- Cambio: Las pantallas de formulario ahora son ConstraintLayout.
 
 ## [v0.1.3] - 2026-03-01
-- Feature: Added user authentication.
-- Bugfix: Fixed layout issues on the dashboard.
+- Característica: Añadida autenticación de usuarios.
+- Corrección de errores: Corregidos problemas de diseño en el dashboard.
 
 ## [v0.1.2] - 2026-02-15
-- Improvement: Enhanced performance of data fetching.
-- Change: Updated third-party dependencies.
+- Mejora: Mejorado el rendimiento de la obtención de datos.
+- Cambio: Actualizadas las dependencias de terceros.
 
 ## [v0.1.1] - 2026-02-01
-- Feature: Implemented a new UI design for user profile.
+- Característica: Implementado un nuevo diseño de UI para el perfil de usuario.
 
 ## [v0.0.1] - 2026-01-01
-- Initial release with core features.
+- Lanzamiento inicial con características principales.

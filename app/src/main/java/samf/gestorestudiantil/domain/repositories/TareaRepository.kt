@@ -20,4 +20,5 @@ interface TareaRepository {
 
     // Supabase URL
     suspend fun getUrlFirmada(supabasePath: String): String
+    suspend fun descargarArchivo(path: String): ByteArray
 }

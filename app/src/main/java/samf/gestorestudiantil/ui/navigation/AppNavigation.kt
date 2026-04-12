@@ -1,5 +1,9 @@
 package samf.gestorestudiantil.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -144,6 +148,24 @@ fun AppNavigation(
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
+        transitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(300)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { -it },
+                animationSpec = tween(300)
+            )
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it },
+                animationSpec = tween(300)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(300)
+            )
+        },
         entryProvider = entryProvider {
             entry<Routes.Auth> {
                 AuthScreen(

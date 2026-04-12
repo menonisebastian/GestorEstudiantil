@@ -37,7 +37,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Tarea
+import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
+import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @Composable
 fun UnidadCard(
@@ -293,15 +296,15 @@ fun TareaCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (tarea.adjunto != null) {
-                val context = androidx.compose.ui.platform.LocalContext.current
+                val estudianteViewModel: EstudianteViewModel = viewModel()
+                val profesorViewModel: ProfesorViewModel = viewModel()
                 Surface(
                     onClick = {
-                        tarea.adjunto?.urlDescarga?.let { url ->
-                            try {
-                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                android.widget.Toast.makeText(context, "No se puede abrir el archivo", android.widget.Toast.LENGTH_SHORT).show()
+                        tarea.adjunto?.let { adjunto ->
+                            if (onEdit != null) { // Si onEdit no es null, es un profesor
+                                profesorViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                            } else {
+                                estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
                             }
                         }
                     },

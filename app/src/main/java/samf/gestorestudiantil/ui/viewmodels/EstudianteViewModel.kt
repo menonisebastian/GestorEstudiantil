@@ -1,7 +1,9 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
@@ -23,6 +25,8 @@ import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 data class EstudianteState(
@@ -186,6 +190,48 @@ class EstudianteViewModel @Inject constructor(
         viewModelScope.launch {
             tareaRepository.getEntregaEstudiante(tareaId, estudianteId).collect { entrega ->
                 _state.update { it.copy(miEntrega = entrega) }
+            }
+        }
+    }
+
+    fun descargarArchivo(supabasePath: String, nombreArchivo: String) {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true) }
+                val bytes = tareaRepository.descargarArchivo(supabasePath)
+                val file = File(context.cacheDir, nombreArchivo)
+                FileOutputStream(file).use { it.write(bytes) }
+
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+
+                val mimeType = context.contentResolver.getType(uri) ?: when (file.extension.lowercase()) {
+                    "pdf" -> "application/pdf"
+                    "doc", "docx" -> "application/msword"
+                    "jpg", "jpeg" -> "image/jpeg"
+                    "png" -> "image/png"
+                    else -> "*/*"
+                }
+
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, mimeType)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+
+                val chooser = Intent.createChooser(intent, "Abrir con...")
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooser)
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al abrir: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
