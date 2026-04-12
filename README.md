@@ -12,9 +12,9 @@ El proyecto implementa las tecnologías más avanzadas del ecosistema Android:
 *   **Inyección de Dependencias:** [Hilt](https://developer.android.com/training/dependency-injection/hilt-android).
 *   **Navegación:** [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) (Enfoque moderno, dinámico y type-safe).
 *   **Servicios en la Nube:**
-    *   **Firebase:** Authentication, Firestore (Base de datos NoSQL), Cloud Messaging (Notificaciones Push).
-    *   **Supabase:** Postgrest y Storage para gestión avanzada de datos y archivos.
-    *   **Cloudinary:** Optimización y almacenamiento de imágenes.
+    *   **[Firebase](https://firebase.google.com/):** Authentication, Firestore (Base de datos NoSQL), Cloud Messaging (Notificaciones Push).
+    *   **[Supabase](https://supabase.com/):** Postgrest y Storage para gestión avanzada de datos y archivos.
+    *   **[Cloudinary](https://cloudinary.com/):** Optimización y almacenamiento de imágenes.
 *   **Gestión de Datos:** DataStore (Preferencias) y Kotlinx Serialization.
 *   **UI Avanzada:** Haze (Efectos de desenfoque/glassmorphism), Coil (Carga de imágenes), ColorPicker.
 *   **Autenticación:** Google Sign-In y Credential Manager API.
