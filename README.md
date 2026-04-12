@@ -1,63 +1,92 @@
-# 🎓 Gestor Estudiantil
+# 🎓 Nexo+
 
-Gestor Estudiantil es una aplicación móvil nativa para Android diseñada para ayudar a los estudiantes a organizar su vida académica. Permite llevar un control detallado de asignaturas, calificaciones, horarios y recordatorios, además de contar con potentes paneles para profesores y administradores.
+Nexo+ es una aplicación móvil nativa para Android diseñada para transformar la gestión académica y la comunicación entre estudiantes, profesores y administradores. Esta plataforma integral permite un control detallado de la vida académica, facilitando la organización de asignaturas, calificaciones, horarios y recordatorios en un entorno moderno y eficiente.
 
 ## 🚀 Tecnologías y Herramientas
 
-El proyecto está desarrollado con las últimas tecnologías y prácticas de desarrollo en Android:
+El proyecto implementa las tecnologías más avanzadas del ecosistema Android:
 
-* **Lenguaje:** Kotlin.
-* **Interfaz de Usuario (UI):** Jetpack Compose (Moderno toolkit declarativo para UI nativa).
-* **Navegación:** Navigation 3 (Enfoque moderno y type-safe).
-* **Arquitectura:** MVVM (Model-View-ViewModel).
-* **Servicios en la nube:** Firebase (Firestore, Authentication, Storage).
-* **Inyección de Dependencias:** Hilt (en progreso/implementado en componentes).
-* **Sistema de compilación:** Gradle (Kotlin DSL).
+*   **Lenguaje:** [Kotlin](https://kotlinlang.org/) (100% nativo).
+*   **Interfaz de Usuario (UI):** [Jetpack Compose](https://developer.android.com/jetpack/compose) con Material Design 3.
+*   **Arquitectura:** MVVM (Model-View-ViewModel) con Clean Architecture.
+*   **Inyección de Dependencias:** [Hilt](https://developer.android.com/training/dependency-injection/hilt-android).
+*   **Navegación:** [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) (Enfoque moderno, dinámico y type-safe).
+*   **Servicios en la Nube:**
+    *   **Firebase:** Authentication, Firestore (Base de datos NoSQL), Cloud Messaging (Notificaciones Push).
+    *   **Supabase:** Postgrest y Storage para gestión avanzada de datos y archivos.
+    *   **Cloudinary:** Optimización y almacenamiento de imágenes.
+*   **Gestión de Datos:** DataStore (Preferencias) y Kotlinx Serialization.
+*   **UI Avanzada:** Haze (Efectos de desenfoque/glassmorphism), Coil (Carga de imágenes), ColorPicker.
+*   **Autenticación:** Google Sign-In y Credential Manager API.
 
 ## 📱 Funcionalidades Principales
 
 ### 👨‍🎓 Para el Estudiante
-* **Autenticación:** Inicio de sesión y registro de usuarios (`AuthScreen`). Manejo de estados de cuenta pendiente de aprobación.
-* **Panel Principal (Home):** Vista general con acceso rápido a las distintas herramientas.
-* **Gestión de Asignaturas:** Visualización del contenido compartido por los profesores, unidades y publicaciones.
-* **Calificaciones:** Consulta de notas obtenidas y seguimiento del rendimiento académico.
-* **Horarios:** Organización de clases y rutinas semanales.
-* **Recordatorios:** Creación y visualización de alertas sobre tareas o exámenes con notificaciones.
-* **Perfil:** Personalización de la cuenta y ajustes de la aplicación.
+*   **Centro de Control:** Dashboard con acceso rápido a las herramientas principales.
+*   **Gestión Académica:** Visualización de asignaturas, unidades temáticas y material de apoyo.
+*   **Seguimiento de Rendimiento:** Consulta detallada de calificaciones y evaluaciones en tiempo real.
+*   **Organización Personal:** Horarios dinámicos y sistema de recordatorios con notificaciones push.
+*   **Perfil Personalizado:** Gestión de cuenta y preferencias visuales.
 
 ### 👨‍🏫 Para el Profesor
-* **Gestión de Asignaturas:** Control total sobre las materias asignadas.
-* **Planificación Didáctica:** Creación y organización de Unidades y Temas dentro de cada asignatura.
-* **Publicaciones (Posts):** Compartir materiales, anuncios y recursos con los estudiantes en tiempo real.
-* **Control de Calificaciones:** Registro, edición y visibilidad de evaluaciones para los alumnos.
+*   **Gestión de Contenidos:** Creación y organización de unidades didácticas y temas.
+*   **Comunicación Directa:** Publicación de anuncios, recursos y materiales en el muro de las asignaturas.
+*   **Control Evaluativo:** Registro y edición de calificaciones, con visibilidad inmediata para los alumnos.
+*   **Notificaciones:** Envío de avisos importantes mediante FCM.
 
 ### 🛠️ Para el Administrador
-* **Gestión de Usuarios:** Aprobación de nuevas cuentas, edición de perfiles y control de roles (Admin, Profesor, Estudiante).
-* **Estructura Académica:** Gestión jerárquica de Centros, Tipos de Curso, Cursos y Ciclos.
-* **Gestión de Asignaturas:** Creación de materias y asignación de profesores responsables.
-* **Importación de Datos:** Herramientas para la carga masiva de datos y limpieza de registros desde fuentes externas (JSONL).
+*   **Gestión de Usuarios:** Sistema de aprobación de cuentas, edición de perfiles y asignación de roles (Admin, Profesor, Estudiante).
+*   **Estructura Institucional:** Configuración jerárquica de Centros, Cursos, Ciclos y Asignaturas.
+*   **Asignación Docente:** Vinculación de profesores a sus respectivas materias.
+*   **Herramientas de Datos:** Carga masiva de información mediante archivos JSONL y limpieza de registros.
+
+### ⚙️ Funcionalidades Base (Transversales)
+*   **Autenticación Multimodal:** Inicio de sesión y registro mediante Google Auth o credenciales tradicionales con soporte para Credential Manager.
+*   **Recuperación de Acceso:** Sistema de restablecimiento de contraseña mediante correo electrónico.
+*   **Gestión de Perfil:** Personalización de datos de usuario, incluyendo foto de perfil almacenada en la nube.
+*   **Seguridad:** Control de acceso basado en estados de cuenta (Pendiente, Aprobado, Rechazado).
+*   **Notificaciones:** Recepción de avisos importantes y recordatorios en tiempo real.
+*   **Experiencia de Usuario:** Interfaz adaptativa con soporte para temas, animaciones fluidas y efectos visuales modernos.
 
 ## 📂 Estructura del Proyecto
 
-El código fuente principal se encuentra dentro de `app/src/main/java/samf/gestorestudiantil//` y está organizado de la siguiente manera:
+El código fuente sigue una organización modular basada en Clean Architecture:
 
-* `data/`: Contiene la capa de datos.
-    * `models/`: Entidades del dominio (`Asignatura`, `Centro`, `Curso`, `Evaluacion`, `User`, `Post`, `Unidad`, etc.).
-    * `enums/`: Enumeraciones para tipificar datos.
-* `ui/`: Contiene toda la capa de presentación (Jetpack Compose).
-    * `components/`: Componentes UI reutilizables y atómicos.
-    * `dialogs/`: Orquestador de diálogos y ventanas emergentes.
-    * `navigation/`: Lógica de enrutamiento, mappers de navegación y definición de rutas.
-    * `panels/`: Vistas específicas divididas por roles (`admin`, `profesor` y `estudiante`).
-    * `screens/`: Pantallas completas y flujos de edición (full-screen Scaffolds).
-    * `theme/`: Configuración visual del sistema de diseño (Colores, Tipografía, Formas).
-    * `viewmodels/`: Gestores de estado y lógica de negocio mediante `StateFlow`.
-* `domain/`: Casos de uso, validadores y mapeadores de UI.
+### 1. Capa de Datos (`data/`)
+*   **`models/`**: POJOs y Data Classes que representan las entidades del sistema (`User`, `Curso`, `Tarea`, `Asignatura`, `Evaluacion`, etc.).
+*   **`repositories/`**: Implementaciones concretas de los repositorios (`AuthRepositoryImpl`, `UserRepositoryImpl`, `AdminRepositoryImpl`) que gestionan el flujo de datos desde Firebase y Supabase.
+*   **`interfaces/`**: Definición de contratos para las fuentes de datos.
+*   **`enums/`**: Enumeraciones para roles de usuario, estados de cuenta y tipos de evaluación.
+
+### 2. Capa de Dominio (`domain/`)
+*   **`usecases/`**: Lógica de negocio pura e independiente de la UI (`RegisterUserUseCase`, `SeedDatabaseUseCase`, `AssignSubjectToProfessorUseCase`).
+*   **`repositories/`**: Interfaces de los repositorios (Definición del contrato).
+*   **`serializers/`**: Lógica para la serialización de datos complejos.
+*   **`MappersUI.kt`**: Conversores de modelos de datos a modelos específicos para la vista.
+
+### 3. Capa de Presentación (`ui/`)
+*   **`viewmodels/`**: Mediadores entre la capa de dominio y la UI, manteniendo el estado de forma reactiva.
+*   **`navigation/`**: Configuración de Navigation 3, incluyendo `AppNavigation` y mappers de rutas.
+*   **`panels/`**: Interfaces divididas por rol:
+    *   `admin/`: Gestión de centros, ciclos, profesores y aprobación de usuarios.
+    *   `profesor/`: Gestión de contenidos, tareas y calificaciones.
+    *   `estudiante/`: Visualización de cursos, progreso y recordatorios.
+*   **`screens/`**: Pantallas de flujo principal (Login, Registro, Perfil, Home).
+*   **`components/`**: Librería de componentes personalizados (Cards, Buttons, TextFields) bajo Material 3.
+*   **`dialogs/`**: Orquestador de diálogos para feedback y entrada de datos.
+*   **`theme/`**: Definición de la identidad visual (Color, Type, Shape, Haze configuration).
+
+### 4. Inyección de Dependencias (`di/`)
+*   Módulos de Hilt para la provisión de instancias únicas de Clientes de Firebase, Supabase, Storage y Repositorios.
 
 ## ⚙️ Instalación y Configuración
 
-1. Clona este repositorio en tu máquina local.
-2. Abre el proyecto utilizando **Android Studio**.
-3. Asegúrate de tener configurado un emulador o dispositivo físico con Android (API 24+ recomendado).
-4. Verifica la configuración de Firebase: el archivo `google-services.json` debe estar presente en el módulo `app`.
-5. Haz clic en **Run** (o presiona `Shift + F10`) para compilar y ejecutar la aplicación.
+1.  Clona este repositorio.
+2.  Abre el proyecto en **Android Studio (Ladybug o superior)**.
+3.  Configura Firebase:
+    *   Añade tu archivo `google-services.json` en la carpeta `app/`.
+    *   **Archivo de Credenciales (FCM):** Para el envío de notificaciones desde el panel de profesor, es necesario incluir el archivo `service-account.json` (obtenido desde la Consola de Firebase -> Cuentas de servicio) en la ruta `app/src/main/resources/`. *Nota: Este archivo contiene claves privadas y no debe subirse al repositorio.*
+    *   Habilita Google Sign-In en la consola de Firebase.
+4.  Configura Supabase:
+    *   Asegúrate de configurar las keys en `res/values/strings.xml` (o vía BuildConfig).
+5.  Sincroniza con Gradle y ejecuta en un dispositivo con **API 34+**.
