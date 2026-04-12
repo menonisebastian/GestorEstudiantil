@@ -11,7 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,10 +51,12 @@ import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +64,7 @@ import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 fun ProfileScreen(
     usuario: User?,
     onBack: () -> Unit,
+    onLogout: () -> Unit = {},
     onProfileUpdated: (User) -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
 )
@@ -230,6 +237,29 @@ fun ProfileScreen(
                             }
                         }
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                shape = CardDefaults.shape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = errorColor.copy(alpha = 0.1f),
+                    contentColor = errorColor
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = "Cerrar Sesión"
+                    )
                 }
             }
         }

@@ -248,6 +248,9 @@ fun AppNavigation(
                 ProfileScreen(
                     usuario = currentUser,
                     onBack = { backStack.removeLastOrNull()},
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                    },
                     onProfileUpdated = {usuarioEditado ->
                         // Aquí actualizas el estado en el ViewModel que leen todas las pantallas
                         currentUser = usuarioEditado
