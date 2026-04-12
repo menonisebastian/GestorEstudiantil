@@ -33,8 +33,10 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.ui.components.WeekNavBar
+import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 
 @Composable
 fun HorariosProfesorPanel(
@@ -91,16 +93,13 @@ fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: Lis
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 120.dp)
     ) {
         items(slots) { slot ->
             val h = horarios.find { it.dia.equals(dia, ignoreCase = true) && "${it.horaInicio.trim()} - ${it.horaFin.trim()}" == slot.trim() }
             val asig = asignaturas.find { it.id == h?.asignaturaId }
             ItemHorarioProfesor(slot, h, asig)
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -110,21 +109,24 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
     val isReceso = slot.contains("RECREO") || slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")
 
     val colorFondo = when {
-        isReceso -> Color.LightGray.copy(alpha = 0.5f)
+        isReceso -> surfaceDimColor.copy(alpha = 0.5f)
         asignatura != null -> {
             try {
                 Color(android.graphics.Color.parseColor(asignatura.colorFondoHex))
             } catch (e: Exception) {
-                Color.LightGray.copy(alpha = 0.2f)
+                surfaceDimColor.copy(alpha = 0.2f)
             }
         }
-        else -> Color.LightGray.copy(alpha = 0.1f)
+        else -> surfaceDimColor.copy(alpha = 0.1f)
     }
+
+    val contentColor = if (asignatura != null || isReceso) whiteColor else textColor
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = colorFondo),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (horario != null) 2.dp else 0.dp)
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = if (asignatura != null || isReceso) colorFondo else surfaceColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -139,20 +141,20 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
                     },
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = if (horario != null || isReceso) Color.Black.copy(alpha = 0.8f) else surfaceDimColor
+                    color = if (horario != null || isReceso) contentColor.copy(alpha = 0.9f) else surfaceDimColor
                 )
                 if (asignatura != null && !isReceso) {
                     Text(
                         text = asignatura.nombre,
                         fontSize = 12.sp,
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = contentColor.copy(alpha = 0.7f),
                         lineHeight = 14.sp
                     )
                 }
                 Text(
                     text = slot,
                     fontSize = 13.sp,
-                    color = if (horario != null || isReceso) Color.Black.copy(alpha = 0.6f) else surfaceDimColor
+                    color = if (horario != null || isReceso) contentColor.copy(alpha = 0.7f) else surfaceDimColor
                 )
             }
             
@@ -169,14 +171,14 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
                         text = "$acronimoCurso $inicialTurno${horario.cicloNum}",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.Black.copy(alpha = 0.8f)
+                        color = contentColor.copy(alpha = 0.9f)
                     )
                     if (horario.aula.isNotEmpty()) {
                         Text(
                             text = "Aula: ${horario.aula}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Black.copy(alpha = 0.6f)
+                            color = contentColor.copy(alpha = 0.7f)
                         )
                     }
                 }

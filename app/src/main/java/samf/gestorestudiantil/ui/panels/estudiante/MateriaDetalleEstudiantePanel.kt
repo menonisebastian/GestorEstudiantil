@@ -89,7 +89,7 @@ fun MateriaDetalleEstudiantePanel(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 20.dp)
+            contentPadding = PaddingValues(bottom = 120.dp)
         ) {
             item {
                 val profesor by profesorViewModel.profesor.collectAsState()

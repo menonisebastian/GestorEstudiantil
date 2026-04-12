@@ -50,7 +50,11 @@ fun CalificacionesEstudiantePanel(
                 modifier = Modifier.padding(top = 16.dp)
             )
 
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp))
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(top = 16.dp),
+                contentPadding = PaddingValues(bottom = 120.dp)
+            )
             {
                 items(asignaturas)
                 {
@@ -59,7 +63,6 @@ fun CalificacionesEstudiantePanel(
                         onAsignaturaClick(asignatura)
                     })
                 }
-                item{Spacer(modifier = Modifier.height(16.dp))}
             }
         }
     }

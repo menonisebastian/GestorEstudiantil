@@ -105,13 +105,14 @@ fun MateriaDetalleProfesorPanel(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(bottom = 120.dp)
         ) {
             item {
                 Text(
                     text = "Contenido de la asignatura",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
+                    color = textColor,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
             }

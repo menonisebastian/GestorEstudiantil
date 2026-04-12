@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -92,7 +94,7 @@ fun UnidadCard(
                     }
                     if (onDeleteUnidad != null) {
                         IconButton(onClick = onDeleteUnidad) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar Unidad", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar Unidad", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
                         }
                     }
                     if (onAddPost != null) {
@@ -150,8 +152,7 @@ fun TareaCard(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         onClick = { onClick?.invoke() },
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = androidx.compose.foundation.BorderStroke(1.dp, primaryColor.copy(alpha = 0.3f))
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -192,7 +193,7 @@ fun TareaCard(
                         }
                         onDelete?.let {
                             IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
                             }
                         }
                     }
@@ -282,8 +283,7 @@ fun PostCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = androidx.compose.foundation.BorderStroke(1.dp, surfaceDimColor.copy(alpha = 0.2f))
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -317,7 +317,7 @@ fun PostCard(
                         }
                         onDelete?.let {
                             IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
                             }
                         }
                     }

@@ -84,13 +84,23 @@ fun RecordatoriosEstudiantePanel(
                     )
                 },
                 filters = if (filtroTipo.isNotEmpty()) mapOf("tipo" to filtroTipo) else emptyMap(),
-                onRemoveFilter = { _ -> filtroTipo = "" }
+                onRemoveFilter = { keyPlusValue ->
+                    if (keyPlusValue.contains(":")) {
+                        val (_, newValue) = keyPlusValue.split(":")
+                        filtroTipo = newValue
+                    } else {
+                        filtroTipo = ""
+                    }
+                }
             )
 
             if (recordatoriosFiltrados.isEmpty()) {
                 Text(text = "No hay recordatorios", color = surfaceDimColor, fontSize = 16.sp)
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 120.dp)
+                ) {
                     items(recordatoriosFiltrados) { recordatorio ->
                         CustomNotificationCard(
                             recordatorio = recordatorio,
@@ -105,7 +115,6 @@ fun RecordatoriosEstudiantePanel(
                             onDelete = { onDelete(recordatorio.id) }
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }

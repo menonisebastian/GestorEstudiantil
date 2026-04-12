@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -68,6 +69,7 @@ import samf.gestorestudiantil.ui.components.TextDivider
 import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
@@ -166,7 +168,9 @@ fun AuthScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding()),
                 userScrollEnabled = !authState.isLoading
             ) { page ->
 
@@ -182,7 +186,7 @@ fun AuthScreen(
 
                         entry<Routes.AuthRoutes.Login> {
                             LoginPanel(
-                                paddingValues = paddingValues,
+                                paddingValues = PaddingValues(0.dp),
                                 isLoading = authState.isLoading,
                                 onLoginClick = { email, pass ->
                                     authViewModel.loginWithEmail(email, pass)
@@ -213,7 +217,7 @@ fun AuthScreen(
 
                         entry<Routes.AuthRoutes.ForgotPassword> {
                             ForgotPasswordPanel(
-                                paddingValues = paddingValues,
+                                paddingValues = PaddingValues(0.dp),
                                 isLoading = authState.isLoading,
                                 onResetClick = { email ->
                                     authViewModel.resetPassword(email) {
@@ -226,7 +230,7 @@ fun AuthScreen(
 
                         entry<Routes.AuthRoutes.ForgotPasswordSuccess> {
                             ForgotPasswordSuccessPanel(
-                                paddingValues = paddingValues,
+                                paddingValues = PaddingValues(0.dp),
                                 onBackToLogin = {
                                     pageBackStack.clear()
                                     pageBackStack.add(Routes.AuthRoutes.Login)
@@ -236,7 +240,7 @@ fun AuthScreen(
 
                         entry<Routes.AuthRoutes.Register> {
                             RegistroPanelStep1(
-                                paddingValues = paddingValues,
+                                paddingValues = PaddingValues(0.dp),
                                 isLoading = authState.isLoading,
                                 onNextClick = onNavigateToRegisterStep2
                             )
@@ -368,6 +372,8 @@ fun ForgotPasswordPanel(
             modifier = Modifier
                 .constrainAs(inputsRef) {
                     centerTo(parent)
+                    top.linkTo(parent.top, margin = 0.dp)
+                    bottom.linkTo(parent.bottom, margin = 140.dp)
                 }
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -441,6 +447,8 @@ fun LoginPanel(
             modifier = Modifier
                 .constrainAs(inputsRef) {
                     centerTo(parent)
+                    top.linkTo(parent.top, margin = 0.dp)
+                    bottom.linkTo(parent.bottom, margin = 140.dp)
                 }
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -505,6 +513,9 @@ fun LoginPanel(
         ) {
             TextButton(
                 onClick = { onForgotPassword() },
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = secondaryColor
+                )
             ) {
                 Text(text = "Recordar contraseña", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
@@ -551,12 +562,14 @@ fun RegistroPanelStep1(
             Column(
                 modifier = Modifier
                     .constrainAs(inputsRef) {
-                        centerTo(parent)
-                    }
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+                    centerTo(parent)
+                    top.linkTo(parent.top, margin = 0.dp)
+                    bottom.linkTo(parent.bottom, margin = 140.dp)
+                }
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
                 CustomTextField(value = name, onValueChange = { name = it }, label = "Nombre completo", icon = Icons.Outlined.Person, readOnly = isLoading, isClickable = !isLoading)
                 CustomTextField(value = email, onValueChange = { email = it }, label = "Email", icon = Icons.Outlined.Email, readOnly = isLoading, isClickable = !isLoading)
                 CustomPasswordTextField(state = passwordState)

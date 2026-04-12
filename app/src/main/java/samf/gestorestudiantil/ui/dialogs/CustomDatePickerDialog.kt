@@ -18,6 +18,11 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -62,20 +67,20 @@ fun CustomDatePickerDialog(
                     }
                     onDismissRequest()
                 },
-                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = IconButtonDefaults.iconButtonColors(containerColor = primaryColor)
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = whiteColor)
             }
         },
         dismissButton = {
             IconButton(
                 onClick = onDismissRequest,
-                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)
+                colors = IconButtonDefaults.iconButtonColors(containerColor = secondaryColor.copy(alpha = 0.2f))
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = secondaryColor)
             }
         },
-        colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = DatePickerDefaults.colors(containerColor = surfaceColor)
     ) {
         DatePicker(
             state = datePickerState,
@@ -91,13 +96,15 @@ fun CustomDatePickerDialog(
                 )
             },
             colors = DatePickerDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                titleContentColor = MaterialTheme.colorScheme.secondary,
-                headlineContentColor = MaterialTheme.colorScheme.onSurface,
-                subheadContentColor = MaterialTheme.colorScheme.onSurface,
-                selectedDayContainerColor = MaterialTheme.colorScheme.secondary,
-                navigationContentColor = MaterialTheme.colorScheme.onSurface,
-                weekdayContentColor = MaterialTheme.colorScheme.primary,
+                containerColor = surfaceColor,
+                titleContentColor = tertiaryColor,
+                headlineContentColor = primaryColor,
+                subheadContentColor = secondaryColor,
+                selectedDayContainerColor = primaryColor,
+                todayContentColor = tertiaryColor,
+                todayDateBorderColor = tertiaryColor,
+                navigationContentColor = primaryColor,
+                weekdayContentColor = secondaryColor,
             )
         )
     }

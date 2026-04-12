@@ -56,8 +56,12 @@ import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.errorColor
+import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 
@@ -163,11 +167,17 @@ fun UsuariosAdminPanel(
                     "curso" to filtroCurso,
                     "ciclo" to filtroCiclo
                 ),
-                onRemoveFilter = { key ->
+                onRemoveFilter = { keyPlusValue ->
+                    val (key, newValue) = if (keyPlusValue.contains(":")) {
+                        val parts = keyPlusValue.split(":")
+                        parts[0] to parts[1]
+                    } else {
+                        keyPlusValue to ""
+                    }
                     when(key) {
-                        "rol" -> filtroRol = ""
-                        "curso" -> filtroCurso = ""
-                        "ciclo" -> filtroCiclo = ""
+                        "rol" -> filtroRol = newValue
+                        "curso" -> filtroCurso = newValue
+                        "ciclo" -> filtroCiclo = newValue
                     }
                 }
             )
@@ -201,7 +211,7 @@ fun UsuariosAdminPanel(
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(horizontal = 20.dp),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 120.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -338,7 +348,7 @@ fun UsuarioCardAdmin(
                 ) {
                     Button(
                         onClick = onRechazar,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEBEE), contentColor = Color(0xFFD32F2F)),
+                        colors = ButtonDefaults.buttonColors(containerColor = errorColor.copy(alpha = 0.1f), contentColor = errorColor),
                         modifier = Modifier
                             .weight(1f)
                             .height(40.dp),
@@ -351,7 +361,7 @@ fun UsuarioCardAdmin(
 
                     Button(
                         onClick = onAprobar,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE8F5E9), contentColor = Color(0xFF2E7D32)),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor.copy(alpha = 0.1f), contentColor = primaryColor),
                         modifier = Modifier
                             .weight(1f)
                             .height(40.dp),

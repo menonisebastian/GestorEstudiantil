@@ -36,9 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -151,7 +154,10 @@ fun FilterByDialog(
             ) {
                 IconButton(
                     onClick = { tempFilters = emptyMap() },
-                    colors = IconButtonDefaults.iconButtonColors(contentColor = primaryColor)
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = tertiaryColor.copy(alpha = 0.15f),
+                        contentColor = tertiaryColor
+                    )
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = "Limpiar filtros")
                 }
@@ -160,7 +166,10 @@ fun FilterByDialog(
 
                 IconButton(
                     onClick = onDismissRequest,
-                    colors = IconButtonDefaults.iconButtonColors(contentColor = surfaceDimColor)
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = secondaryColor.copy(alpha = 0.15f),
+                        contentColor = secondaryColor
+                    )
                 ) {
                     Icon(Icons.Default.Close, contentDescription = "Cancelar")
                 }
@@ -172,7 +181,7 @@ fun FilterByDialog(
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = primaryColor,
-                        contentColor = textColor
+                        contentColor = whiteColor
                     )
                 ) {
                     Icon(Icons.Default.Done, contentDescription = "Aplicar")
@@ -217,9 +226,9 @@ fun FilterChipGroup(
                     label = { Text(option) },
                     colors = FilterChipDefaults.filterChipColors(
                         containerColor = surfaceColor,
-                        labelColor = textColor,
+                        labelColor = secondaryColor,
                         selectedContainerColor = primaryColor,
-                        selectedLabelColor = textColor
+                        selectedLabelColor = whiteColor
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,

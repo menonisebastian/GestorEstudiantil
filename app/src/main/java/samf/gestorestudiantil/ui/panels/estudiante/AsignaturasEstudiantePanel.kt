@@ -77,7 +77,7 @@ fun AsignaturasEstudiantePanel(
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 120.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             items(asignaturasFiltradas) { materia ->

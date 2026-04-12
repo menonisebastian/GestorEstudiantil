@@ -16,3 +16,9 @@ val Gray = Color.Gray
 val DayGreen = Color(0xFFD0F5E1)
 val DarkGreen = Color(0xFF27AE60)
 val GoodBlue = Color(0xFF4A8FE1)
+val BetterBlue = Color(0xFF007AFD)
+val DarkBlue = Color(0xFF0056B2)
+
+val SoftAqua = Color(0xFF00A2A2)
+
+val SoftRed = Color(0xFFCE3434)

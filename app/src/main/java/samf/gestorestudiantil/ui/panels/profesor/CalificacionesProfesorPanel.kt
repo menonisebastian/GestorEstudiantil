@@ -37,7 +37,10 @@ import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -112,9 +115,15 @@ fun CalificacionesProfesorPanel(
                 if (filtroCurso.isNotEmpty()) put("curso", filtroCurso)
                 if (filtroAsignatura.isNotEmpty()) put("asignatura", filtroAsignatura)
             },
-            onRemoveFilter = { key ->
-                if (key == "curso") filtroCurso = ""
-                if (key == "asignatura") filtroAsignatura = ""
+            onRemoveFilter = { keyPlusValue ->
+                val (key, newValue) = if (keyPlusValue.contains(":")) {
+                    val parts = keyPlusValue.split(":")
+                    parts[0] to parts[1]
+                } else {
+                    keyPlusValue to ""
+                }
+                if (key == "curso") filtroCurso = newValue
+                if (key == "asignatura") filtroAsignatura = newValue
             }
         )
 
@@ -166,7 +175,10 @@ fun CalificacionesProfesorPanel(
 
                     coincideBusqueda && coincideCurso && coincideAsignatura
                 }
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 120.dp)
+                ) {
                     items(filteredEstudiantes) { estudiante ->
                         // En esta pestaña, necesitamos saber qué asignatura del profesor dar a este alumno
                         // Si hay filtro de asignatura, usamos la primera seleccionada. Si no, la primera que coincida con el curso del alumno.
@@ -207,7 +219,10 @@ fun CalificacionesProfesorPanel(
 
                     coincideBusqueda && coincideAsignatura && coincideCurso
                 }
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 120.dp)
+                ) {
                     items(filteredAsignaturas) { asignatura ->
                         AsignaturaCard(asignatura, userRole = "PROFESOR", onClick = {
                             onAsignaturaClick(asignatura)
@@ -274,7 +289,10 @@ fun EstudiantesAsignaturaLista(
             }
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 120.dp)
+        ) {
             items(filteredEstudiantes) { estudiante ->
                 EstudianteCard(
                     estudiante = estudiante,
@@ -410,7 +428,7 @@ fun CalificacionesDetalleEstudiante(
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    contentPadding = PaddingValues(bottom = 120.dp)
                 ) {
                     items(state.evaluaciones) { eval ->
                         EvaluacionProfesorItem(

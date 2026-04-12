@@ -3,6 +3,7 @@ package samf.gestorestudiantil.ui.dialogs
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
@@ -14,7 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.errorColor
+import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 
 @Composable
@@ -48,33 +56,35 @@ fun AsignarAsignaturasDialog(
         confirmButton = {
             TextButton(onClick = onDismissRequest) { Text("Cerrar") }
         },
+        containerColor = backgroundColor,
         title = {
             Text(text = "Asignaturas de ${state.profesor.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(modifier = Modifier.height(450.dp)) {
                 if (asignaturasProfesor.isNotEmpty()) {
-                    Text("Asignadas", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp))
+                    Text("Asignadas", fontWeight = FontWeight.Bold, color = primaryColor, modifier = Modifier.padding(vertical = 8.dp))
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                         items(asignaturasProfesor) { asig ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                                colors = CardDefaults.cardColors(containerColor = primaryColor.copy(alpha = 0.1f)),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(8.dp),
+                                    modifier = Modifier.padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(asig.acronimo, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                        Text(asig.nombre, fontSize = 10.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                        Text(asig.acronimo, fontWeight = FontWeight.Bold, color = primaryColor)
+                                        Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
                                     }
                                     IconButton(onClick = { 
                                         adminViewModel.desasignarAsignatura(asig.id, state.profesor.id)
                                         // Actualizar lista local para feedback inmediato
                                         asignaturasProfesor = asignaturasProfesor.filter { it.id != asig.id }
-                                    }) {
-                                        Icon(Icons.Default.Remove, contentDescription = "Desasignar", tint = MaterialTheme.colorScheme.error)
+                                    }, colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))) {
+                                        Icon(Icons.Default.Remove, contentDescription = "Desasignar", tint = errorColor)
                                     }
                                 }
                             }
@@ -83,31 +93,32 @@ fun AsignarAsignaturasDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                Text("Disponibles (Sin Profesor)", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                Text("Disponibles (Sin Profesor)", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
                 
                 if (adminState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = primaryColor)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                         items(adminState.asignaturas) { asig ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                colors = CardDefaults.cardColors(containerColor = tertiaryColor.copy(alpha = 0.1f)),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(8.dp),
+                                    modifier = Modifier.padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(asig.acronimo, fontWeight = FontWeight.Bold)
-                                        Text(asig.nombre, fontSize = 10.sp)
+                                        Text(asig.acronimo, fontWeight = FontWeight.Bold, color = tertiaryColor)
+                                        Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
                                     }
                                     IconButton(onClick = { 
                                         adminViewModel.asignarAsignaturaAProfesor(asig.id, state.profesor.id)
                                         // Actualizar lista local
                                         asignaturasProfesor = asignaturasProfesor + asig
-                                    }) {
-                                        Icon(Icons.Default.Add, contentDescription = "Asignar")
+                                    }, colors = IconButtonDefaults.iconButtonColors(containerColor = primaryColor.copy(alpha = 0.1f))) {
+                                        Icon(Icons.Default.Add, contentDescription = "Asignar", tint = primaryColor)
                                     }
                                 }
                             }

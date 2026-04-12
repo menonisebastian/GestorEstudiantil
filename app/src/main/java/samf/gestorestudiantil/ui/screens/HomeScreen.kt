@@ -360,7 +360,7 @@ fun HomeScreen(
             state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top = paddingValues.calculateTopPadding()), // Ignoramos el padding inferior para efecto flotante real
             userScrollEnabled = currentRoute?.let { !isDetailRoute(it) } ?: true
         ) { page ->
             val pageTab = tabs.getOrNull(page) ?: ""

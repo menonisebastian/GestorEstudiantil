@@ -13,6 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -20,6 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import java.util.Calendar
 import java.util.Locale
 
@@ -53,23 +59,19 @@ fun CustomTimePickerDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            IconButton(
+            TextButton(
                 onClick = {
                     val formattedTime = String.format(Locale.getDefault(), "%02d:%02d", timePickerState.hour, timePickerState.minute)
                     state.onTimeSelected(formattedTime)
                     onDismissRequest()
-                },
-                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                }
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Seleccionar", tint = MaterialTheme.colorScheme.onPrimary)
+                Text("OK", color = primaryColor)
             }
         },
         dismissButton = {
-            IconButton(
-                onClick = onDismissRequest,
-                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)
-            ) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = MaterialTheme.colorScheme.onPrimary)
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancelar", color = primaryColor)
             }
         },
         text = {
@@ -80,13 +82,15 @@ fun CustomTimePickerDialog(
                 Text(
                     "Seleccionar hora",
                     style = MaterialTheme.typography.labelMedium,
+                    color = primaryColor,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 20.dp)
                 )
-                TimePicker(state = timePickerState)
+                androidx.compose.material3.TimePicker(
+                    state = timePickerState
+                )
             }
-        },
-        containerColor = MaterialTheme.colorScheme.surface
+        }
     )
 }

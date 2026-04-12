@@ -4,6 +4,13 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,18 +18,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -59,11 +67,8 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults.colors
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,7 +84,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -98,16 +102,20 @@ import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.data.interfaces.ChipOption
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.enums.tipoEvaluacion
 import java.util.Locale
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 
 @Composable
 fun TopBarRow(
@@ -139,42 +147,81 @@ fun BottomNavBar(
     selectedItem: String,
     onItemSelected: (String) -> Unit
 ) {
-    NavigationBar(
-        containerColor = surfaceColor,
-        contentColor = textColor,
+    Box(
         modifier = Modifier
-            .graphicsLayer(
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-            clip = true
-        )
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.Center
     ) {
-        items.forEach { (label, icon) ->
-            val isSelected = selectedItem == label
+        Surface(
+            modifier = Modifier
+                .padding(horizontal = 24.dp, vertical = 2.dp)
+                .wrapContentSize(),
+            shape = CircleShape,
+            color = surfaceColor.copy(alpha = 0.95f),
+            tonalElevation = 8.dp,
+            shadowElevation = 10.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEach { (label, icon) ->
+                    val isSelected = selectedItem == label
 
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { onItemSelected(label) },
-                icon = {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = label
+                    val animatedBgColor by animateColorAsState(
+                        targetValue = if (isSelected) primaryColor.copy(alpha = 0.15f) else Color.Transparent,
+                        animationSpec = tween(durationMillis = 150),
+                        label = "nav_bg_color"
                     )
-                },
-                label = {
-                    Text(
-                        text = label,
-                        fontSize = 10.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+
+                    val animatedIconColor by animateColorAsState(
+                        targetValue = if (isSelected) primaryColor else surfaceDimColor,
+                        animationSpec = tween(durationMillis = 150),
+                        label = "nav_icon_color"
                     )
-                },
-                colors = colors(
-                    selectedIconColor = textColor,
-                    selectedTextColor = textColor,
-                    indicatorColor = surfaceDimColor.copy(alpha = 0.3f),
-                    unselectedIconColor = surfaceDimColor,
-                    unselectedTextColor = surfaceDimColor
-                )
-            )
+
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(animatedBgColor)
+                            .clickable { onItemSelected(label) }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = label,
+                                tint = animatedIconColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            AnimatedVisibility(
+                                visible = isSelected,
+                                enter = fadeIn(animationSpec = tween(150)) + expandHorizontally(animationSpec = tween(150)),
+                                exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(animationSpec = tween(150))
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = label,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = primaryColor,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -204,15 +251,15 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
                 },
                 modifier = Modifier.padding(horizontal = 4.dp),
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = textColor,
-                    selectedLabelColor = backgroundColor,
-                    containerColor = Color.Transparent,
+                    selectedContainerColor = primaryColor,
+                    selectedLabelColor = whiteColor,
+                    containerColor = surfaceColor,
                     labelColor = surfaceDimColor
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = if (isSelected) Color.Transparent else surfaceDimColor,
+                    borderColor = if (isSelected) Color.Transparent else surfaceDimColor.copy(alpha = 0.5f),
                     borderWidth = 1.dp
                 )
             )
@@ -287,7 +334,7 @@ fun ProfileImagePicker(
                     .align(Alignment.BottomEnd)
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(primaryColor)
+                    .background(tertiaryColor)
                     .border(2.dp, backgroundColor, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -324,14 +371,12 @@ fun CustomNotificationCard(
         .size(16.dp)
         .padding(end = 4.dp)
 
-    val softRed = Color(0xDDD23B3B)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = surfaceColor),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -362,8 +407,13 @@ fun CustomNotificationCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Outlined.Delete, "Eliminar", tint = softRed, modifier = Modifier.size(20.dp))
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(32.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))
+                ) {
+                    Icon(Icons.Outlined.Delete, "Eliminar", tint = errorColor, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -422,7 +472,7 @@ fun AsignaturaCard(
 
                     Icon(Icons.Outlined.Person, "Profesor", tint = surfaceDimColor, modifier = iconModifier)
                     Text(
-                        text = if (asignatura.profesorNombre.isNotEmpty()) asignatura.profesorNombre else "Sin asignar",
+                        text = asignatura.profesorNombre.ifEmpty { "Sin asignar" },
                         color = surfaceDimColor,
                         fontSize = 10.sp
                     )
@@ -516,9 +566,9 @@ fun CustomTextField(
                 focusedContainerColor = surfaceColor,
                 unfocusedContainerColor = surfaceColor,
                 disabledContainerColor = surfaceColor,
-                focusedLabelColor = surfaceDimColor,
+                focusedLabelColor = primaryColor,
                 unfocusedLabelColor = surfaceDimColor,
-                focusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = primaryColor.copy(alpha = 0.5f),
                 unfocusedIndicatorColor = Color.Transparent,
             ),
             singleLine = singleLine,
@@ -594,9 +644,9 @@ fun CustomPasswordTextField(state: TextFieldState, isLast: Boolean? = false) {
             focusedContainerColor = surfaceColor,
             unfocusedContainerColor = surfaceColor,
             disabledContainerColor = surfaceColor,
-            focusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = primaryColor.copy(alpha = 0.5f),
             unfocusedIndicatorColor = Color.Transparent,
-            focusedLabelColor = surfaceDimColor,
+            focusedLabelColor = primaryColor,
             unfocusedLabelColor = surfaceDimColor,
         ),
         keyboardOptions = KeyboardOptions(
@@ -645,9 +695,9 @@ fun CustomOptionsTextField(
                 focusedContainerColor = surfaceColor,
                 unfocusedContainerColor = surfaceColor,
                 disabledContainerColor = surfaceColor,
-                focusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = primaryColor.copy(alpha = 0.5f),
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedLabelColor = surfaceDimColor,
+                focusedLabelColor = primaryColor,
                 unfocusedLabelColor = surfaceDimColor,
             ),
             singleLine = true,
@@ -715,25 +765,33 @@ fun CustomSearchBar(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(filters.toList()) { (key, value) ->
-                        if (value.isNotEmpty()) {
+                    filters.forEach { (key, value) ->
+                        val chips = value.split(",").filter { it.isNotEmpty() }
+                        items(chips) { chipValue ->
                             androidx.compose.material3.InputChip(
                                 selected = true,
                                 onClick = { },
-                                label = { Text(value, fontSize = 11.sp, maxLines = 1) },
+                                label = { Text(chipValue, fontSize = 11.sp, maxLines = 1) },
                                 trailingIcon = {
                                     Icon(
                                         Icons.Default.Close,
                                         contentDescription = "Quitar filtro",
                                         modifier = Modifier
                                             .size(16.dp)
-                                            .clickable { onRemoveFilter(key) }
+                                            .clickable {
+                                                if (chips.size == 1) {
+                                                    onRemoveFilter(key)
+                                                } else {
+                                                    val newValue = chips.filter { it != chipValue }.joinToString(",")
+                                                    onRemoveFilter("$key:$newValue")
+                                                }
+                                            }
                                     )
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = androidx.compose.material3.InputChipDefaults.inputChipColors(
-                                    selectedContainerColor = primaryColor.copy(alpha = 0.2f),
-                                    selectedLabelColor = textColor
+                                    selectedContainerColor = primaryColor.copy(alpha = 0.15f),
+                                    selectedLabelColor = primaryColor
                                 ),
                                 border = null,
                                 modifier = Modifier.height(32.dp)
@@ -758,8 +816,10 @@ fun CustomSearchBar(
             focusedContainerColor = surfaceColor,
             unfocusedContainerColor = surfaceColor,
             disabledContainerColor = surfaceColor,
-            focusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = primaryColor.copy(alpha = 0.5f),
             unfocusedIndicatorColor = Color.Transparent,
+            focusedLabelColor = primaryColor,
+            unfocusedPlaceholderColor = surfaceDimColor
         ),
         singleLine = true
     )

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.1] - 2026-04-20
+- UI/UX Refinement: Unificada la paleta de colores global (primary, secondary, tertiary) en todos los componentes y paneles.
+- UI Improvement: Personalizados los selectores de fecha (`CustomDatePickerDialog`) y hora (`CustomTimePickerDialog`) con la estética de la marca.
+- UI Standardization: Refactorizados `CustomTextField`, `CustomSearchBar` y `BottomNavBar` para usar estados visuales consistentes (foco, selección, inactividad).
+- UI/UX: Mejorada la distinción visual en diálogos de administración (`AsignarAsignaturas`, `AsignarProfesor`) mediante el uso de colores secundarios y terciarios.
+- UI Consistency: Reemplazados múltiples colores "hardcoded" por las variables de tema (`errorColor`, `textColor`, etc.) para asegurar compatibilidad total con modos claro/oscuro.
+- UI/UX: Refinadas las tarjetas de usuario y contenido (`UsuarioCardAdmin`, `UnidadCard`, `TareaCard`) eliminando bordes innecesarios para un diseño más limpio y moderno.
+
 ## [v0.4.0] - 2026-04-19
 - Bugfix: Resuelto error `mime type application/octet-stream is not supported` en Supabase Storage al subir adjuntos.
 - Fix: Implementada detección manual de MIME type y nombre de archivo original mediante `ContentResolver` y `OpenableColumns`.

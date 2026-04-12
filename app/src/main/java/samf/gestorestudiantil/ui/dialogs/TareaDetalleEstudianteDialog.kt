@@ -24,9 +24,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.AdjuntoInfo
 import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.secondaryColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -92,14 +97,14 @@ fun TareaDetalleEstudianteDialog(
                     Icon(
                         Icons.Default.CalendarToday, 
                         contentDescription = null, 
-                        tint = if (esVencida) MaterialTheme.colorScheme.error else primaryColor,
+                        tint = if (esVencida) errorColor else primaryColor,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Fecha límite: ${dateFormat.format(tarea.fechaLimiteEntrega.toDate())}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (esVencida) MaterialTheme.colorScheme.error else surfaceDimColor
+                        color = if (esVencida) errorColor else surfaceDimColor
                     )
                 }
 
@@ -138,8 +143,7 @@ fun TareaDetalleEstudianteDialog(
                         Text("TU ENTREGA", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium, color = primaryColor)
                         
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = primaryColor.copy(alpha = 0.05f)),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f))
+                            colors = CardDefaults.cardColors(containerColor = primaryColor.copy(alpha = 0.05f))
                         ) {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.AttachFile, contentDescription = null, tint = primaryColor)
@@ -149,8 +153,8 @@ fun TareaDetalleEstudianteDialog(
                                     Text("Entregada el: ${dateFormat.format(entrega.fechaEntrega.toDate())}", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
                                 }
                                 if (!esVencida && (entrega.calificacion == null)) {
-                                    IconButton(onClick = { state.onEliminarEntrega() }) {
-                                        Icon(Icons.Default.Delete, contentDescription = "Anular entrega", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                                    IconButton(onClick = { state.onEliminarEntrega() }, colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Anular entrega", tint = errorColor, modifier = Modifier.size(20.dp))
                                     }
                                 }
                             }
@@ -159,13 +163,14 @@ fun TareaDetalleEstudianteDialog(
                         if (entrega.calificacion != null) {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f))
+                                colors = CardDefaults.cardColors(containerColor = secondaryColor.copy(alpha = 0.1f)),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
-                                    Text("Nota: ${entrega.calificacion}", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                    Text("Nota: ${entrega.calificacion}", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = secondaryColor)
                                     entrega.comentarioProfesor?.let {
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text(it, style = MaterialTheme.typography.bodySmall)
+                                        Text(it, style = MaterialTheme.typography.bodySmall, color = textColor)
                                     }
                                 }
                             }
@@ -173,9 +178,9 @@ fun TareaDetalleEstudianteDialog(
                     }
                 } else if (esVencida) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = errorColor)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Plazo finalizado. No puedes realizar entregas.", color = MaterialTheme.colorScheme.error)
+                        Text("Plazo finalizado. No puedes realizar entregas.", color = errorColor)
                     }
                 } else {
                     // Sección para realizar entrega
@@ -227,16 +232,16 @@ fun TareaDetalleEstudianteDialog(
                         }
                     },
                     enabled = selectedFileUri != null && !uiState.isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor, contentColor = whiteColor)
                 ) {
-                    if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = textColor)
+                    if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = whiteColor)
                     else Text("Entregar")
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Cerrar")
+                Text("Cerrar", color = secondaryColor)
             }
         }
     )

@@ -65,15 +65,16 @@ fun CalificacionesAsignaturaPanel(
                 Text(asignatura.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
             }
 
-            // BLOQUE 1: Contenido con márgenes
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp))
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 120.dp)
+            )
             {
                 items(evaluaciones)
                 {
                         modulo ->
                     EvaluacionCard(modulo)
                 }
-                item{Spacer(modifier = Modifier.height(16.dp))}
             }
 
             Row(modifier = Modifier.padding(end = 16.dp)) {
