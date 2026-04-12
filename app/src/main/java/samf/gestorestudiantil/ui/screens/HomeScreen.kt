@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.Grading
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
@@ -22,17 +24,22 @@ import androidx.compose.material.icons.outlined.Class
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,6 +70,7 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.isDetailRoute
 import samf.gestorestudiantil.domain.tabToRoute
 import samf.gestorestudiantil.ui.components.BottomNavBar
+import samf.gestorestudiantil.ui.components.IconLogo
 import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
@@ -84,6 +92,7 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.CurrentUserUiState
@@ -288,18 +297,27 @@ fun HomeScreen(
         },
         topBar = {
             if (currentPageTab != "Perfil") {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = {
-                        TopBarRow(
-                            name = usuario.nombre,
-                            role = usuario.rol,
-                            curso = usuario.cursoOArea,
-                            imgUrl = usuario.imgUrl,
-                            onNavigateProfile = onNavigateProfile,
-                            onLogout = onLogout
-                        )
+                        IconLogo(width = 125.dp)
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
+                    navigationIcon = {
+                        if (currentPageBackStack != null && currentPageBackStack.size > 1) {
+                            IconButton(
+                                onClick = { currentPageBackStack.removeLastOrNull() },
+                                colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowBackIosNew,
+                                    contentDescription = "Regresar",
+                                    tint = surfaceDimColor
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = backgroundColor
                     )
                 )

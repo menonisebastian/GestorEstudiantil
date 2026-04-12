@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,7 +27,6 @@ import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MateriaDetalleProfesorPanel(
     asignatura: Asignatura,
@@ -35,7 +35,7 @@ fun MateriaDetalleProfesorPanel(
     onOpenDialog: (DialogState) -> Unit,
     appViewModel: AppViewModel = hiltViewModel()
 ) {
-    val viewModel: ProfesorViewModel = viewModel()
+    val viewModel: ProfesorViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(asignatura.id) {
@@ -43,83 +43,62 @@ fun MateriaDetalleProfesorPanel(
         viewModel.marcarAsignaturaComoLeida(profesor.id, asignatura.id)
     }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.height(56.dp),
-                title = {
-                    Box(modifier = Modifier.fillMaxWidth().padding(end = 16.dp)) {
-                        Column(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
-                            Text(
-                                text = titulo,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textColor,
-                                lineHeight = 18.sp
-                            )
-                            Text(
-                                text = asignatura.nombre,
-                                fontSize = 12.sp,
-                                color = textColor.copy(alpha = 0.7f),
-                                fontWeight = FontWeight.Normal,
-                                lineHeight = 14.sp
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                            contentDescription = "Volver",
-                            tint = textColor
-                        )
-                    }
-                },
-                windowInsets = WindowInsets(0.dp),
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
-            )
-        },
-        contentWindowInsets = WindowInsets(0.dp),
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    onOpenDialog(
-                        DialogState.AddUnidad(
-                            asignaturaId = asignatura.id,
-                            onSave = { nombre, desc, visible ->
-                                viewModel.crearUnidad(asignatura.id, nombre, desc, visible)
-                            }
-                        )
-                    )
-                },
-                containerColor = primaryColor,
-                modifier = Modifier.padding(bottom = 70.dp) // Añadido padding bottom para que no tape el bottom nav
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir Unidad", tint = textColor)
-            }
-        }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             item {
-                Text(
-                    text = "Contenido de la asignatura",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = textColor,
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AccImg(
+                            imgUrl = profesor.imgUrl,
+                            onClick = {
+                                onOpenDialog(DialogState.UserProfile(profesor))
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Profesor/a",
+                                fontSize = 12.sp,
+                                color = textColor.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = profesor.nombre,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textColor
+                            )
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
+                        Text(
+                            text = titulo,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                            lineHeight = 18.sp
+                        )
+                        Text(
+                            text = asignatura.nombre,
+                            fontSize = 12.sp,
+                            color = textColor.copy(alpha = 0.7f),
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 14.sp
+                        )
+                    }
+                }
             }
 
             if (state.unidades.isEmpty()) {
@@ -291,6 +270,25 @@ fun MateriaDetalleProfesorPanel(
                     }
                 )
             }
+        }
+
+        FloatingActionButton(
+            onClick = {
+                onOpenDialog(
+                    DialogState.AddUnidad(
+                        asignaturaId = asignatura.id,
+                        onSave = { nombre, desc, visible ->
+                            viewModel.crearUnidad(asignatura.id, nombre, desc, visible)
+                        }
+                    )
+                )
+            },
+            containerColor = primaryColor,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 86.dp, end = 16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Añadir Unidad", tint = textColor)
         }
     }
 }

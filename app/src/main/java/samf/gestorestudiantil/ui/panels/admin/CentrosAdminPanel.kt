@@ -74,11 +74,6 @@ fun AdminHeader(titulo: String, onBack: (() -> Unit)? = null) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
     ) {
-        if (onBack != null) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-            }
-        }
         Text(
             text = titulo,
             fontSize = 22.sp,
@@ -103,7 +98,7 @@ fun CentrosListScreen(
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 120.dp)
+                contentPadding = PaddingValues(bottom = 160.dp)
             ) {
                 item {
                     Button(onClick = { adminViewModel.cargarDatosDesdeJsonl(context) }, modifier = Modifier.padding(vertical = 8.dp)) {
@@ -130,7 +125,7 @@ fun TiposCursoScreen(
         val tipos = adminState.cursos.mapNotNull { it.tipo }.distinct().sorted()
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(tipos) { tipo -> TipoCursoCard(tipo) { onTipoClick(tipo) } }
         }
@@ -152,7 +147,7 @@ fun CursosScreen(
         val cursos = adminState.cursos.filter { it.tipo == tipo }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(cursos) { curso -> CursoCard(curso = curso, onClick = { onCursoClick(curso) }, onEdit = { onEditCurso(curso) }) }
         }
@@ -169,7 +164,7 @@ fun TurnosScreen(
         AdminHeader("Turnos de ${curso.acronimo}", onBack)
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(curso.turnosDisponibles) { turno ->
                 TipoCursoCard(turno.replaceFirstChar { it.uppercase() }) { onTurnoClick(turno) }
@@ -192,7 +187,7 @@ fun CiclosScreen(
         val ciclos = adminState.asignaturas.mapNotNull { it.ciclo }.distinct().sorted()
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(ciclos) { ciclo ->
                 Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = surfaceColor)) {
@@ -224,7 +219,7 @@ fun AsignaturasScreen(
         val asignaturas = adminState.asignaturas.filter { it.ciclo == ciclo }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(asignaturas) { asignatura ->
                 AsignaturaCard(
@@ -256,7 +251,7 @@ fun HorariosAdminScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         AdminHeader("Horario - $tituloHorario", onBack)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 120.dp)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 160.dp)) {
             items(slots) { slot ->
                 val isReceso = slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")
                 if (!isReceso) {

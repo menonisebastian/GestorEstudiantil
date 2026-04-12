@@ -2,13 +2,17 @@ package samf.gestorestudiantil.ui.screens.admin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
@@ -19,9 +23,9 @@ import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.IconPickerField
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCentroScreen(
     state: DialogState.EditCentro,
@@ -31,57 +35,35 @@ fun EditCentroScreen(
     var direccion by remember { mutableStateOf(state.centro?.direccion ?: "") }
     var tipo by remember { mutableStateOf(state.centro?.tipo ?: "") }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            TopAppBar(
-                title = { Text(if (state.centro == null) "Añadir Centro" else "Editar ${state.centro.nombre}", color = textColor) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
-                windowInsets = WindowInsets(top = 0.dp)
-            )
-        },
-        bottomBar = {
-            Surface(color = backgroundColor, shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = onBack,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Cancelar")
-                    }
-                    Button(
-                        onClick = {
-                            val centro = state.centro?.copy(nombre = nombre, direccion = direccion, tipo = tipo)
-                                ?: Centro(nombre = nombre, direccion = direccion, tipo = tipo)
-                            state.onSave(centro)
-                            onBack()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Guardar")
-                    }
-                }
-            }
-        }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = if (state.centro == null) "Añadir Centro" else "Editar Centro",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                state.centro?.let {
+                    Text(
+                        text = it.nombre,
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
             if (state.centro != null) {
                 OutlinedButton(
                     onClick = {
@@ -94,7 +76,6 @@ fun EditCentroScreen(
                     Text("Eliminar Centro")
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
             CustomTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -110,12 +91,46 @@ fun EditCentroScreen(
                 onValueChange = { tipo = it },
                 label = "Tipo (ej. Instituto de Educación Secundaria)"
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(180.dp))
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
+                ) {
+                    Text("Cancelar")
+                }
+                Button(
+                    onClick = {
+                        val centro = state.centro?.copy(nombre = nombre, direccion = direccion, tipo = tipo)
+                            ?: Centro(nombre = nombre, direccion = direccion, tipo = tipo)
+                        state.onSave(centro)
+                        onBack()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                ) {
+                    Text("Guardar", color = textColor)
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCursoScreen(
     state: DialogState.EditCurso,
@@ -133,60 +148,35 @@ fun EditCursoScreen(
     var colorIconoHex by remember { mutableStateOf(state.curso?.colorIconoHex ?: "#2563EB") }
     var turnosStr by remember { mutableStateOf(state.curso?.turnosDisponibles?.joinToString(", ") ?: "") }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            TopAppBar(
-                title = { Text(if (state.curso == null) "Añadir Curso" else "Editar ${state.curso.acronimo}", color = textColor) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
-                windowInsets = WindowInsets(top = 0.dp)
-            )
-        },
-        bottomBar = {
-            Surface(color = backgroundColor, shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Cancelar") }
-                    Button(
-                        onClick = {
-                            val turnosList = turnosStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                            val curso = state.curso?.copy(
-                                acronimo = acronimo, nombre = nombre, descripcion = descripcion, centroId = state.centroId, tipo = tipo,
-                                modalidad = modalidad, urlInfo = urlInfo, horasTotalesCurso = horasTotalesCurso.toIntOrNull() ?: 0,
-                                iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex,
-                                turnosDisponibles = turnosList
-                            ) ?: Curso(
-                                centroId = state.centroId, acronimo = acronimo, nombre = nombre, descripcion = descripcion, tipo = tipo,
-                                modalidad = modalidad, urlInfo = urlInfo, horasTotalesCurso = horasTotalesCurso.toIntOrNull() ?: 0,
-                                iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex,
-                                turnosDisponibles = turnosList
-                            )
-                            state.onSave(curso)
-                            onBack()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Guardar") }
-                }
-            }
-        }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = if (state.curso == null) "Añadir Curso" else "Editar Curso",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                state.curso?.let {
+                    Text(
+                        text = it.acronimo,
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
             if (state.curso != null) {
                 OutlinedButton(
                     onClick = {
@@ -194,12 +184,11 @@ fun EditCursoScreen(
                         onBack()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
                     Text("Eliminar Curso")
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
             CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. DAM)")
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
             CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
@@ -212,12 +201,56 @@ fun EditCursoScreen(
             IconPickerField(value = iconoName, onValueChange = { iconoName = it })
             ColorPickerField(label = "Color Fondo Hex", value = colorFondoHex, onValueChange = { colorFondoHex = it })
             ColorPickerField(label = "Color Icono Hex", value = colorIconoHex, onValueChange = { colorIconoHex = it })
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(180.dp))
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
+                ) {
+                    Text("Cancelar")
+                }
+                Button(
+                    onClick = {
+                        val turnosList = turnosStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        val curso = state.curso?.copy(
+                            acronimo = acronimo, nombre = nombre, descripcion = descripcion, centroId = state.centroId, tipo = tipo,
+                            modalidad = modalidad, urlInfo = urlInfo, horasTotalesCurso = horasTotalesCurso.toIntOrNull() ?: 0,
+                            iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex,
+                            turnosDisponibles = turnosList
+                        ) ?: Curso(
+                            centroId = state.centroId, acronimo = acronimo, nombre = nombre, descripcion = descripcion, tipo = tipo,
+                            modalidad = modalidad, urlInfo = urlInfo, horasTotalesCurso = horasTotalesCurso.toIntOrNull() ?: 0,
+                            iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex,
+                            turnosDisponibles = turnosList
+                        )
+                        state.onSave(curso)
+                        onBack()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                ) {
+                    Text("Guardar", color = textColor)
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditAsignaturaScreen(
     state: DialogState.EditAsignatura,
@@ -235,60 +268,35 @@ fun EditAsignaturaScreen(
     var colorFondoHex by remember { mutableStateOf(state.asignatura?.colorFondoHex ?: "#E8E8E8") }
     var colorIconoHex by remember { mutableStateOf(state.asignatura?.colorIconoHex ?: "#6B7280") }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            TopAppBar(
-                title = { Text(if (state.asignatura == null) "Añadir Asignatura" else "Editar ${state.asignatura.acronimo}", color = textColor) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
-                windowInsets = WindowInsets(top = 0.dp)
-            )
-        },
-        bottomBar = {
-            Surface(color = backgroundColor, shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Cancelar") }
-                    Button(
-                        onClick = {
-                            val asignatura = state.asignatura?.copy(
-                                acronimo = acronimo, nombre = nombre, descripcion = descripcion, profesorId = profesorId,
-                                cursoId = state.cursoId, centroId = state.centroId,
-                                ciclo = ciclo, cicloNum = cicloNum.toIntOrNull() ?: 1, horasTotales = horasTotales.toIntOrNull() ?: 0,
-                                horasSemanales = horasSemanales.toIntOrNull() ?: 0, iconoName = iconoName,
-                                colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex
-                            ) ?: Asignatura(
-                                cursoId = state.cursoId, centroId = state.centroId, acronimo = acronimo, nombre = nombre,
-                                descripcion = descripcion, profesorId = profesorId, ciclo = ciclo, cicloNum = cicloNum.toIntOrNull() ?: 1,
-                                horasTotales = horasTotales.toIntOrNull() ?: 0, horasSemanales = horasSemanales.toIntOrNull() ?: 0,
-                                iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex
-                            )
-                            state.onSave(asignatura)
-                            onBack()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Guardar") }
-                }
-            }
-        }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = if (state.asignatura == null) "Añadir Asignatura" else "Editar Asignatura",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                state.asignatura?.let {
+                    Text(
+                        text = it.acronimo,
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
             if (state.asignatura != null) {
                 OutlinedButton(
                     onClick = {
@@ -296,12 +304,11 @@ fun EditAsignaturaScreen(
                         onBack()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
                     Text("Eliminar Asignatura")
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
             CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. AD)")
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
             CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
@@ -314,12 +321,56 @@ fun EditAsignaturaScreen(
             IconPickerField(value = iconoName, onValueChange = { iconoName = it })
             ColorPickerField(label = "Color Fondo Hex", value = colorFondoHex, onValueChange = { colorFondoHex = it })
             ColorPickerField(label = "Color Icono Hex", value = colorIconoHex, onValueChange = { colorIconoHex = it })
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(180.dp))
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
+                ) {
+                    Text("Cancelar")
+                }
+                Button(
+                    onClick = {
+                        val asignatura = state.asignatura?.copy(
+                            acronimo = acronimo, nombre = nombre, descripcion = descripcion, profesorId = profesorId,
+                            cursoId = state.cursoId, centroId = state.centroId,
+                            ciclo = ciclo, cicloNum = cicloNum.toIntOrNull() ?: 1, horasTotales = horasTotales.toIntOrNull() ?: 0,
+                            horasSemanales = horasSemanales.toIntOrNull() ?: 0, iconoName = iconoName,
+                            colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex
+                        ) ?: Asignatura(
+                            cursoId = state.cursoId, centroId = state.centroId, acronimo = acronimo, nombre = nombre,
+                            descripcion = descripcion, profesorId = profesorId, ciclo = ciclo, cicloNum = cicloNum.toIntOrNull() ?: 1,
+                            horasTotales = horasTotales.toIntOrNull() ?: 0, horasSemanales = horasSemanales.toIntOrNull() ?: 0,
+                            iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex
+                        )
+                        state.onSave(asignatura)
+                        onBack()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                ) {
+                    Text("Guardar", color = textColor)
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditUserScreen(
     state: DialogState.EditUser,
@@ -337,57 +388,33 @@ fun EditUserScreen(
 
     val acronimosCursos = remember(state.cursos) { state.cursos.map { it.acronimo } }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            TopAppBar(
-                title = { Text("Editar ${state.user.nombre}", color = textColor) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
-                windowInsets = WindowInsets(top = 0.dp)
-            )
-        },
-        bottomBar = {
-            Surface(color = backgroundColor, shadowElevation = 8.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Cancelar") }
-                    Button(
-                        onClick = {
-                            val updatedUser = state.user.copy(
-                                nombre = nombre,
-                                rol = rol,
-                                cursoId = cursoId,
-                                cursoOArea = cursoOArea,
-                                turno = turno,
-                                cicloNum = cicloNum.toIntOrNull() ?: 1
-                            )
-                            state.onSave(updatedUser)
-                            onBack()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Guardar") }
-                }
-            }
-        }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "Editar Usuario",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                Text(
+                    text = state.user.nombre,
+                    fontSize = 12.sp,
+                    color = textColor.copy(alpha = 0.7f)
+                )
+            }
+
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre")
 
             Text("Rol", style = MaterialTheme.typography.labelLarge)
@@ -450,7 +477,47 @@ fun EditUserScreen(
                 },
                 label = "Ciclo (1 o 2)"
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(180.dp))
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Text("Cancelar")
+                }
+                Button(
+                    onClick = {
+                        val updatedUser = state.user.copy(
+                            nombre = nombre,
+                            rol = rol,
+                            cursoId = cursoId,
+                            cursoOArea = cursoOArea,
+                            turno = turno,
+                            cicloNum = cicloNum.toIntOrNull() ?: 1
+                        )
+                        state.onSave(updatedUser)
+                        onBack()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                ) {
+                    Text("Guardar", color = textColor)
+                }
+            }
         }
     }
 }

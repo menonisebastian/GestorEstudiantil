@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
@@ -23,7 +24,6 @@ import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MateriaDetalleEstudiantePanel(
     asignatura: Asignatura,
@@ -31,8 +31,8 @@ fun MateriaDetalleEstudiantePanel(
     onBackClick: () -> Unit,
     onOpenDialog: (DialogState) -> Unit
 ) {
-    val viewModel: EstudianteViewModel = viewModel()
-    val profesorViewModel: ProfesorViewModel = viewModel()
+    val viewModel: EstudianteViewModel = hiltViewModel()
+    val profesorViewModel: ProfesorViewModel = hiltViewModel()
     val state by profesorViewModel.state.collectAsState()
 
     LaunchedEffect(asignatura.id) {
@@ -40,64 +40,22 @@ fun MateriaDetalleEstudiantePanel(
         profesorViewModel.cargarProfesor(asignatura.profesorId)
     }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.height(56.dp),
-                title = {
-                    Box(modifier = Modifier.fillMaxWidth().padding(end = 16.dp)) {
-                        Column(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
-                            Text(
-                                text = titulo,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textColor,
-                                lineHeight = 18.sp
-                            )
-                            Text(
-                                text = asignatura.nombre,
-                                fontSize = 12.sp,
-                                color = textColor.copy(alpha = 0.7f),
-                                fontWeight = FontWeight.Normal,
-                                lineHeight = 14.sp
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                            contentDescription = "Volver",
-                            tint = textColor
-                        )
-                    }
-                },
-                windowInsets = WindowInsets(0),
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
-            )
-        },
-        contentWindowInsets = WindowInsets(0)
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 120.dp)
-        ) {
-            item {
-                val profesor by profesorViewModel.profesor.collectAsState()
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 16.dp)
-                ) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(bottom = 160.dp)
+    ) {
+        item {
+            val profesor by profesorViewModel.profesor.collectAsState()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     AccImg(
                         imgUrl = profesor?.imgUrl ?: "",
                         onClick = {
@@ -119,7 +77,26 @@ fun MateriaDetalleEstudiantePanel(
                         )
                     }
                 }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
+                    Text(
+                        text = titulo,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        lineHeight = 18.sp
+                    )
+                    Text(
+                        text = asignatura.nombre,
+                        fontSize = 12.sp,
+                        color = textColor.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Normal,
+                        lineHeight = 14.sp
+                    )
+                }
             }
+        }
 
             val unidadesVisibles = state.unidades.filter { it.visible }
 
@@ -174,5 +151,4 @@ fun MateriaDetalleEstudiantePanel(
                 )
             }
         }
-    }
 }

@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.panels.estudiante
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,51 +42,46 @@ fun CalificacionesAsignaturaPanel(
     } else 0.0
 
     Column(modifier = Modifier
-        .padding(paddingValues)
+        .padding(horizontal = 20.dp)
         .fillMaxSize()
     )
     {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically)
+        {
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(imageVector = asignatura.iconoName.toComposeIcon(), contentDescription = "Asignatura", tint = textColor, modifier = Modifier.padding(end = 8.dp))
+            Text(asignatura.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         )
         {
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp))
+            items(evaluaciones)
             {
-                IconButton(onClick = {onBackClick()})
-                {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Ver Calificaciones", tint = textColor)
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Icon(imageVector = asignatura.iconoName.toComposeIcon(), contentDescription = "Ver Calificaciones", tint = textColor, modifier = Modifier.padding(end = 8.dp))
-                Text(asignatura.nombre, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                    modulo ->
+                EvaluacionCard(modulo)
             }
+        }
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 120.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 120.dp), // Espacio para que el BottomBar no lo tape
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = String.format(java.util.Locale.getDefault(), "Nota media: %.2f", notaMedia),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor
             )
-            {
-                items(evaluaciones)
-                {
-                        modulo ->
-                    EvaluacionCard(modulo)
-                }
-            }
-
-            Row(modifier = Modifier.padding(end = 16.dp)) {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = String.format(java.util.Locale.getDefault(), "Nota media: %.2f", notaMedia),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
-                )
-            }
         }
     }
 }

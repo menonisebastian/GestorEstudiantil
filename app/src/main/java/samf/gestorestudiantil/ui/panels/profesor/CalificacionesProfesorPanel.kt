@@ -252,9 +252,6 @@ fun EstudiantesAsignaturaLista(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-            }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
                 Text(
@@ -359,21 +356,7 @@ fun CalificacionesDetalleEstudiante(
         viewModel.cargarEvaluacionesEstudiante(estudiante.id, asignatura.id)
     }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id)
-                    showDialog = true
-                },
-                containerColor = primaryColor,
-                modifier = Modifier.padding(bottom = 70.dp) // Padding bottom para no tapar el bottom nav
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
-            }
-        }
-    ) { _ -> // Ignoramos paddingValues del Scaffold interno para reducir el espacio superior
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier
             .padding(horizontal = 20.dp)
             .fillMaxSize()) {
@@ -381,9 +364,6 @@ fun CalificacionesDetalleEstudiante(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Volver", tint = textColor)
-                }
                 AsyncImage(
                     model = estudiante.imgUrl,
                     contentDescription = null,
@@ -446,6 +426,19 @@ fun CalificacionesDetalleEstudiante(
                     }
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = {
+                evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id)
+                showDialog = true
+            },
+            containerColor = primaryColor,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 86.dp, end = 20.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
         }
     }
 

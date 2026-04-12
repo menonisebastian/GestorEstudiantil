@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.4.6] - 2026-04-25
+- Mejora de UI: Rediseñados los botones de acción en las pantallas de edición de Administración como "píldoras flotantes".
+- UI/UX: Implementado `RoundedCornerShape(24.dp)` y elevación en los contenedores de botones para una estética más moderna y coherente.
+- Corrección de Diseño: Ajustado el posicionamiento de los botones de guardado/cancelado para elevarlos sobre la `BottomNavBar` flotante, evitando solapamientos.
+- Estandarización: Aplicado el nuevo estilo de botones y espaciado de formulario de 180dp en todas las pantallas de edición (Centros, Cursos, Asignaturas, Usuarios).
+
 ## [v0.4.5] - 2026-04-24
 - Característica: Integración del ítem de "Perfil" en la barra de navegación inferior para todos los roles (ADMIN, PROFESOR, ESTUDIANTE).
 - Mejora de UI: El icono de la pestaña Perfil ahora muestra dinámicamente la imagen del usuario (`AsyncImage`) con un tamaño optimizado de 24dp.
