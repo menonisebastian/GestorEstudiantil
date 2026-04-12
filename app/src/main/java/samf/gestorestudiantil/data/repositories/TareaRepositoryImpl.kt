@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.data.repositories
 
 import io.github.jan.supabase.storage.Storage
+import io.ktor.http.ContentType
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -40,14 +41,22 @@ class TareaRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?): String {
+    override suspend fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String?): String {
         val tareaId = "tarea_${tarea.asignaturaId}_${System.currentTimeMillis()}"
         var adjunto: AdjuntoInfo? = null
 
         if (fileData != null && fileName != null) {
             val path = "tareas/$tareaId/$fileName"
             val bucket = storage.from("gestor-estudiantil")
-            bucket.upload(path, fileData) { upsert = true}
+            bucket.upload(path, fileData) {
+                upsert = true
+                try {
+                    mimeType?.let { contentType = ContentType.parse(it) }
+                } catch (e: Exception) {
+                    // Si falla el parseo, dejamos que Supabase decida o asignamos uno genérico
+                    contentType = ContentType.Application.OctetStream
+                }
+            }
             
             val url = bucket.createSignedUrl(path, expiresIn = 24.hours)
             
@@ -65,7 +74,7 @@ class TareaRepositoryImpl @Inject constructor(
         return tareaId
     }
 
-    override suspend fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?): String {
+    override suspend fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String?): String {
         var adjunto = tarea.adjunto
 
         if (fileData != null && fileName != null) {
@@ -73,7 +82,14 @@ class TareaRepositoryImpl @Inject constructor(
             // Para simplificar, subimos el nuevo.
             val path = "tareas/${tarea.id}/$fileName"
             val bucket = storage.from("gestor-estudiantil")
-            bucket.upload(path, fileData) { upsert = true}
+            bucket.upload(path, fileData) { 
+                upsert = true
+                try {
+                    mimeType?.let { contentType = ContentType.parse(it) }
+                } catch (e: Exception) {
+                    contentType = ContentType.Application.OctetStream
+                }
+            }
             
             val url = bucket.createSignedUrl(path, expiresIn = 24.hours)
             
@@ -128,12 +144,20 @@ class TareaRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String) {
+    override suspend fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String, mimeType: String?) {
         val entregaId = "entrega_${entrega.tareaId}_${entrega.estudianteId}"
         val path = "entregas/${entrega.tareaId}/${entrega.estudianteId}/$fileName"
         
         val bucket = storage.from("gestor-estudiantil")
-        bucket.upload(path, fileData) { upsert = true}
+        bucket.upload(path, fileData) {
+            upsert = true
+            try {
+                mimeType?.let { contentType = ContentType.parse(it) }
+            } catch (e: Exception) {
+                // Si falla el parseo, dejamos que Supabase decida o asignamos uno genérico
+                contentType = ContentType.Application.OctetStream
+            }
+        }
         
         val url = bucket.createSignedUrl(path, expiresIn = 24.hours)
         

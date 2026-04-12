@@ -143,7 +143,9 @@ fun MateriaDetalleEstudiantePanel(
                         onOpenDialog(
                             DialogState.TareaDetalleEstudiante(
                                 tarea = tarea,
-                                onEntregar = { fileData, fileName ->
+                                estudianteId = estudiante.id,
+                                estudianteNombre = estudiante.nombre,
+                                onEntregar = { fileData, fileName, mimeType ->
                                     viewModel.realizarEntrega(
                                         samf.gestorestudiantil.data.models.Entrega(
                                             tareaId = tarea.id,
@@ -153,11 +155,18 @@ fun MateriaDetalleEstudiantePanel(
                                             asignaturaId = tarea.asignaturaId
                                         ),
                                         fileData,
-                                        fileName
+                                        fileName,
+                                        mimeType
                                     )
                                 },
                                 onEliminarEntrega = {
-                                    // Se maneja dentro del diálogo o vía un Confirmación
+                                    viewModel.state.value.miEntrega?.let {
+                                        onOpenDialog(DialogState.Confirmation(
+                                            title = "Eliminar entrega",
+                                            content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                            onConfirm = { viewModel.eliminarEntrega(it) }
+                                        ))
+                                    }
                                 }
                             )
                         )

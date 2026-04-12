@@ -235,12 +235,37 @@ fun TareaCard(
                 }
 
                 if (tarea.adjunto != null) {
-                    Text(
-                        text = "Con adjunto",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = primaryColor,
-                        fontWeight = FontWeight.Bold
-                    )
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    TextButton(
+                        onClick = {
+                            tarea.adjunto?.urlDescarga?.let { url ->
+                                try {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    android.widget.Toast.makeText(context, "No se puede abrir el archivo", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Description,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = tarea.adjunto?.nombreArchivo ?: "Ver adjunto",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = primaryColor,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }

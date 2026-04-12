@@ -48,13 +48,27 @@ fun AddTareaDialog(
 
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var selectedFileName by remember { mutableStateOf(tarea?.adjunto?.nombreArchivo ?: "") }
+    var selectedFileSize by remember { mutableLongStateOf(tarea?.adjunto?.pesoBytes ?: 0L) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             selectedFileUri = it
-            selectedFileName = it.lastPathSegment ?: "archivo_seleccionado"
+            val cursor = context.contentResolver.query(it, null, null, null, null)
+            cursor?.use { c ->
+                val nameIndex = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                val sizeIndex = c.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                if (nameIndex != -1 && c.moveToFirst()) {
+                    selectedFileName = c.getString(nameIndex)
+                }
+                if (sizeIndex != -1) {
+                    selectedFileSize = c.getLong(sizeIndex)
+                }
+            }
+            if (selectedFileName.isEmpty()) {
+                selectedFileName = it.lastPathSegment ?: "archivo"
+            }
         }
     }
 
@@ -169,8 +183,16 @@ fun AddTareaDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Documento Adjunto (opcional)", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
+                            val displaySize = if (selectedFileSize > 0) {
+                                val kb = selectedFileSize / 1024.0
+                                if (kb > 1024) String.format(Locale.getDefault(), "%.2f MB", kb / 1024.0)
+                                else String.format(Locale.getDefault(), "%.2f KB", kb)
+                            } else ""
+                            
                             Text(
-                                text = selectedFileName.ifEmpty { "Seleccionar archivo..." },
+                                text = if (selectedFileName.isEmpty()) "Seleccionar archivo..." 
+                                       else if (displaySize.isNotEmpty()) "$selectedFileName ($displaySize)"
+                                       else selectedFileName,
                                 color = if (selectedFileName.isEmpty()) surfaceDimColor else textColor,
                                 maxLines = 1
                             )
@@ -179,6 +201,7 @@ fun AddTareaDialog(
                             IconButton(onClick = {
                                 selectedFileUri = null
                                 selectedFileName = tarea?.adjunto?.nombreArchivo ?: ""
+                                selectedFileSize = tarea?.adjunto?.pesoBytes ?: 0L
                             }) {
                                 Icon(Icons.Default.Close, contentDescription = "Quitar", modifier = Modifier.size(16.dp))
                             }
@@ -211,15 +234,18 @@ fun AddTareaDialog(
                     )
 
                     var fileData: ByteArray? = null
+                    var mimeType: String? = null
                     try {
                         selectedFileUri?.let { uri ->
                             fileData = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            mimeType = context.contentResolver.getType(uri)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        android.widget.Toast.makeText(context, "Error al leer el archivo: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
                     }
 
-                    state.onSave(nuevaTarea, fileData, selectedFileName)
+                    state.onSave(nuevaTarea, fileData, selectedFileName, mimeType)
                     onDismissRequest()
                 },
                 enabled = titulo.isNotBlank()

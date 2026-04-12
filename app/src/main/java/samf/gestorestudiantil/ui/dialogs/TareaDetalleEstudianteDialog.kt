@@ -49,13 +49,27 @@ fun TareaDetalleEstudianteDialog(
 
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var selectedFileName by remember { mutableStateOf("") }
+    var selectedFileSize by remember { mutableLongStateOf(0L) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             selectedFileUri = it
-            selectedFileName = it.lastPathSegment ?: "archivo"
+            val cursor = context.contentResolver.query(it, null, null, null, null)
+            cursor?.use { c ->
+                val nameIndex = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                val sizeIndex = c.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                if (nameIndex != -1 && c.moveToFirst()) {
+                    selectedFileName = c.getString(nameIndex)
+                }
+                if (sizeIndex != -1) {
+                    selectedFileSize = c.getLong(sizeIndex)
+                }
+            }
+            if (selectedFileName.isEmpty()) {
+                selectedFileName = it.lastPathSegment ?: "archivo"
+            }
         }
     }
 
@@ -92,7 +106,15 @@ fun TareaDetalleEstudianteDialog(
                 // 2. Adjunto del profesor (si existe)
                 tarea.adjunto?.let { adjunto ->
                     OutlinedCard(
-                        onClick = { /* TODO: Descargar/Ver archivo del profesor */ },
+                        onClick = { 
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(adjunto.urlDescarga))
+                                intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(context, "No se puede abrir el archivo", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.outlinedCardColors(containerColor = backgroundColor)
                     ) {
@@ -127,7 +149,7 @@ fun TareaDetalleEstudianteDialog(
                                     Text("Entregada el: ${dateFormat.format(entrega.fechaEntrega.toDate())}", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
                                 }
                                 if (!esVencida && (entrega.calificacion == null)) {
-                                    IconButton(onClick = { viewModel.eliminarEntrega(entrega) }) {
+                                    IconButton(onClick = { state.onEliminarEntrega() }) {
                                         Icon(Icons.Default.Delete, contentDescription = "Anular entrega", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                                     }
                                 }
@@ -167,8 +189,16 @@ fun TareaDetalleEstudianteDialog(
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.AttachFile, contentDescription = null, tint = surfaceDimColor)
                                 Spacer(modifier = Modifier.width(8.dp))
+                                val displaySize = if (selectedFileSize > 0) {
+                                    val kb = selectedFileSize / 1024.0
+                                    if (kb > 1024) String.format(Locale.getDefault(), "%.2f MB", kb / 1024.0)
+                                    else String.format(Locale.getDefault(), "%.2f KB", kb)
+                                } else ""
+                                
                                 Text(
-                                    selectedFileName.ifEmpty { "Seleccionar archivo para entregar..." },
+                                    text = if (selectedFileName.isEmpty()) "Seleccionar archivo para entregar..." 
+                                           else if (displaySize.isNotEmpty()) "$selectedFileName ($displaySize)"
+                                           else selectedFileName,
                                     color = if (selectedFileName.isEmpty()) surfaceDimColor else textColor,
                                     maxLines = 1,
                                     modifier = Modifier.weight(1f)
@@ -184,17 +214,15 @@ fun TareaDetalleEstudianteDialog(
                 Button(
                     onClick = {
                         selectedFileUri?.let { uri ->
-                            val fileData = context.contentResolver.openInputStream(uri)?.readBytes()
-                            if (fileData != null) {
-                                val entrega = Entrega(
-                                    tareaId = tarea.id,
-                                    estudianteId = estudianteId,
-                                    estudianteNombre = estudianteNombre,
-                                    profesorId = tarea.profesorId,
-                                    asignaturaId = tarea.asignaturaId
-                                )
-                                state.onEntregar(fileData, selectedFileName)
-                                onDismissRequest()
+                            try {
+                                val fileData = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                                val mimeType = context.contentResolver.getType(uri)
+                                if (fileData != null) {
+                                    state.onEntregar(fileData, selectedFileName, mimeType)
+                                    onDismissRequest()
+                                }
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(context, "Error al leer el archivo: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
                             }
                         }
                     },

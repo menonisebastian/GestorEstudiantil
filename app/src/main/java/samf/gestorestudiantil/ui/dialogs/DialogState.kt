@@ -124,12 +124,14 @@ sealed class DialogState {
         val asignaturaId: String,
         val unidadId: String,
         val tareaExistente: Tarea? = null,
-        val onSave: (Tarea, ByteArray?, String?) -> Unit // Tarea, fileData, fileName
+        val onSave: (Tarea, ByteArray?, String?, String?) -> Unit // Tarea, fileData, fileName, mimeType
     ) : DialogState()
 
     data class TareaDetalleEstudiante(
         val tarea: Tarea,
-        val onEntregar: (ByteArray, String) -> Unit,
+        val estudianteId: String,
+        val estudianteNombre: String,
+        val onEntregar: (ByteArray, String, String?) -> Unit,
         val onEliminarEntrega: () -> Unit
     ) : DialogState()
 

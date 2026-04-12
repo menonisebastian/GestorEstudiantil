@@ -1,15 +1,20 @@
 package samf.gestorestudiantil.ui.viewmodels
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
@@ -34,7 +39,8 @@ data class EstudianteState(
 class EstudianteViewModel @Inject constructor(
     private val estudianteRepository: EstudianteRepository,
     private val tareaRepository: TareaRepository,
-    private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase
+    private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EstudianteState())
@@ -105,6 +111,9 @@ class EstudianteViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = e.localizedMessage) }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al marcar como leída: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -138,13 +147,19 @@ class EstudianteViewModel @Inject constructor(
     // ====================================================================
     // GESTIÓN DE TAREAS Y ENTREGAS (Estudiante)
     // ====================================================================
-    fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String) {
+    fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String, mimeType: String? = null) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                tareaRepository.realizarEntrega(entrega, fileData, fileName)
+                tareaRepository.realizarEntrega(entrega, fileData, fileName, mimeType)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Tarea entregada con éxito", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al entregar: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al entregar: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -155,8 +170,14 @@ class EstudianteViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 tareaRepository.eliminarEntrega(entrega)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Entrega eliminada", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al eliminar entrega: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al eliminar entrega: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

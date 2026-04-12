@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.0] - 2026-04-19
+- Bugfix: Resuelto error `mime type application/octet-stream is not supported` en Supabase Storage al subir adjuntos.
+- Fix: Implementada detección manual de MIME type y nombre de archivo original mediante `ContentResolver` y `OpenableColumns`.
+- Improvement: Añadido soporte para `contentType` en `TareaRepository`, asegurando que Supabase identifique correctamente los archivos (PDF, DOCX, etc.) con fallback a `OctetStream` en caso de error.
+- UI/UX: Agregados mensajes de feedback (`Toast`) en el hilo principal para TODAS las acciones críticas (Unidades, Posts, Tareas, Entregas, Calificaciones, Marcado de lectura).
+- UI/UX: Los adjuntos en `TareaCard` y diálogos ahora son interactivos; permiten abrir el archivo directamente mediante `Intent.ACTION_VIEW`.
+- UI/UX: Implementada visualización del tamaño de archivo (KB/MB) en los selectores de archivos para mayor claridad del usuario.
+- Fix: Resuelto crash en `DialogOrchestrator` al intentar abrir el detalle de tarea desde el perfil de estudiante (error de casting de `DialogState`).
+- Refactor: Actualizados los diálogos y paneles de estudiante para propagar correctamente el contexto del alumno (`id`, `nombre`) a las entregas.
+
 ## [v0.3.9] - 2026-04-18
 - Refactor: Rediseñado el diálogo de creación de tareas (`AddTareaDialog`) separando los campos de fecha y hora en una disposición vertical para mejorar la usabilidad.
 - UI: Implementados selectores nativos de fecha (`DatePicker`) y hora (`TimePicker`) con corrección de desfase por zona horaria (UTC a Local).

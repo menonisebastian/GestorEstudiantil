@@ -101,45 +101,81 @@ class ProfesorViewModel @Inject constructor(
 
     fun crearUnidad(asignaturaId: String, nombre: String, descripcion: String, visible: Boolean) {
         viewModelScope.launch {
-            val nuevaUnidad = Unidad(
-                asignaturaId = asignaturaId,
-                nombre = nombre,
-                descripcion = descripcion,
-                visible = visible,
-                orden = (_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1
-            )
-            profesorRepository.crearUnidad(nuevaUnidad)
+            try {
+                val nuevaUnidad = Unidad(
+                    asignaturaId = asignaturaId,
+                    nombre = nombre,
+                    descripcion = descripcion,
+                    visible = visible,
+                    orden = (_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1
+                )
+                profesorRepository.crearUnidad(nuevaUnidad)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Unidad creada con éxito", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al crear unidad: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
     fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean) {
         viewModelScope.launch {
-            profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible)
+            try {
+                profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Unidad actualizada", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al editar unidad: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
     fun eliminarUnidad(unidadId: String) {
         viewModelScope.launch {
-            profesorRepository.eliminarUnidad(unidadId)
+            try {
+                profesorRepository.eliminarUnidad(unidadId)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Unidad eliminada", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al eliminar unidad: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
     fun crearPost(asignaturaId: String, unidadId: String, titulo: String, contenido: String, autorId: String, autorNombre: String, visible: Boolean) {
         viewModelScope.launch {
-            val nuevoPost = Post(
-                asignaturaId = asignaturaId,
-                unidadId = unidadId,
-                titulo = titulo,
-                contenido = contenido,
-                autorId = autorId,
-                autorNombre = autorNombre,
-                fechaCreacion = System.currentTimeMillis(),
-                visible = visible
-            )
-            profesorRepository.crearPost(nuevoPost)
-            if (visible) {
-                val asignatura = _state.value.asignaturas.find { it.id == asignaturaId }
-                enviarNotificacion(asignaturaId, titulo, autorNombre, asignatura?.acronimo ?: "")
+            try {
+                val nuevoPost = Post(
+                    asignaturaId = asignaturaId,
+                    unidadId = unidadId,
+                    titulo = titulo,
+                    contenido = contenido,
+                    autorId = autorId,
+                    autorNombre = autorNombre,
+                    fechaCreacion = System.currentTimeMillis(),
+                    visible = visible
+                )
+                profesorRepository.crearPost(nuevoPost)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Post publicado", Toast.LENGTH_SHORT).show()
+                }
+                if (visible) {
+                    val asignatura = _state.value.asignaturas.find { it.id == asignaturaId }
+                    enviarNotificacion(asignaturaId, titulo, autorNombre, asignatura?.acronimo ?: "")
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al crear post: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -199,39 +235,69 @@ class ProfesorViewModel @Inject constructor(
 
     fun editarPost(postId: String, titulo: String, contenido: String, visible: Boolean) {
         viewModelScope.launch {
-            profesorRepository.editarPost(postId, titulo, contenido, visible)
+            try {
+                profesorRepository.editarPost(postId, titulo, contenido, visible)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Post actualizado", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al editar post: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
     fun eliminarPost(postId: String) {
         viewModelScope.launch {
-            profesorRepository.eliminarPost(postId)
+            try {
+                profesorRepository.eliminarPost(postId)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Post eliminado", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al eliminar post: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
     // ====================================================================
     // 0.1 GESTIÓN DE TAREAS (Hybrid Firebase + Supabase)
     // ====================================================================
-    fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?) {
+    fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                tareaRepository.crearTarea(tarea, fileData, fileName)
+                tareaRepository.crearTarea(tarea, fileData, fileName, mimeType)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Tarea creada con éxito", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al crear tarea: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al crear tarea: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?) {
+    fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                tareaRepository.editarTarea(tarea, fileData, fileName)
+                tareaRepository.editarTarea(tarea, fileData, fileName, mimeType)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Tarea actualizada con éxito", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al editar tarea: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al editar tarea: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -242,8 +308,14 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 tareaRepository.eliminarTarea(tarea)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Tarea eliminada", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al eliminar tarea: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al eliminar tarea: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -352,10 +424,16 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 profesorRepository.guardarEvaluacion(evaluacion)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Evaluación guardada", Toast.LENGTH_SHORT).show()
+                }
                 // Enviar notificación al estudiante
                 enviarNotificacionCalificacion(evaluacion)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al guardar evaluación: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -411,8 +489,14 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 profesorRepository.eliminarEvaluacion(evaluacion.id)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Evaluación eliminada", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al eliminar: ${e.localizedMessage}") }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al eliminar evaluación: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

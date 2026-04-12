@@ -159,8 +159,8 @@ fun MateriaDetalleProfesorPanel(
                                     profesorId = profesor.id,
                                     centroId = asignatura.centroId
                                 ),
-                                onSave = { nuevaTarea, fileData, fileName ->
-                                    viewModel.crearTarea(nuevaTarea, fileData, fileName)
+                                onSave = { nuevaTarea, fileData, fileName, mimeType ->
+                                    viewModel.crearTarea(nuevaTarea, fileData, fileName, mimeType)
                                 }
                             )
                         )
@@ -218,8 +218,8 @@ fun MateriaDetalleProfesorPanel(
                                 asignaturaId = asignatura.id,
                                 unidadId = unidad.id,
                                 tareaExistente = tarea,
-                                onSave = { tareaEditada, fileData, fileName ->
-                                    viewModel.editarTarea(tareaEditada, fileData, fileName)
+                                onSave = { tareaEditada, fileData, fileName, mimeType ->
+                                    viewModel.editarTarea(tareaEditada, fileData, fileName, mimeType)
                                 }
                             )
                         )

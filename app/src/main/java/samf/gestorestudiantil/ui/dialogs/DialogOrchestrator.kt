@@ -124,7 +124,15 @@ fun DialogOrchestrator(
                 )
             }
 
-            is DialogState.TareaDetalleEstudiante,
+            is DialogState.TareaDetalleEstudiante -> {
+                TareaDetalleEstudianteDialog(
+                    state = state,
+                    estudianteId = state.estudianteId,
+                    estudianteNombre = state.estudianteNombre,
+                    onDismissRequest = dismissAction
+                )
+            }
+
             is DialogState.VerEntregasProfesor -> {
                 VerEntregasProfesorDialog(
                     state = state as DialogState.VerEntregasProfesor,
