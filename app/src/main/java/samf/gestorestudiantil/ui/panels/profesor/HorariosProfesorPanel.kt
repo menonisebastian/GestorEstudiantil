@@ -120,7 +120,8 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
         else -> surfaceDimColor.copy(alpha = 0.1f)
     }
 
-    val contentColor = if (asignatura != null || isReceso) whiteColor else textColor
+    val contentColor = Color.Black // Título siempre negro
+    val subColor = surfaceDimColor // Subtítulos siempre surfaceDimColor
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -141,20 +142,20 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
                     },
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = if (horario != null || isReceso) contentColor.copy(alpha = 0.9f) else surfaceDimColor
+                    color = contentColor
                 )
                 if (asignatura != null && !isReceso) {
                     Text(
                         text = asignatura.nombre,
                         fontSize = 12.sp,
-                        color = contentColor.copy(alpha = 0.7f),
+                        color = subColor,
                         lineHeight = 14.sp
                     )
                 }
                 Text(
                     text = slot,
                     fontSize = 13.sp,
-                    color = if (horario != null || isReceso) contentColor.copy(alpha = 0.7f) else surfaceDimColor
+                    color = subColor
                 )
             }
             
@@ -171,14 +172,14 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
                         text = "$acronimoCurso $inicialTurno${horario.cicloNum}",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = contentColor.copy(alpha = 0.9f)
+                        color = contentColor
                     )
                     if (horario.aula.isNotEmpty()) {
                         Text(
                             text = "Aula: ${horario.aula}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = contentColor.copy(alpha = 0.7f)
+                            color = subColor
                         )
                     }
                 }

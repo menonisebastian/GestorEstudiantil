@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
@@ -62,8 +63,8 @@ import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +72,8 @@ fun UsuariosAdminPanel(
     paddingValues: PaddingValues,
     usuarioActual: User,
     adminViewModel: AdminViewModel = viewModel(),
-    onOpenDialog: (DialogState) -> Unit // <-- NUEVO PARÁMETRO
+    onOpenDialog: (DialogState) -> Unit,
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     var textoBusqueda by remember { mutableStateOf("") }
@@ -237,7 +239,15 @@ fun UsuariosAdminPanel(
                                         title = "Eliminar Usuario",
                                         content = "¿Desea eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.",
                                         onConfirm = {
+                                            val usuarioEliminado = usuario
                                             adminViewModel.rechazarOEliminarUsuario(usuario.id)
+                                            appViewModel.showSnackbar(
+                                                message = "Usuario eliminado",
+                                                actionLabel = "Deshacer",
+                                                onAction = {
+                                                    adminViewModel.guardarUsuario(usuarioEliminado)
+                                                }
+                                            )
                                         }
                                     )
                                 )
@@ -246,7 +256,8 @@ fun UsuariosAdminPanel(
                                 onOpenDialog(DialogState.UserProfile(usuario))
                             },
                             onOpenDialog = onOpenDialog,
-                            adminState = adminState
+                            adminState = adminState,
+                            appViewModel = appViewModel
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -266,7 +277,8 @@ fun UsuarioCardAdmin(
     onUserDialog: () -> Unit,
     onOpenDialog: (DialogState) -> Unit,
     adminViewModel: AdminViewModel = viewModel(),
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState // <--- AÑADIDO
+    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
     val softRed = Color(0xFFD74132)
     Card(

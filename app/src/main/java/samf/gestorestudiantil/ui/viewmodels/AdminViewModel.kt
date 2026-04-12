@@ -160,9 +160,12 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarCentro(centroId: String) {
+    fun eliminarCentro(centro: Centro) {
         viewModelScope.launch {
-            try { adminRepository.eliminarCentro(centroId) }
+            try { 
+                adminRepository.eliminarCentro(centro.id)
+                // Aquí se podría disparar el snackbar global si tuviéramos acceso a AppViewModel o un flow de eventos
+            }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
         }
     }
@@ -174,9 +177,11 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarCurso(cursoId: String) {
+    fun eliminarCurso(curso: Curso) {
         viewModelScope.launch {
-            try { adminRepository.eliminarCurso(cursoId) }
+            try { 
+                adminRepository.eliminarCurso(curso.id)
+            }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
         }
     }
@@ -188,9 +193,11 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarAsignatura(asignaturaId: String) {
+    fun eliminarAsignatura(asignatura: Asignatura) {
         viewModelScope.launch {
-            try { adminRepository.eliminarAsignatura(asignaturaId) }
+            try { 
+                adminRepository.eliminarAsignatura(asignatura.id)
+            }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
         }
     }

@@ -45,8 +45,10 @@ fun <T> CardItem(
                     .fillMaxSize()
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Top // Alineamos al tope para control absoluto
             ) {
+                Spacer(modifier = Modifier.height(12.dp)) // Margen superior fijo
+
                 Box(
                     modifier = Modifier
                         .size(44.dp)
@@ -62,7 +64,7 @@ fun <T> CardItem(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp)) // Espacio fijo entre icono y texto
 
                 // Usamos la función getTitulo() en lugar de curso.nombre
                 Text(
@@ -73,7 +75,7 @@ fun <T> CardItem(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Usamos la función getSubtitulo() en lugar de curso.horas
                 Text(

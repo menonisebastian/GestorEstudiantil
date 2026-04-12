@@ -82,6 +82,18 @@ fun EditCentroScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.centro != null) {
+                OutlinedButton(
+                    onClick = {
+                        state.onDelete?.invoke(state.centro)
+                        onBack()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar Centro")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             CustomTextField(
                 value = nombre,
@@ -175,6 +187,18 @@ fun EditCursoScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.curso != null) {
+                OutlinedButton(
+                    onClick = {
+                        state.onDelete?.invoke(state.curso)
+                        onBack()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar Curso")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. DAM)")
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
@@ -265,6 +289,18 @@ fun EditAsignaturaScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.asignatura != null) {
+                OutlinedButton(
+                    onClick = {
+                        state.onDelete?.invoke(state.asignatura)
+                        onBack()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar Asignatura")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. AD)")
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")

@@ -8,9 +8,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
 import javax.inject.Inject
+
+data class SnackbarEvent(
+    val message: String,
+    val actionLabel: String? = null,
+    val onAction: (() -> Unit)? = null
+)
 
 // Clase simple para representar al usuario actual en la UI
 data class CurrentUserUiState(
@@ -33,6 +42,19 @@ class AppViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
+
+    private val _snackbarEvents = MutableSharedFlow<SnackbarEvent>()
+    val snackbarEvents: SharedFlow<SnackbarEvent> = _snackbarEvents.asSharedFlow()
+
+    fun showSnackbar(message: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _snackbarEvents.emit(SnackbarEvent(message, actionLabel, onAction))
+        }
+    }
+
+    fun undoDelete(onUndo: () -> Unit) {
+        onUndo()
+    }
 
     // Función para cargar al usuario al iniciar sesión
     fun setCurrentUser(user: CurrentUserUiState) {
@@ -66,10 +88,17 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun eliminarRecordatorio(recordatorioId: String) {
+    fun eliminarRecordatorio(recordatorio: Recordatorio) {
         viewModelScope.launch {
             try {
-                recordatorioRepository.eliminarRecordatorio(recordatorioId)
+                recordatorioRepository.eliminarRecordatorio(recordatorio.id)
+                showSnackbar(
+                    message = "Recordatorio eliminado",
+                    actionLabel = "Deshacer",
+                    onAction = {
+                        añadirRecordatorio(recordatorio)
+                    }
+                )
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al eliminar recordatorio: ${e.localizedMessage}") }
             }

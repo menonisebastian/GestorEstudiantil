@@ -19,9 +19,11 @@ import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
+import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +32,8 @@ fun MateriaDetalleProfesorPanel(
     asignatura: Asignatura,
     profesor: User,
     onBackClick: () -> Unit,
-    onOpenDialog: (DialogState) -> Unit
+    onOpenDialog: (DialogState) -> Unit,
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
     val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
@@ -94,7 +97,8 @@ fun MateriaDetalleProfesorPanel(
                         )
                     )
                 },
-                containerColor = primaryColor
+                containerColor = primaryColor,
+                modifier = Modifier.padding(bottom = 70.dp) // Añadido padding bottom para que no tape el bottom nav
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Añadir Unidad", tint = textColor)
             }
@@ -185,7 +189,21 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Unidad",
                                 content = "¿Estás seguro de que deseas eliminar esta unidad y todo su contenido?",
-                                onConfirm = { viewModel.eliminarUnidad(unidad.id) }
+                                onConfirm = { 
+                                    viewModel.eliminarUnidad(unidad.id)
+                                    appViewModel.showSnackbar(
+                                        message = "Unidad eliminada",
+                                        actionLabel = "Deshacer",
+                                        onAction = {
+                                            viewModel.crearUnidad(
+                                                asignaturaId = asignatura.id,
+                                                nombre = unidad.nombre,
+                                                descripcion = unidad.descripcion,
+                                                visible = unidad.visible
+                                            )
+                                        }
+                                    )
+                                }
                             )
                         )
                     },
@@ -209,7 +227,24 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Publicación",
                                 content = "¿Estás seguro de que deseas eliminar esta publicación?",
-                                onConfirm = { viewModel.eliminarPost(post.id) }
+                                onConfirm = { 
+                                    viewModel.eliminarPost(post.id)
+                                    appViewModel.showSnackbar(
+                                        message = "Publicación eliminada",
+                                        actionLabel = "Deshacer",
+                                        onAction = {
+                                            viewModel.crearPost(
+                                                asignaturaId = post.asignaturaId,
+                                                unidadId = post.unidadId,
+                                                titulo = post.titulo,
+                                                contenido = post.contenido,
+                                                autorId = post.autorId,
+                                                autorNombre = post.autorNombre,
+                                                visible = post.visible
+                                            )
+                                        }
+                                    )
+                                }
                             )
                         )
                     },
@@ -230,7 +265,16 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Tarea",
                                 content = "¿Estás seguro de que deseas eliminar esta tarea y todas sus entregas?",
-                                onConfirm = { viewModel.eliminarTarea(tarea) }
+                                onConfirm = { 
+                                    viewModel.eliminarTarea(tarea)
+                                    appViewModel.showSnackbar(
+                                        message = "Tarea eliminada",
+                                        actionLabel = "Deshacer",
+                                        onAction = {
+                                            viewModel.crearTarea(tarea, null, null, null)
+                                        }
+                                    )
+                                }
                             )
                         )
                     },

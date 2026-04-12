@@ -4,12 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
 import androidx.compose.runtime.*
@@ -131,26 +127,47 @@ fun EditHorarioDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    val asig = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
-                    val updated = state.horario.copy(
-                        asignaturaId = selectedAsignaturaId,
-                        asignaturaAcronimo = asig?.acronimo ?: "",
-                        profesorId = asig?.profesorId ?: "",
-                        profesorNombre = asig?.profesorNombre ?: "",
-                        aula = aula
-                    )
-                    state.onSave(updated)
-                    onDismissRequest()
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Guardar")
+                if (state.horario.id.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            state.onDelete(state.horario)
+                            onDismissRequest()
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                    ) {
+                        Text("Eliminar")
+                    }
+                } else {
+                    Spacer(modifier = Modifier.width(1.dp))
+                }
+
+                Button(
+                    onClick = {
+                        val asig = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
+                        val updated = state.horario.copy(
+                            asignaturaId = selectedAsignaturaId,
+                            asignaturaAcronimo = asig?.acronimo ?: "",
+                            profesorId = asig?.profesorId ?: "",
+                            profesorNombre = asig?.profesorNombre ?: "",
+                            aula = aula
+                        )
+                        state.onSave(updated)
+                        onDismissRequest()
+                    }
+                ) {
+                    Text("Guardar")
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancelar")
+            if (state.horario.id.isEmpty()) {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Cancelar")
+                }
             }
         }
     )

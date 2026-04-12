@@ -367,7 +367,8 @@ fun CalificacionesDetalleEstudiante(
                     evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id)
                     showDialog = true
                 },
-                containerColor = primaryColor
+                containerColor = primaryColor,
+                modifier = Modifier.padding(bottom = 70.dp) // Padding bottom para no tapar el bottom nav
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
             }

@@ -20,19 +20,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 
 @Composable
 fun RecordatoriosEstudiantePanel(
     recordatorios: List<Recordatorio>,
     paddingValues: PaddingValues,
     onOpenDialog: (DialogState) -> Unit,
-    onDelete: (String) -> Unit,
+    onDelete: (Recordatorio) -> Unit,
     onUpdate: (Recordatorio) -> Unit
 )
 {
@@ -112,7 +114,9 @@ fun RecordatoriosEstudiantePanel(
                                     )
                                 )
                             },
-                            onDelete = { onDelete(recordatorio.id) }
+                            onDelete = { 
+                                onDelete(recordatorio)
+                            }
                         )
                     }
                 }

@@ -21,6 +21,7 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -31,6 +32,11 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import samf.gestorestudiantil.data.models.Tarea
 
 @Composable
@@ -97,14 +103,88 @@ fun UnidadCard(
                             Icon(Icons.Default.Delete, contentDescription = "Eliminar Unidad", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
                         }
                     }
-                    if (onAddPost != null) {
-                        IconButton(onClick = onAddPost) {
-                            Icon(Icons.Default.Add, contentDescription = "Añadir Post", tint = primaryColor)
-                        }
-                    }
-                    if (onAddTarea != null) {
-                        IconButton(onClick = onAddTarea) {
-                            Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = "Añadir Tarea", tint = primaryColor)
+                    if (onAddPost != null || onAddTarea != null) {
+                        var showMenu by remember { mutableStateOf(false) }
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(Icons.Default.Add, contentDescription = "Añadir contenido", tint = primaryColor)
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false },
+                                containerColor = Color.Transparent,
+                                shadowElevation = 0.dp,
+                                tonalElevation = 0.dp,
+                                modifier = Modifier.padding(end = 0.dp)
+                            ) {
+                                if (onAddPost != null) {
+                                    Surface(
+                                        onClick = {
+                                            showMenu = false
+                                            onAddPost()
+                                        },
+                                        shape = RoundedCornerShape(50),
+                                        color = surfaceColor,
+                                        shadowElevation = 6.dp,
+                                        modifier = Modifier
+                                            .padding(vertical = 0.dp) // Sin padding vertical entre las píldoras
+                                            .align(Alignment.End)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Campaign,
+                                                contentDescription = null,
+                                                tint = secondaryColor,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = "Añadir Publicación",
+                                                color = textColor,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp)) // Espacio mínimo controlado entre píldoras
+                                if (onAddTarea != null) {
+                                    Surface(
+                                        onClick = {
+                                            showMenu = false
+                                            onAddTarea()
+                                        },
+                                        shape = RoundedCornerShape(50),
+                                        color = surfaceColor,
+                                        shadowElevation = 6.dp,
+                                        modifier = Modifier
+                                            .padding(vertical = 0.dp) // Sin padding vertical entre las píldoras
+                                            .align(Alignment.End)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.Assignment,
+                                                contentDescription = null,
+                                                tint = tertiaryColor,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = "Añadir Tarea",
+                                                color = textColor,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -212,6 +292,46 @@ fun TareaCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            if (tarea.adjunto != null) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                Surface(
+                    onClick = {
+                        tarea.adjunto?.urlDescarga?.let { url ->
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(context, "No se puede abrir el archivo", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    color = tertiaryColor.copy(alpha = 0.1f),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Description,
+                            contentDescription = null,
+                            tint = tertiaryColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = tarea.adjunto?.nombreArchivo ?: "Ver adjunto",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tertiaryColor,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -233,40 +353,6 @@ fun TareaCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = surfaceDimColor
                     )
-                }
-
-                if (tarea.adjunto != null) {
-                    val context = androidx.compose.ui.platform.LocalContext.current
-                    TextButton(
-                        onClick = {
-                            tarea.adjunto?.urlDescarga?.let { url ->
-                                try {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    android.widget.Toast.makeText(context, "No se puede abrir el archivo", android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        },
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Description,
-                            contentDescription = null,
-                            tint = primaryColor,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = tarea.adjunto?.nombreArchivo ?: "Ver adjunto",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = primaryColor,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                        )
-                    }
                 }
             }
         }

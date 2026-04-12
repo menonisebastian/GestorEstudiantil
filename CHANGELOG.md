@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.4.2] - 2026-04-21
+- Feature: Sistema de Snackbar Global centralizado en `AppViewModel` con soporte para acciones de "Deshacer" (Undo) mediante `SharedFlow`.
+- Feature: Implementación de flujo de borrado seguro con confirmación y "Deshacer" para todas las entidades de Administración (Centros, Cursos, Asignaturas, Horarios).
+- Feature: Integración del sistema de "Deshacer" en el panel de Profesor para la eliminación de Unidades y Posts.
+- Navigation: Refactorización de backstacks en `HomeScreen` a `NavKey` (Navigation 3) para una gestión de estado más robusta por pestaña.
+- Navigation: Bloqueo automático del scroll lateral en el `HorizontalPager` principal al navegar a rutas de detalle o edición.
+- UI Improvement: FAB contextual dinámico en `HomeScreen` que ajusta su icono y acción según la profundidad de navegación en el panel de Administración.
+- Refactor: Actualización de `DialogState` y diálogos de Horarios para incluir soporte nativo para la acción de eliminar.
+- Bugfix: Corregidos errores de coincidencia de tipos (ID vs Objeto) en las funciones de eliminación del panel de detalle de materia.
+- Cleanup: Eliminados parámetros obsoletos en casos de uso de notificaciones detectados durante la refactorización.
+
 ## [v0.4.1] - 2026-04-20
 - UI/UX Refinement: Unificada la paleta de colores global (primary, secondary, tertiary) en todos los componentes y paneles.
 - UI Improvement: Personalizados los selectores de fecha (`CustomDatePickerDialog`) y hora (`CustomTimePickerDialog`) con la estética de la marca.

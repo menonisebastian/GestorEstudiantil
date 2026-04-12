@@ -50,20 +50,23 @@ sealed class DialogState {
     // 5. Diálogos de Edición/Creación para Admin
     data class EditCentro(
         val centro: Centro? = null,
-        val onSave: (Centro) -> Unit
+        val onSave: (Centro) -> Unit,
+        val onDelete: ((Centro) -> Unit)? = null
     ) : DialogState()
 
     data class EditCurso(
         val curso: Curso? = null,
         val centroId: String,
-        val onSave: (Curso) -> Unit
+        val onSave: (Curso) -> Unit,
+        val onDelete: ((Curso) -> Unit)? = null
     ) : DialogState()
 
     data class EditAsignatura(
         val asignatura: Asignatura? = null,
         val cursoId: String,
         val centroId: String,
-        val onSave: (Asignatura) -> Unit
+        val onSave: (Asignatura) -> Unit,
+        val onDelete: ((Asignatura) -> Unit)? = null
     ) : DialogState()
 
     data class EditUser(
@@ -105,7 +108,8 @@ sealed class DialogState {
     data class EditHorario(
         val horario: Horario,
         val asignaturasDisponibles: List<Asignatura>,
-        val onSave: (Horario) -> Unit
+        val onSave: (Horario) -> Unit,
+        val onDelete: (Horario) -> Unit = {}
     ) : DialogState()
 
     // 7. Selectores de Fecha y Hora

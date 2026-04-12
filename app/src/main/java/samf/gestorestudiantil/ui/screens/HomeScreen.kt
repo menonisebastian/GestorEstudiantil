@@ -23,6 +23,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,14 +35,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
@@ -55,18 +61,7 @@ import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
-import samf.gestorestudiantil.ui.panels.admin.AsignaturasScreen
-import samf.gestorestudiantil.ui.panels.admin.CiclosScreen
-import samf.gestorestudiantil.ui.panels.admin.CursosScreen
-import samf.gestorestudiantil.ui.panels.admin.CentrosListScreen
-import samf.gestorestudiantil.ui.panels.admin.HorariosAdminScreen
-import samf.gestorestudiantil.ui.panels.admin.TiposCursoScreen
-import samf.gestorestudiantil.ui.panels.admin.TurnosScreen
-import samf.gestorestudiantil.ui.panels.admin.UsuariosAdminPanel
-import samf.gestorestudiantil.ui.screens.admin.EditAsignaturaScreen
-import samf.gestorestudiantil.ui.screens.admin.EditCentroScreen
-import samf.gestorestudiantil.ui.screens.admin.EditCursoScreen
-import samf.gestorestudiantil.ui.screens.admin.EditUserScreen
+import samf.gestorestudiantil.ui.panels.admin.*
 import samf.gestorestudiantil.ui.panels.estudiante.AsignaturasEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
@@ -154,7 +149,7 @@ fun HomeScreen(
                 curso = usuario.cursoOArea
             )
         )
-        
+
         if (usuario.rol == "ESTUDIANTE") {
             if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
                 estudianteViewModel.cargarAsignaturas(usuario.cursoId, usuario.turno, usuario.cicloNum, usuario.ultimaVezAsignaturas)
@@ -176,17 +171,32 @@ fun HomeScreen(
     // ✅ Mapa de backstacks locales por cada tab para persistir estado y manejar scroll/FAB
     val tabBackStacks = remember(tabs) {
         tabs.associateWith { tab ->
-            mutableStateListOf<Any>(tabToRoute(tab, usuario.rol))
+            mutableStateListOf<NavKey>(tabToRoute(tab, usuario.rol))
         }
     }
 
     // ✅ Back stack INTERNO de HomeScreen (independiente del de AppNavigation)
     val homeBackStack = remember {
-        mutableStateListOf<Any>(tabToRoute(tabs.first(), usuario.rol))
+        mutableStateListOf<NavKey>(tabToRoute(tabs.first(), usuario.rol))
     }
 
     // Gestión de diálogos (Pila para permitir pickers sobre otros diálogos)
     val dialogStack = remember { mutableStateListOf<DialogState>() }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        appViewModel.snackbarEvents.collectLatest { event ->
+            val result = snackbarHostState.showSnackbar(
+                message = event.message,
+                actionLabel = event.actionLabel,
+                duration = androidx.compose.material3.SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                event.onAction?.invoke()
+            }
+        }
+    }
 
     val onOpenDialog: (DialogState) -> Unit = { newState ->
         dialogStack.clear()
@@ -231,29 +241,6 @@ fun HomeScreen(
     val currentPageBackStack = tabBackStacks[currentPageTab]
     val currentRoute = currentPageBackStack?.lastOrNull()
 
-    // ✅ Sincronizar Pager → homeBackStack (cuando el usuario desliza)
-    LaunchedEffect(pagerState.currentPage) {
-        val newRoute = tabToRoute(tabs[pagerState.currentPage], usuario.rol)
-        val currentTop = homeBackStack.lastOrNull()
-        if (currentTop is Routes.HomeRoutes && newRoute::class != currentTop::class &&
-            !isDetailRoute(currentTop)) {
-            homeBackStack.clear()
-            homeBackStack.add(newRoute)
-        }
-    }
-
-    // ✅ Sincronizar homeBackStack → Pager
-    LaunchedEffect(homeBackStack.toList()) {
-        val topRoute = homeBackStack.lastOrNull()
-        if (topRoute != null && !isDetailRoute(topRoute)) {
-            val targetTab = routeToTab(topRoute, usuario.rol)
-            val index = tabs.indexOf(targetTab)
-            if (index != -1 && index != pagerState.currentPage) {
-                pagerState.animateScrollToPage(index)
-            }
-        }
-    }
-
     val context = LocalContext.current
     // ✅ Manejo del botón Atrás global
     BackHandler {
@@ -273,6 +260,7 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = backgroundColor,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -340,10 +328,11 @@ fun HomeScreen(
                     if (canAdd) {
                         FloatingActionButton(
                             onClick = {
+                                val stack = currentPageBackStack as? SnapshotStateList<NavKey>
                                 when (currentRoute) {
-                                    is Routes.HomeRoutes.Centros -> currentPageBackStack?.add(Routes.HomeRoutes.EditCentro())
-                                    is Routes.HomeRoutes.AdminCursos -> currentPageBackStack?.add(Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
-                                    is Routes.HomeRoutes.AdminAsignaturas -> currentPageBackStack?.add(Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.Centros -> stack?.add(Routes.HomeRoutes.EditCentro())
+                                    is Routes.HomeRoutes.AdminCursos -> stack?.add(Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.AdminAsignaturas -> stack?.add(Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
                                 }
                             },
                             containerColor = primaryColor
@@ -605,7 +594,21 @@ fun HomeScreen(
                                     DialogState.EditHorario(
                                         horario = horario,
                                         asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == route.ciclo },
-                                        onSave = { adminViewModel.guardarHorario(it) }
+                                        onSave = { adminViewModel.guardarHorario(it) },
+                                        onDelete = { h ->
+                                            onOpenDialog(DialogState.Confirmation(
+                                                title = "Eliminar Horario",
+                                                content = "¿Estás seguro de que deseas eliminar este horario?",
+                                                onConfirm = {
+                                                    adminViewModel.eliminarHorario(h.id)
+                                                    appViewModel.showSnackbar(
+                                                        message = "Horario eliminado",
+                                                        actionLabel = "Deshacer",
+                                                        onAction = { adminViewModel.guardarHorario(h) }
+                                                    )
+                                                }
+                                            ))
+                                        }
                                     )
                                 )
                             },
@@ -613,45 +616,87 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditCentro> { route ->
-                        EditCentroScreen(
+                        EditCentroPanel(
                             state = DialogState.EditCentro(
                                 centro = route.centro,
-                                onSave = { adminViewModel.guardarCentro(it) }
+                                onSave = { adminViewModel.guardarCentro(it) },
+                                onDelete = { centro ->
+                                    onOpenDialog(DialogState.Confirmation(
+                                        title = "Eliminar Centro",
+                                        content = "¿Estás seguro de que deseas eliminar el centro '${centro.nombre}'? Esta acción eliminará también sus cursos y asignaturas.",
+                                        onConfirm = {
+                                            adminViewModel.eliminarCentro(centro)
+                                            appViewModel.showSnackbar(
+                                                message = "Centro eliminado",
+                                                actionLabel = "Deshacer",
+                                                onAction = { adminViewModel.guardarCentro(centro) }
+                                            )
+                                        }
+                                    ))
+                                }
                             ),
                             onBack = { pageBackStack.removeLastOrNull() }
                         )
                     }
                     entry<Routes.HomeRoutes.EditCurso> { route ->
-                        EditCursoScreen(
+                        EditCursoPanel(
                             state = DialogState.EditCurso(
                                 curso = route.curso,
                                 centroId = route.centroId,
-                                onSave = { adminViewModel.guardarCurso(it) }
+                                onSave = { adminViewModel.guardarCurso(it) },
+                                onDelete = { curso ->
+                                    onOpenDialog(DialogState.Confirmation(
+                                        title = "Eliminar Curso",
+                                        content = "¿Estás seguro de que deseas eliminar el curso '${curso.acronimo}'? Se eliminarán todas sus asignaturas y horarios.",
+                                        onConfirm = {
+                                            adminViewModel.eliminarCurso(curso)
+                                            appViewModel.showSnackbar(
+                                                message = "Curso eliminado",
+                                                actionLabel = "Deshacer",
+                                                onAction = { adminViewModel.guardarCurso(curso) }
+                                            )
+                                        }
+                                    ))
+                                }
                             ),
                             onBack = { pageBackStack.removeLastOrNull() }
                         )
                     }
                     entry<Routes.HomeRoutes.EditAsignatura> { route ->
-                        EditAsignaturaScreen(
+                        EditAsignaturaPanel(
                             state = DialogState.EditAsignatura(
                                 asignatura = route.asignatura,
                                 cursoId = route.cursoId,
                                 centroId = route.centroId,
-                                onSave = { adminViewModel.guardarAsignatura(it) }
+                                onSave = { adminViewModel.guardarAsignatura(it) },
+                                onDelete = { asignatura ->
+                                    onOpenDialog(DialogState.Confirmation(
+                                        title = "Eliminar Asignatura",
+                                        content = "¿Estás seguro de que deseas eliminar la asignatura '${asignatura.acronimo}'?",
+                                        onConfirm = {
+                                            adminViewModel.eliminarAsignatura(asignatura)
+                                            appViewModel.showSnackbar(
+                                                message = "Asignatura eliminada",
+                                                actionLabel = "Deshacer",
+                                                onAction = { adminViewModel.guardarAsignatura(asignatura) }
+                                            )
+                                        }
+                                    ))
+                                }
                             ),
                             onBack = { pageBackStack.removeLastOrNull() }
                         )
                     }
                     entry<Routes.HomeRoutes.EditUser> { route ->
                         val adminState by adminViewModel.adminState.collectAsState()
-                        
+
                         LaunchedEffect(route.user.centroId) {
                             if (adminState.cursos.isEmpty()) {
                                 adminViewModel.cargarCursosPorCentro(route.user.centroId)
                             }
                         }
 
-                        EditUserScreen(
+                        EditUserPanel(
                             state = DialogState.EditUser(
                                 user = route.user,
                                 cursos = adminState.cursos,
