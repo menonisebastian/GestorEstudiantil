@@ -126,6 +126,9 @@ sealed interface Routes {
 
         @Serializable
         data class EditUser(val user: User) : HomeRoutes
+
+        @Serializable
+        data object Perfil : HomeRoutes
     }
 
     @Serializable

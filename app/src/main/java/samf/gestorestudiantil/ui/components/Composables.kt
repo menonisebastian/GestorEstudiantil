@@ -150,7 +150,8 @@ fun BottomNavBar(
     items: Map<String, ImageVector>,
     selectedItem: String,
     onItemSelected: (String) -> Unit,
-    hazeState: HazeState?
+    hazeState: HazeState?,
+    userImgUrl: String = ""
 ) {
 
     val hazeStyle = CupertinoMaterials.thick()
@@ -205,12 +206,41 @@ fun BottomNavBar(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                tint = animatedIconColor,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            if (label == "Perfil") {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isSelected) primaryColor.copy(alpha = 0.2f) else surfaceDimColor.copy(alpha = 0.1f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (userImgUrl.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = coil.request.ImageRequest.Builder(LocalContext.current)
+                                                .data(userImgUrl)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = label,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = label,
+                                            tint = animatedIconColor,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    tint = animatedIconColor,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                             AnimatedVisibility(
                                 visible = isSelected,
                                 enter = fadeIn(animationSpec = tween(150)) + expandHorizontally(animationSpec = tween(150)),

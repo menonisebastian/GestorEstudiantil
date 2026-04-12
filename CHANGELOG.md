@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.4.5] - 2026-04-24
+- Característica: Integración del ítem de "Perfil" en la barra de navegación inferior para todos los roles (ADMIN, PROFESOR, ESTUDIANTE).
+- Mejora de UI: El icono de la pestaña Perfil ahora muestra dinámicamente la imagen del usuario (`AsyncImage`) con un tamaño optimizado de 24dp.
+- Navegación: Implementada navegación por pestañas independiente para el perfil mediante el `HorizontalPager` en `HomeScreen`.
+- UX: Ocultación automática de la `TopAppBar` global al navegar a la pestaña de Perfil para evitar duplicidad de elementos y maximizar el espacio.
+- Refinamiento de UI: Eliminado el botón de retroceso redundante en `ProfileScreen` al integrarse como pestaña principal de la Home.
+- Corrección de Diseño: Ajustados los paddings del `Scaffold` en `HomeScreen` para permitir que la pantalla de perfil ocupe todo el alto disponible sin espacios en blanco.
+
 ## [v0.4.4] - 2026-04-23
 - Característica: Implementación de efecto "Liquid Glass" en la barra de navegación inferior (`BottomNavBar`) mediante la integración de la librería Haze (v1.7.2).
 - Mejora de UI: Configuración de desenfoque de fondo dinámico (`hazeEffect`) con estilos de materiales Cupertino y bordes definidos para una estética premium.

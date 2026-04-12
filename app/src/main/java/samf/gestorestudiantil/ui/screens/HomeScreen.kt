@@ -8,6 +8,7 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -94,20 +95,23 @@ val itemsEstudiante: Map<String, ImageVector> = mapOf(
     "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
-    "Recordatorios" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications,
+    "Perfil" to Icons.Outlined.Person
 )
 
 val itemsProfesor: Map<String, ImageVector> = mapOf(
     "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
-    "Recordatorios" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications,
+    "Perfil" to Icons.Outlined.Person
 )
 
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
-    "Recordatorios" to Icons.Outlined.Notifications
+    "Recordatorios" to Icons.Outlined.Notifications,
+    "Perfil" to Icons.Outlined.Person
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -283,21 +287,23 @@ fun HomeScreen(
             }
         },
         topBar = {
-            TopAppBar(
-                title = {
-                    TopBarRow(
-                        name = usuario.nombre,
-                        role = usuario.rol,
-                        curso = usuario.cursoOArea,
-                        imgUrl = usuario.imgUrl,
-                        onNavigateProfile = onNavigateProfile,
-                        onLogout = onLogout
+            if (currentPageTab != "Perfil") {
+                TopAppBar(
+                    title = {
+                        TopBarRow(
+                            name = usuario.nombre,
+                            role = usuario.rol,
+                            curso = usuario.cursoOArea,
+                            imgUrl = usuario.imgUrl,
+                            onNavigateProfile = onNavigateProfile,
+                            onLogout = onLogout
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = backgroundColor
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor
                 )
-            )
+            }
         },
         bottomBar = {
             BottomNavBar(
@@ -310,6 +316,7 @@ fun HomeScreen(
                     }
                 },
                 hazeState = hazeState,
+                userImgUrl = usuario.imgUrl
             )
         },
         floatingActionButton = {
@@ -371,7 +378,7 @@ fun HomeScreen(
             state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding()), // Ignoramos el padding inferior para efecto flotante real
+                .padding(top = if (currentPageTab == "Perfil") 0.dp else paddingValues.calculateTopPadding()),
             userScrollEnabled = currentRoute?.let { !isDetailRoute(it) } ?: true
         ) { page ->
             val pageTab = tabs.getOrNull(page) ?: ""
@@ -743,6 +750,18 @@ fun HomeScreen(
                                 onSave = { adminViewModel.guardarUsuario(it) }
                             ),
                             onBack = { pageBackStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Routes.HomeRoutes.Perfil> {
+                        ProfileScreen(
+                            usuario = usuario,
+                            onBack = {
+                                if (pageBackStack.size > 1) {
+                                    pageBackStack.removeLastOrNull()
+                                }
+                            },
+                            onLogout = onLogout,
+                            onProfileUpdated = { }
                         )
                     }
                 }

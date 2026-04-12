@@ -48,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
+import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -83,11 +84,14 @@ fun ProfileScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mi Perfil", color = textColor, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Atrás", tint = textColor)
-                    }
+                title = {
+                    Row (
+                        modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+                        horizontalArrangement = Arrangement.Center)
+                        {
+                            TitleLogo(150.dp)
+                            //Text("Mi Perfil", color = textColor, fontWeight = FontWeight.Bold)
+                        }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
@@ -97,8 +101,9 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             // === AVATAR ===
@@ -125,8 +130,6 @@ fun ProfileScreen(
                     }
                 }
             )
-
-            Spacer(modifier = Modifier.height(40.dp))
 
             // === DATOS DEL USUARIO ===
             Card(
@@ -174,8 +177,6 @@ fun ProfileScreen(
                     Text("Curso/Área: ${usuario?.cursoOArea ?: ""}", color = surfaceDimColor, fontSize = 14.sp)
                 }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // === CONFIGURACIÓN ===
             Card(
@@ -239,8 +240,6 @@ fun ProfileScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = onLogout,
