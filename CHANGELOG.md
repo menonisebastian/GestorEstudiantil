@@ -2,6 +2,17 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.4.4] - 2026-04-23
+- Característica: Implementación de efecto "Liquid Glass" en la barra de navegación inferior (`BottomNavBar`) mediante la integración de la librería Haze (v1.7.2).
+- Mejora de UI: Configuración de desenfoque de fondo dinámico (`hazeEffect`) con estilos de materiales Cupertino y bordes definidos para una estética premium.
+- Estabilidad: Corregido bucle infinito de redirección en el inicio de sesión con Google al detectar sesiones existentes con perfil incompleto.
+- Refactorización: Limpieza de advertencias de deprecación en ViewModels de Hilt y optimización de backstacks internos en `HomeScreen` y `AuthScreen`.
+- UI: Estandarización de badges de identificación de curso ("Acrónimo + Turno + Ciclo") en las tarjetas de materia de los profesores para una rápida identificación.
+- Corrección: Resuelta colisión de contextos `@Composable` en la configuración de efectos visuales de Haze.
+- Característica: Implementación de badges y notificaciones para las tareas/entregas.
+- Corrección: Arreglados los colores en el string de los horarios.
+
+
 ## [v0.4.3] - 2026-04-22
 - Característica: Implementación de apertura directa de archivos adjuntos (PDF, DOCX, imágenes) mediante aplicaciones del sistema.
 - Mejora de UX: Los archivos ahora se descargan temporalmente en `cacheDir` y se comparten de forma segura usando `FileProvider`, evitando que el usuario deba buscarlos manualmente en la carpeta de descargas.

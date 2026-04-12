@@ -146,4 +146,7 @@ dependencies {
     implementation(libs.google.auth.library) {
         exclude(group = "io.grpc", module = "grpc-netty-shaded")
     }
+
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 }

@@ -40,6 +40,7 @@ fun MateriaDetalleProfesorPanel(
 
     LaunchedEffect(asignatura.id) {
         viewModel.cargarContenidoAsignatura(asignatura.id)
+        viewModel.marcarAsignaturaComoLeida(profesor.id, asignatura.id)
     }
 
     Scaffold(

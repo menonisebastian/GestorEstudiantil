@@ -81,6 +81,12 @@ fun AsignaturasProfesorPanel(
             modifier = Modifier.fillMaxSize()
         ) {
             items(asignaturasFiltradas) { materia ->
+                // Formato: AcronimoCurso + Turno(M/V) + Ciclo
+                // El cursoId suele ser "centro_acronimo", extraemos el acronimo.
+                val cursoAcron = materia.cursoId.split("_").lastOrNull()?.uppercase() ?: ""
+                val turnoLetra = if (materia.turno.contains("matutino", ignoreCase = true)) "M" else "V"
+                val badge = "$cursoAcron$turnoLetra${materia.cicloNum}"
+
                 CardItem(
                     item = materia,
                     getIcono = { it.iconoName.toComposeIcon() },
@@ -88,6 +94,8 @@ fun AsignaturasProfesorPanel(
                     getNombre = { it.nombre },
                     getColorFondo = { it.colorFondoHex.toComposeColor() },
                     getColorIcono = { it.colorIconoHex.toComposeColor() },
+                    notificaciones = materia.numNotificaciones,
+                    badgeText = badge,
                     onClick = { onAsignaturaClick(materia) }
                 )
             }

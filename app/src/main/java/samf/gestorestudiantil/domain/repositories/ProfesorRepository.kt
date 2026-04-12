@@ -19,6 +19,8 @@ interface ProfesorRepository {
     suspend fun eliminarPost(postId: String)
     
     fun getAsignaturas(profesorId: String): Flow<List<Asignatura>>
+    fun observeEntregasChanges(asignaturaIds: List<String>): Flow<Unit>
+    suspend fun getCountNuevasEntregas(asignaturaId: String, lastRead: Long): Int
     fun getEstudiantesPorCursos(cursoIds: List<String>): Flow<List<User>>
     suspend fun getEstudiantesPorCurso(cursoId: String): List<User>
     

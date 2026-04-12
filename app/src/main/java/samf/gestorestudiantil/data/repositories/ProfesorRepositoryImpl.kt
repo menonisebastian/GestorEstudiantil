@@ -84,6 +84,29 @@ class ProfesorRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
+    override fun observeEntregasChanges(asignaturaIds: List<String>): Flow<Unit> = callbackFlow {
+        if (asignaturaIds.isEmpty()) {
+            trySend(Unit)
+            close()
+            return@callbackFlow
+        }
+        val subscription = db.collection("entregas")
+            .whereIn("asignaturaId", asignaturaIds)
+            .addSnapshotListener { _, _ ->
+                trySend(Unit)
+            }
+        awaitClose { subscription.remove() }
+    }
+
+    override suspend fun getCountNuevasEntregas(asignaturaId: String, lastRead: Long): Int {
+        val snapshot = db.collection("entregas")
+            .whereEqualTo("asignaturaId", asignaturaId)
+            .whereGreaterThan("fechaEntrega", com.google.firebase.Timestamp(lastRead / 1000, ((lastRead % 1000) * 1000000).toInt()))
+            .get()
+            .await()
+        return snapshot.size()
+    }
+
     override fun getEstudiantesPorCursos(cursoIds: List<String>): Flow<List<User>> = callbackFlow {
         if (cursoIds.isEmpty()) {
             trySend(emptyList())

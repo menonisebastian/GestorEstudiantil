@@ -27,6 +27,7 @@ fun <T> CardItem(
     getAcron: (T) -> String,
     getNombre: (T) -> String,
     notificaciones: Int = 0,
+    badgeText: String? = null,
     onClick: () -> Unit = {}
 ) {
     Box(modifier = Modifier.padding(top = 4.dp, end = 4.dp)) {
@@ -40,53 +41,64 @@ fun <T> CardItem(
             colors = CardDefaults.cardColors(containerColor = getColorFondo(item)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top // Alineamos al tope para control absoluto
-            ) {
-                Spacer(modifier = Modifier.height(12.dp)) // Margen superior fijo
-
-                Box(
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(getColorIcono(item)),
-                    contentAlignment = Alignment.Center
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Icon(
-                        imageVector = getIcono(item),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(getColorIcono(item)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = getIcono(item),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    if (badgeText != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = badgeText,
+                            color = getColorIcono(item),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                    } else {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    Text(
+                        text = getAcron(item),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = getNombre(item),
+                        fontSize = 11.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 13.sp
                     )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp)) // Espacio fijo entre icono y texto
-
-                // Usamos la función getTitulo() en lugar de curso.nombre
-                Text(
-                    text = getAcron(item),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Usamos la función getSubtitulo() en lugar de curso.horas
-                Text(
-                    text = getNombre(item),
-                    fontSize = 11.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 13.sp
-                )
             }
         }
 

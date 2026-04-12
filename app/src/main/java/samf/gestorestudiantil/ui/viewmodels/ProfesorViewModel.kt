@@ -2,7 +2,6 @@ package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
@@ -18,6 +17,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -35,7 +39,6 @@ import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import javax.inject.Inject
 
 data class ProfesorState(
@@ -55,6 +58,7 @@ data class ProfesorState(
 class ProfesorViewModel @Inject constructor(
     private val profesorRepository: ProfesorRepository,
     private val tareaRepository: TareaRepository,
+    private val db: FirebaseFirestore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -186,7 +190,7 @@ class ProfesorViewModel @Inject constructor(
     private fun enviarNotificacion(asignaturaId: String, tituloPost: String, nombreProfesor: String, acronimoAsignatura: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val topic = "asignatura_$asignaturaId"
+                val topic = "asignatura_${asignaturaId}_estudiantes"
                 val accessToken = getAccessToken(context) ?: return@launch
 
                 val client = OkHttpClient()
@@ -274,6 +278,14 @@ class ProfesorViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 tareaRepository.crearTarea(tarea, fileData, fileName, mimeType)
+                
+                // Buscar el acrónimo de la asignatura para la notificación
+                val asignatura = _state.value.asignaturas.find { it.id == tarea.asignaturaId }
+                val acronimo = asignatura?.acronimo ?: ""
+                val nombreProf = _profesor.value?.nombre ?: "El Profesor"
+                
+                enviarNotificacion(tarea.asignaturaId, "Nueva Tarea: ${tarea.titulo}", nombreProf, acronimo)
+
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Tarea creada con éxito", Toast.LENGTH_SHORT).show()
                 }
@@ -397,13 +409,102 @@ class ProfesorViewModel @Inject constructor(
     // ====================================================================
     // 1. ASIGNATURAS QUE IMPARTE EL PROFESOR (tiempo real)
     // ====================================================================
-    fun cargarAsignaturas(profesorId: String) {
+    private var entregasJob: Job? = null
+    private var recalcularJob: Job? = null
+    private var usuarioJob: Job? = null
+    private var currentUltimaVez: Map<String, Long> = emptyMap()
+
+    fun cargarAsignaturas(profesorId: String, ultimaVez: Map<String, Long> = emptyMap()) {
+        currentUltimaVez = ultimaVez
+        observarUsuario(profesorId)
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             profesorRepository.getAsignaturas(profesorId).collect { lista ->
                 _state.update { it.copy(isLoading = false, asignaturas = lista) }
+                // Suscribir al profesor a sus asignaturas para recibir entregas
+                lista.forEach { asignatura ->
+                    FirebaseMessaging.getInstance().subscribeToTopic("asignatura_${asignatura.id}_profesores")
+                }
                 // Al cargar asignaturas, necesitamos conocer a todos los estudiantes de esos cursos para la pestaña global
                 cargarTodosMisEstudiantes(lista.map { it.cursoId }.distinct())
+                
+                observarCambiosEnEntregas(lista.map { it.id })
+                recalcularNotificaciones(lista, currentUltimaVez)
+            }
+        }
+    }
+
+    private fun observarUsuario(usuarioId: String) {
+        usuarioJob?.cancel()
+        usuarioJob = viewModelScope.launch {
+            db.collection("usuarios").document(usuarioId)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) return@addSnapshotListener
+                    val user = snapshot?.toObject(User::class.java)
+                    if (user != null) {
+                        actualizarTiemposLectura(user.ultimaVezAsignaturas)
+                    }
+                }
+        }
+    }
+
+    private fun observarCambiosEnEntregas(asignaturaIds: List<String>) {
+        entregasJob?.cancel()
+        entregasJob = viewModelScope.launch {
+            profesorRepository.observeEntregasChanges(asignaturaIds).collect {
+                recalcularNotificaciones(_state.value.asignaturas, currentUltimaVez)
+            }
+        }
+    }
+
+    fun actualizarTiemposLectura(map: Map<String, Long>) {
+        if (currentUltimaVez == map) return
+        currentUltimaVez = map
+        recalcularNotificaciones(_state.value.asignaturas, map)
+    }
+
+    private fun recalcularNotificaciones(asignaturas: List<Asignatura>, ultimaVez: Map<String, Long>) {
+        recalcularJob?.cancel()
+        recalcularJob = viewModelScope.launch {
+            try {
+                // Usamos coroutineScope para lanzar las tareas en paralelo de forma estructurada
+                val nuevasAsignaturas = coroutineScope {
+                    asignaturas.map { asignatura ->
+                        async {
+                            val lastRead = ultimaVez[asignatura.id] ?: 0L
+                            val count = profesorRepository.getCountNuevasEntregas(asignatura.id, lastRead)
+                            asignatura.copy(numNotificaciones = count)
+                        }
+                    }.map { it.await() }
+                }
+                _state.update { it.copy(asignaturas = nuevasAsignaturas) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun marcarAsignaturaComoLeida(usuarioId: String, asignaturaId: String) {
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            try {
+                // 1. Actualización local inmediata del mapa de tiempos
+                val nuevasUltimaVez = currentUltimaVez.toMutableMap().apply { put(asignaturaId, now) }
+                currentUltimaVez = nuevasUltimaVez
+
+                // 2. Forzamos el badge a 0 localmente para feedback instantáneo
+                _state.update { s ->
+                    val asignaturasActuales = s.asignaturas.map {
+                        if (it.id == asignaturaId) it.copy(numNotificaciones = 0) else it
+                    }
+                    s.copy(asignaturas = asignaturasActuales)
+                }
+
+                // 3. Persistimos en Firestore
+                db.collection("usuarios").document(usuarioId)
+                    .update("ultimaVezAsignaturas.$asignaturaId", now).await()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

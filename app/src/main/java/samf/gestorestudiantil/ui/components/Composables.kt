@@ -96,6 +96,11 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.materials.CupertinoMaterials
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
 import samf.gestorestudiantil.domain.toComposeColor
@@ -109,12 +114,10 @@ import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.theme.whiteColor
 
 @Composable
@@ -141,12 +144,17 @@ fun TopBarRow(
     }
 }
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun BottomNavBar(
     items: Map<String, ImageVector>,
     selectedItem: String,
-    onItemSelected: (String) -> Unit
+    onItemSelected: (String) -> Unit,
+    hazeState: HazeState?
 ) {
+
+    val hazeStyle = CupertinoMaterials.thick()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,7 +164,9 @@ fun BottomNavBar(
         Surface(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 2.dp)
-                .wrapContentSize(),
+                .wrapContentSize()
+                .clip(CircleShape)
+                .hazeEffect(hazeState){style = hazeStyle},
             shape = CircleShape,
             color = surfaceColor.copy(alpha = 0.95f),
             tonalElevation = 8.dp,

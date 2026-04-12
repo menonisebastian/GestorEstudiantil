@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -39,6 +40,7 @@ import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun HorariosEstudiantePanel(
@@ -136,7 +138,7 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
         isReceso -> surfaceDimColor.copy(alpha = 0.5f)
         asignatura != null -> {
             try {
-                Color(android.graphics.Color.parseColor(asignatura.colorFondoHex))
+                Color(asignatura.colorFondoHex.toColorInt())
             } catch (e: Exception) {
                 surfaceDimColor.copy(alpha = 0.2f)
             }
@@ -148,11 +150,9 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
         else -> surfaceDimColor.copy(alpha = 0.2f)
     }
 
-    val contentColor = if (asignatura != null || isReceso) whiteColor else textColor
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = if (asignatura != null || isReceso) colorFondo else surfaceColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -169,20 +169,20 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
                     },
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = if (horario != null || isReceso) contentColor.copy(alpha = 0.9f) else surfaceDimColor
+                    color = if (horario != null) Color.Black else whiteColor
                 )
                 if (asignatura != null && !isReceso) {
                     Text(
                         text = asignatura.nombre,
                         fontSize = 12.sp,
-                        color = contentColor.copy(alpha = 0.7f),
+                        color = surfaceDimColor,
                         lineHeight = 14.sp
                     )
                 }
                 Text(
                     text = slot,
                     fontSize = 13.sp,
-                    color = if (horario != null || isReceso) contentColor.copy(alpha = 0.7f) else surfaceDimColor
+                    color = surfaceDimColor
                 )
             }
             
@@ -192,13 +192,13 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
                         text = horario.profesorNombre,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        color = contentColor.copy(alpha = 0.8f)
+                        color = surfaceDimColor
                     )
                     if (horario.aula.isNotEmpty()) {
                         Text(
                             text = "Aula: ${horario.aula}",
                             fontSize = 11.sp,
-                            color = contentColor.copy(alpha = 0.6f)
+                            color = surfaceDimColor
                         )
                     }
                 }

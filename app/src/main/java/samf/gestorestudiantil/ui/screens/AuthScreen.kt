@@ -58,6 +58,8 @@ import androidx.credentials.CredentialManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
@@ -99,6 +101,8 @@ fun AuthScreen(
     val authState by authViewModel.authState.collectAsState()
     val token = stringResource(R.string.id_token)
     val credentialManager = remember { CredentialManager.create(context) }
+
+    val hazeState = rememberHazeState()
 
     // ✅ Back stack interno de AuthScreen
     val authBackStack = remember {
@@ -165,9 +169,11 @@ fun AuthScreen(
                     if (index != -1) {
                         scope.launch { pagerState.animateScrollToPage(index) }
                     }
-                }
+                },
+                hazeState = hazeState,
             )
-        }
+        },
+        modifier = Modifier.hazeSource(state = hazeState),
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             HorizontalPager(

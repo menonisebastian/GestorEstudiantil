@@ -28,18 +28,25 @@ class EstudianteRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override fun observePostsChanges(asignaturaIds: List<String>): Flow<Unit> = callbackFlow {
+    override fun observePostsAndTareasChanges(asignaturaIds: List<String>): Flow<Unit> = callbackFlow {
         if (asignaturaIds.isEmpty()) {
             trySend(Unit)
             close()
             return@callbackFlow
         }
-        val subscription = db.collection("posts")
+        
+        val postsSubscription = db.collection("posts")
             .whereIn("asignaturaId", asignaturaIds)
-            .addSnapshotListener { _, _ ->
-                trySend(Unit)
-            }
-        awaitClose { subscription.remove() }
+            .addSnapshotListener { _, _ -> trySend(Unit) }
+            
+        val tareasSubscription = db.collection("tareas")
+            .whereIn("asignaturaId", asignaturaIds)
+            .addSnapshotListener { _, _ -> trySend(Unit) }
+
+        awaitClose { 
+            postsSubscription.remove()
+            tareasSubscription.remove()
+        }
     }
 
     override suspend fun getCountNuevosPosts(asignaturaId: String, lastRead: Long): Int {
@@ -50,6 +57,16 @@ class EstudianteRepositoryImpl @Inject constructor(
             .get()
             .await()
         return postsSnapshot.size()
+    }
+
+    override suspend fun getCountNuevasTareas(asignaturaId: String, lastRead: Long): Int {
+        val tareasSnapshot = db.collection("tareas")
+            .whereEqualTo("asignaturaId", asignaturaId)
+            .whereEqualTo("visible", true)
+            .whereGreaterThan("fechaCreacion", com.google.firebase.Timestamp(lastRead / 1000, ((lastRead % 1000) * 1000000).toInt()))
+            .get()
+            .await()
+        return tareasSnapshot.size()
     }
 
     override suspend fun marcarAsignaturaLeida(usuarioId: String, asignaturaId: String, timestamp: Long) {

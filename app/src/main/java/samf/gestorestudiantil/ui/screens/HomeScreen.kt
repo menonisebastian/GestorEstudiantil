@@ -22,7 +22,6 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,11 +37,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,6 +48,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
@@ -61,7 +60,6 @@ import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.isDetailRoute
-import samf.gestorestudiantil.domain.routeToTab
 import samf.gestorestudiantil.domain.tabToRoute
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.TopBarRow
@@ -145,6 +143,8 @@ fun HomeScreen(
     val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
     val adminState by adminViewModel.adminState.collectAsState()
 
+    val hazeState = rememberHazeState()
+
     // Cargar datos al entrar o cuando cambien los datos clave del usuario
     LaunchedEffect(usuario.id, usuario.cursoId, usuario.turno, usuario.cicloNum) {
         // Cargar usuario en AppViewModel para disparar carga de recordatorios
@@ -164,7 +164,7 @@ fun HomeScreen(
                 estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
             }
         } else if (usuario.rol == "PROFESOR") {
-            profesorViewModel.cargarAsignaturas(usuario.id)
+            profesorViewModel.cargarAsignaturas(usuario.id, usuario.ultimaVezAsignaturas)
             profesorViewModel.cargarHorariosProfesor(usuario.id)
         }
     }
@@ -173,6 +173,8 @@ fun HomeScreen(
     LaunchedEffect(usuario.ultimaVezAsignaturas) {
         if (usuario.rol == "ESTUDIANTE") {
             estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
+        } else if (usuario.rol == "PROFESOR") {
+            profesorViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
         }
     }
 
@@ -233,7 +235,7 @@ fun HomeScreen(
                     if (pageBackStack != null) {
                         // Evitar duplicados si ya estamos ahí
                         val currentTop = pageBackStack.lastOrNull()
-                        if (currentTop !is Routes.HomeRoutes.MateriaDetalle || (currentTop as? Routes.HomeRoutes.MateriaDetalle)?.asignatura?.id != asignatura.id) {
+                        if (currentTop !is Routes.HomeRoutes.MateriaDetalle || currentTop.asignatura.id != asignatura.id) {
                             pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
                         }
                     }
@@ -267,6 +269,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        modifier = Modifier.hazeSource(hazeState),
         containerColor = backgroundColor,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
@@ -305,7 +308,8 @@ fun HomeScreen(
                     if (index != -1) {
                         scope.launch { pagerState.animateScrollToPage(index) }
                     }
-                }
+                },
+                hazeState = hazeState,
             )
         },
         floatingActionButton = {
@@ -346,11 +350,11 @@ fun HomeScreen(
                     if (canAdd) {
                         FloatingActionButton(
                             onClick = {
-                                val stack = currentPageBackStack as? SnapshotStateList<NavKey>
                                 when (currentRoute) {
-                                    is Routes.HomeRoutes.Centros -> stack?.add(Routes.HomeRoutes.EditCentro())
-                                    is Routes.HomeRoutes.AdminCursos -> stack?.add(Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
-                                    is Routes.HomeRoutes.AdminAsignaturas -> stack?.add(Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.Centros -> currentPageBackStack.add(Routes.HomeRoutes.EditCentro())
+                                    is Routes.HomeRoutes.AdminCursos -> currentPageBackStack.add(Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.AdminAsignaturas -> currentPageBackStack.add(Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
+                                    else -> {}
                                 }
                             },
                             containerColor = primaryColor

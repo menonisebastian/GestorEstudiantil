@@ -75,6 +75,7 @@ fun AppNavigation(
                             val user = snapshot.toObject(User::class.java)
                             if (user != null && user.rol.isNotBlank()) {
                                 currentUser = user
+                                needsGoogleSetup = false
                             } else {
                                 needsGoogleSetup = true
                             }
