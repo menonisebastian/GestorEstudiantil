@@ -27,7 +27,7 @@ val TuFuenteGoogle = FontFamily(
 // 3. Tipografía Base de Material
 private val defaultTypography = Typography()
 
-// 4. Tipografía Global Personalizada (Sobrescribe todo con tu fuente)
+// 4. Tipografía Global Personalizada (Sobrescribe toda la app con tu fuente)
 val AppTypography = Typography(
     displayLarge = defaultTypography.displayLarge.copy(fontFamily = TuFuenteGoogle),
     displayMedium = defaultTypography.displayMedium.copy(fontFamily = TuFuenteGoogle),

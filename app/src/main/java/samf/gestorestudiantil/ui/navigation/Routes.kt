@@ -78,14 +78,6 @@ sealed interface Routes {
             val asignatura: Asignatura
         ) : HomeRoutes
 
-        // TODO : Cambiar a Firebase
-
-//        @Serializable
-//        data class CalificacionesDetalle(
-//            val asignaturaId: String,
-//            val asignaturaNombre: String
-//        ) : HomeRoutes
-
         @Serializable
         data object Recordatorios : HomeRoutes
 
