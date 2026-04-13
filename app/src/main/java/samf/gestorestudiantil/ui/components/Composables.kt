@@ -41,7 +41,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -950,23 +949,82 @@ fun TypeChip(option: ChipOption) {
 
 @Composable
 fun FloatingPill(
-    text: String,
-    color: Color,
-    onClick: () -> Unit
+    baseIcon: ImageVector = Icons.Default.Add,
+    iconTint: Color = whiteColor,
+    buttonColor: Color = primaryColor,
+    items: List<MenuItem>,
+    expandedIcon: ImageVector,
+    shape: RoundedCornerShape = CircleShape,
 ) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = color.copy(alpha = 0.1f),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, color.copy(alpha = 0.5f))
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
     ) {
-        Text(
-            text = text,
-            color = color,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        IconButton(
+            onClick = { expanded = true },
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = buttonColor,
+                contentColor = iconTint
+            ),
+            modifier = Modifier.size(32.dp),
+            shape = shape
+        ) {
+            Icon(
+                imageVector = if (expanded) expandedIcon else baseIcon,
+                contentDescription = "Opciones",
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
+            offset = DpOffset(x = (-160).dp, y = 4.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.padding(end = 12.dp)
+            ) {
+                items.forEach { item ->
+                    Surface(
+                        onClick = {
+                            item.onClick()
+                            expanded = false
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        color = surfaceColor,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentSize()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item.icon?.let {
+                                Icon(
+                                    imageVector = it,
+                                    contentDescription = null,
+                                    tint = item.iconTint ?: primaryColor,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Text(
+                                text = item.text,
+                                color = textColor,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

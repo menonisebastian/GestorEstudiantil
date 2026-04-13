@@ -1,18 +1,16 @@
 package samf.gestorestudiantil.ui.components
 
-import androidx.compose.foundation.background
+
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -25,18 +23,14 @@ import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import java.text.SimpleDateFormat
 import java.util.Locale
-
 import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
@@ -96,33 +90,46 @@ fun UnidadCard(
                     }
                 }
                 Row {
-                    if (onEditUnidad != null) {
-                        IconButton(onClick = onEditUnidad) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar Unidad", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
-                        }
-                    }
-                    if (onDeleteUnidad != null) {
-                        IconButton(onClick = onDeleteUnidad) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar Unidad", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
-                        }
-                    }
-                    if (onAddPost != null || onAddTarea != null) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            if (onAddPost != null) {
-                                FloatingPill(
-                                    text = "Publicación",
-                                    color = secondaryColor,
-                                    onClick = onAddPost
-                                )
-                            }
-                            if (onAddTarea != null) {
-                                FloatingPill(
-                                    text = "Tarea",
-                                    color = tertiaryColor,
-                                    onClick = onAddTarea
-                                )
-                            }
-                        }
+                    if (onAddPost != null || onAddTarea != null || onEditUnidad != null || onDeleteUnidad != null) {
+                        FloatingPill(
+                            items = listOfNotNull(
+                                onAddPost?.let {
+                                    MenuItem(
+                                        text = "Añadir Publicación",
+                                        icon = Icons.Default.Campaign,
+                                        onClick = it,
+                                        iconTint = secondaryColor
+                                    )
+                                },
+                                onAddTarea?.let {
+                                    MenuItem(
+                                        text = "Añadir Tarea",
+                                        icon = Icons.AutoMirrored.Filled.Assignment,
+                                        onClick = it,
+                                        iconTint = tertiaryColor
+                                    )
+                                },
+                                onEditUnidad?.let {
+                                    MenuItem(
+                                        text = "Editar Unidad",
+                                        icon = Icons.Default.Edit,
+                                        onClick = it,
+                                        iconTint = primaryColor
+                                    )
+                                },
+                                onDeleteUnidad?.let {
+                                    MenuItem(
+                                        text = "Eliminar Unidad",
+                                        icon = Icons.Default.Delete,
+                                        onClick = it,
+                                        iconTint = errorColor,
+                                        isDestructive = true
+                                    )
+                                }
+                            ),
+                            expandedIcon = Icons.Default.ArrowDropUp,
+                            shape = CircleShape,
+                        )
                     }
                 }
             }

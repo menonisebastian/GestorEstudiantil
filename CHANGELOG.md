@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.4.9] - 2026-04-28
+- **Refactorización de FloatingPill**: Transformado el componente `FloatingPill` en un menú desplegable dinámico que actúa como disparador de acciones.
+- **Mejora de UI en UnidadCard**: Integradas las acciones de "Editar Unidad" y "Eliminar Unidad" dentro del menú `FloatingPill`, eliminando botones redundantes de la tarjeta para un diseño más limpio.
+- **Estilización de Menús**: Las opciones del menú ahora utilizan un fondo `surfaceColor` sin bordes, mejorando la integración visual con el tema de la aplicación.
+- **Consistencia de Acciones**: Implementado el uso de `MenuItem` para estandarizar iconos, colores y comportamientos (incluyendo acciones destructivas) en los menús de acción.
+
 ## [v0.4.8] - 2026-04-27
 - **Filtros de Seguridad**: Implementado filtrado estricto por Turno y Ciclo en el `ProfesorRepository`. Ahora los profesores solo ven a los alumnos que corresponden exactamente a su grupo, evitando la mezcla de estudiantes de diferentes turnos o años.
 - **Sincronización de Horarios**: Corregida la desincronización de datos entre la asignación de materias y los horarios. Al asignar un profesor desde el panel de administración, el cambio se refleja automáticamente en todos los bloques horarios correspondientes.

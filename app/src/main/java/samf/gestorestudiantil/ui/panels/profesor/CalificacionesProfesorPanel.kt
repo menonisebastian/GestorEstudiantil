@@ -430,7 +430,7 @@ fun CalificacionesDetalleEstudiante(
             containerColor = primaryColor,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 86.dp, end = 20.dp)
+                .padding(bottom = 100.dp, end = 20.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
         }
@@ -512,6 +512,7 @@ fun AddEditCalificacionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = backgroundColor,
         title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

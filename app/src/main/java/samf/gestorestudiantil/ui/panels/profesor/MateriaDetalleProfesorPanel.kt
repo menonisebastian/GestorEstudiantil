@@ -285,7 +285,7 @@ fun MateriaDetalleProfesorPanel(
             containerColor = primaryColor,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 86.dp, end = 16.dp)
+                .padding(bottom = 100.dp, end = 16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Añadir Unidad", tint = textColor)
         }
