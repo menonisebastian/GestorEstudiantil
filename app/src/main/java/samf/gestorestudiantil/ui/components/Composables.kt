@@ -39,6 +39,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
@@ -499,9 +500,11 @@ fun AsignaturaCard(
 }
 
 @Composable
-fun EvaluacionCard(evaluacion: Evaluacion) {
+fun EvaluacionCard(evaluacion: Evaluacion, onClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -510,18 +513,37 @@ fun EvaluacionCard(evaluacion: Evaluacion) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                TypeChip(option = evaluacion.tipoEvaluacion)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TypeChip(option = evaluacion.tipoEvaluacion)
+                    if (evaluacion.adjunto != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.AttachFile,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = evaluacion.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
+                if (!evaluacion.comentario.isNullOrBlank()) {
+                    Text(
+                        text = evaluacion.comentario!!,
+                        fontSize = 11.sp,
+                        color = surfaceDimColor,
+                        maxLines = 1
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Text(
-                text = String.format(Locale.getDefault(), "%.1f", evaluacion.nota),
+                text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 18.sp,
-                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
+                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFD90808)
             )
         }
     }

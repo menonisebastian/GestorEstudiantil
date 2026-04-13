@@ -261,8 +261,9 @@ fun MateriaDetalleProfesorPanel(
                         onOpenDialog(
                             DialogState.VerEntregasProfesor(
                                 tarea = tarea,
-                                onCalificar = { entregaId, nota, comentario ->
-                                    viewModel.calificarEntrega(entregaId, nota, comentario)
+                                onCalificar = { evaluacion ->
+                                    viewModel.calificarEntrega(evaluacion.id, evaluacion.nota.toFloat(), evaluacion.comentario)
+                                    viewModel.guardarEvaluacion(evaluacion)
                                 }
                             )
                         )

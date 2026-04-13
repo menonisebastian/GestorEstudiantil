@@ -139,6 +139,13 @@ fun DialogOrchestrator(
                     onDismissRequest = dismissAction
                 )
             }
+
+            is DialogState.VerDetalleEvaluacion -> {
+                VerDetalleEvaluacionDialog(
+                    evaluacion = state.evaluacion,
+                    onDismiss = dismissAction
+                )
+            }
         }
     }
 }

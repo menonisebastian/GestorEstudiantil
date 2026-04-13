@@ -119,7 +119,7 @@ fun CalificacionesAsignaturaPanel(
             items(evaluaciones)
             {
                     modulo ->
-                EvaluacionCard(modulo)
+                EvaluacionCard(modulo, onClick = { onOpenDialog(DialogState.VerDetalleEvaluacion(modulo)) })
             }
         }
 

@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.5.1] - 2026-04-30
+- **Calificaciones**: Unificación del sistema de evaluación. Ahora las notas incluyen feedback detallado (comentarios) y archivos adjuntos devueltos por el profesor.
+- **Estudiantes**: Implementado el diálogo `VerDetalleEvaluacion` que permite consultar el feedback del profesor y descargar archivos adjuntos directamente desde la tarjeta de calificación.
+- **Profesorado**: Optimización del flujo de calificación; el guardado ahora actualiza simultáneamente la entrega específica y el historial global de evaluaciones del alumno.
+- **UI/UX**: `EvaluacionCard` mejorada con indicadores visuales de adjuntos (clip), previsualización de comentarios y respuesta táctil (clicable).
+- **Correcciones**: Integrada la visualización de la imagen del alumno en el panel de entregas del profesor y resueltos errores de nulabilidad en URLs de adjuntos.
+
 ## [v0.5.0] - 2026-04-29
 - **Navegación**: Refactorización del manejo del backstack en `HomeScreen` para minimizar la aplicación en lugar de cerrarla al estar en la pestaña inicial, evitando cierres de sesión accidentales.
 - **Administración**: Integración de filtros por "Turno" (Matutino/Vespertino) en el panel de gestión de usuarios.

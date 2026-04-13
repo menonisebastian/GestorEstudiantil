@@ -333,7 +333,7 @@ fun PostCard(
                         Icon(
                             imageVector = if (post.visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = null,
-                            tint = if (post.visible) primaryColor else surfaceDimColor,
+                            tint = if (post.visible) textColor else surfaceDimColor,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -364,12 +364,6 @@ fun PostCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Por ${post.autorNombre}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = primaryColor,
-                    fontWeight = FontWeight.Medium
-                )
                 Text(
                     text = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(post.fechaCreacion),
                     style = MaterialTheme.typography.bodySmall,

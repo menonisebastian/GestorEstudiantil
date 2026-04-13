@@ -1,14 +1,11 @@
 package samf.gestorestudiantil.ui.panels.profesor
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,35 +13,25 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.ui.components.AccImg
-import samf.gestorestudiantil.ui.components.CustomDropDownMenu
-import samf.gestorestudiantil.ui.components.MenuItem
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.User
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
-import samf.gestorestudiantil.data.enums.tipoEvaluacion
-import samf.gestorestudiantil.ui.components.TypeChip
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
-import samf.gestorestudiantil.ui.components.CustomTextField
+import samf.gestorestudiantil.ui.dialogs.AddEditCalificacionDialog
 import samf.gestorestudiantil.ui.dialogs.DialogState
-import samf.gestorestudiantil.ui.theme.backgroundColor
+import samf.gestorestudiantil.ui.dialogs.EvaluacionProfesorItem
 import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.surfaceDimColor
-import samf.gestorestudiantil.ui.theme.textColor
+
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -415,6 +402,9 @@ fun CalificacionesDetalleEstudiante(
                             onDelete = { viewModel.eliminarEvaluacion(eval) },
                             onToggleVisibility = {
                                 viewModel.guardarEvaluacion(eval.copy(visible = !eval.visible))
+                            },
+                            onDownload = eval.adjunto?.let { adjunto ->
+                                { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) }
                             }
                         )
                     }
@@ -446,133 +436,4 @@ fun CalificacionesDetalleEstudiante(
             }
         )
     }
-}
-
-@Composable
-fun EvaluacionProfesorItem(
-    evaluacion: Evaluacion,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    onToggleVisibility: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = surfaceColor),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                TypeChip(option = evaluacion.tipoEvaluacion)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(evaluacion.nombre, fontWeight = FontWeight.Bold, color = textColor)
-            }
-            Text(
-                text = String.format(java.util.Locale.getDefault(), "%.2f", evaluacion.nota),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
-            )
-            
-            CustomDropDownMenu(
-                items = listOf(
-                    MenuItem(
-                        text = "Editar",
-                        icon = Icons.Default.Edit,
-                        onClick = onEdit
-                    ),
-                    MenuItem(
-                        text = if (evaluacion.visible) "Ocultar" else "Mostrar",
-                        icon = if (evaluacion.visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        onClick = onToggleVisibility
-                    ),
-                    MenuItem(
-                        text = "Eliminar",
-                        icon = Icons.Default.Delete,
-                        onClick = onDelete,
-                        isDestructive = true
-                    )
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun AddEditCalificacionDialog(
-    evaluacion: Evaluacion,
-    onDismiss: () -> Unit,
-    onSave: (Evaluacion) -> Unit
-) {
-    var nombre by remember { mutableStateOf(evaluacion.nombre) }
-    var nota by remember { mutableStateOf(evaluacion.nota.toString()) }
-    var tipoSeleccionado by remember { mutableStateOf(evaluacion.tipoEvaluacion) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = backgroundColor,
-        title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                CustomTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = "Nombre del trabajo/examen",
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Column {
-                    Text("Tipo de evaluación", fontSize = 12.sp, color = surfaceDimColor, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        tipoEvaluacion.entries.forEach { tipo ->
-                            val isSelected = tipoSeleccionado == tipo
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSelected) tipo.color.copy(alpha = 0.2f) else surfaceColor)
-                                    .clickable { tipoSeleccionado = tipo }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = tipo.label,
-                                    color = if (isSelected) tipo.color else surfaceDimColor,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 10.sp
-                                )
-                            }
-                        }
-                    }
-                }
-
-                CustomTextField(
-                    value = nota,
-                    onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) nota = it },
-                    label = "Nota (0.0 - 10.0)",
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onSave(evaluacion.copy(nombre = nombre, nota = nota.toDoubleOrNull() ?: 0.0, tipoEvaluacion = tipoSeleccionado))
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
-            ) {
-                Text("Guardar", color = textColor)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar", color = primaryColor) }
-        }
-    )
 }

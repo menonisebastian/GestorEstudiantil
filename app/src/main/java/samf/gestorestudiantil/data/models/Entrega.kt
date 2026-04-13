@@ -13,6 +13,7 @@ data class Entrega(
     var tareaId: String = "",
     var estudianteId: String = "",
     var estudianteNombre: String = "",
+    var estudianteImgUrl: String? = null,
     var profesorId: String = "",
     var asignaturaId: String = "",
     @Serializable(with = TimestampSerializer::class)

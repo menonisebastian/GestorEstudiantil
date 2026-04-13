@@ -4,6 +4,7 @@ import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.Tarea
@@ -141,6 +142,10 @@ sealed class DialogState {
 
     data class VerEntregasProfesor(
         val tarea: Tarea,
-        val onCalificar: (String, Float, String?) -> Unit // entregaId, nota, comentario
+        val onCalificar: (Evaluacion) -> Unit
+    ) : DialogState()
+
+    data class VerDetalleEvaluacion(
+        val evaluacion: Evaluacion
     ) : DialogState()
 }

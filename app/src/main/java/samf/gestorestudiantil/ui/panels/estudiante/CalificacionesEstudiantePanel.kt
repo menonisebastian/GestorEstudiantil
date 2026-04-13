@@ -33,12 +33,11 @@ fun CalificacionesEstudiantePanel(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // BLOQUE 1: Contenido con márgenes (Agrupado)
-        // Aquí metemos todo lo que SÍ necesita márgenes
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp) // <--- Un solo padding para todo este bloque
+                .padding(horizontal = 20.dp)
         ) {
 
             // Título (ya no necesita padding individual)

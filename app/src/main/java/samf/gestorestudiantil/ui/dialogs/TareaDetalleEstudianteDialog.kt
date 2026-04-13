@@ -179,7 +179,7 @@ fun TareaDetalleEstudianteDialog(
                 } else {
                     // Sección para realizar entrega
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("REALIZAR ENTREGA", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                        Text("REALIZAR ENTREGA", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium, color = tertiaryColor)
                         
                         OutlinedCard(
                             onClick = { filePickerLauncher.launch("*/*") },
