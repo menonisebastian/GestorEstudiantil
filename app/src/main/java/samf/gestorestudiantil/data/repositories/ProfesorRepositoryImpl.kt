@@ -107,15 +107,12 @@ class ProfesorRepositoryImpl @Inject constructor(
         return snapshot.size()
     }
 
-    override fun getEstudiantesPorCursos(cursoIds: List<String>): Flow<List<User>> = callbackFlow {
-        if (cursoIds.isEmpty()) {
-            trySend(emptyList())
-            close()
-            return@callbackFlow
-        }
+    override fun getEstudiantesPorAsignatura(asignatura: Asignatura): Flow<List<User>> = callbackFlow {
         val subscription = db.collection("usuarios")
             .whereEqualTo("rol", "ESTUDIANTE")
-            .whereIn("cursoId", cursoIds)
+            .whereEqualTo("cursoId", asignatura.cursoId)
+            .whereEqualTo("cicloNum", asignatura.cicloNum)
+            .whereEqualTo("turno", asignatura.turno)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(User::class.java))
@@ -124,10 +121,12 @@ class ProfesorRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun getEstudiantesPorCurso(cursoId: String): List<User> {
+    override suspend fun getEstudiantesEspecificos(cursoId: String, cicloNum: Int, turno: String): List<User> {
         val snapshot = db.collection("usuarios")
             .whereEqualTo("rol", "ESTUDIANTE")
             .whereEqualTo("cursoId", cursoId)
+            .whereEqualTo("cicloNum", cicloNum)
+            .whereEqualTo("turno", turno)
             .get().await()
         return snapshot.toObjects(User::class.java)
     }

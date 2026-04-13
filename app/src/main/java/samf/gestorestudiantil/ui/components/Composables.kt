@@ -457,8 +457,16 @@ fun AsignaturaCard(
                     }
 
                     Icon(Icons.Outlined.Person, "Profesor", tint = surfaceDimColor, modifier = iconModifier)
+                    val nombreAMostrar = if (userRole == "ESTUDIANTE") {
+                        asignatura.profesorNombre.ifEmpty { "Sin asignar" }
+                    } else {
+                        // Para el profesor, mostramos el curso al que pertenece la asignatura
+                        val turnoSiglaProf = if (asignatura.turno.lowercase().contains("matutino")) "M" else "V"
+                        val cursoAcronimoProf = asignatura.cursoId.substringAfterLast("_").uppercase()
+                        "$cursoAcronimoProf $turnoSiglaProf${asignatura.cicloNum}"
+                    }
                     Text(
-                        text = asignatura.profesorNombre.ifEmpty { "Sin asignar" },
+                        text = nombreAMostrar,
                         color = surfaceDimColor,
                         fontSize = 10.sp
                     )

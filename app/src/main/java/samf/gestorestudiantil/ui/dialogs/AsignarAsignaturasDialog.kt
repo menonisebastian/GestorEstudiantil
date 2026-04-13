@@ -76,7 +76,9 @@ fun AsignarAsignaturasDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(asig.acronimo, fontWeight = FontWeight.Bold, color = primaryColor)
+                                        val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
+                                        val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
+                                        Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = primaryColor)
                                         Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
                                     }
                                     IconButton(onClick = { 
@@ -99,7 +101,7 @@ fun AsignarAsignaturasDialog(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = primaryColor)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                        items(adminState.asignaturas) { asig ->
+                        items(adminState.asignaturasDisponibles) { asig ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = tertiaryColor.copy(alpha = 0.1f)),
@@ -110,7 +112,9 @@ fun AsignarAsignaturasDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(asig.acronimo, fontWeight = FontWeight.Bold, color = tertiaryColor)
+                                        val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
+                                        val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
+                                        Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = tertiaryColor)
                                         Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
                                     }
                                     IconButton(onClick = { 

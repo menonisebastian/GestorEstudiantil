@@ -111,6 +111,19 @@ class AdminRepositoryImpl @Inject constructor(
             "profesorNombre" to nombreProfesor
         )
         db.collection("asignaturas").document(asignaturaId).update(updates).await()
+        
+        // Actualizar horarios que tengan esta asignatura
+        val horariosSnapshot = db.collection("horarios")
+            .whereEqualTo("asignaturaId", asignaturaId)
+            .get().await()
+            
+        for (doc in horariosSnapshot.documents) {
+            doc.reference.update(mapOf(
+                "profesorId" to profesorId,
+                "profesorNombre" to nombreProfesor
+            )).await()
+        }
+
         actualizarAcronimosProfesor(profesorId)
     }
 
@@ -120,6 +133,19 @@ class AdminRepositoryImpl @Inject constructor(
             "profesorNombre" to ""
         )
         db.collection("asignaturas").document(asignaturaId).update(updates).await()
+
+        // Quitar profesor de los horarios que tengan esta asignatura
+        val horariosSnapshot = db.collection("horarios")
+            .whereEqualTo("asignaturaId", asignaturaId)
+            .get().await()
+
+        for (doc in horariosSnapshot.documents) {
+            doc.reference.update(mapOf(
+                "profesorId" to "",
+                "profesorNombre" to ""
+            )).await()
+        }
+
         actualizarAcronimosProfesor(profesorId)
     }
 

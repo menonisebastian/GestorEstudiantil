@@ -92,16 +92,16 @@ fun CalificacionesAsignaturaPanel(
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
+                val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
+                val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                 Text(
-                    text = (profesor?.nombre ?: asignatura.profesorNombre).ifEmpty { "Sin asignar" },
+                    text = asignatura.nombre,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
                 )
-                val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                 Text(
-                    text = "${asignatura.nombre} - [$cursoAcronimo$turnoLetra${asignatura.cicloNum}]",
+                    text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
                     fontSize = 12.sp,
                     color = surfaceDimColor
                 )

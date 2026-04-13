@@ -21,8 +21,8 @@ interface ProfesorRepository {
     fun getAsignaturas(profesorId: String): Flow<List<Asignatura>>
     fun observeEntregasChanges(asignaturaIds: List<String>): Flow<Unit>
     suspend fun getCountNuevasEntregas(asignaturaId: String, lastRead: Long): Int
-    fun getEstudiantesPorCursos(cursoIds: List<String>): Flow<List<User>>
-    suspend fun getEstudiantesPorCurso(cursoId: String): List<User>
+    fun getEstudiantesPorAsignatura(asignatura: Asignatura): Flow<List<User>>
+    suspend fun getEstudiantesEspecificos(cursoId: String, cicloNum: Int, turno: String): List<User>
     
     fun getEvaluacionesEstudiante(estudianteId: String, asignaturaId: String): Flow<List<Evaluacion>>
     suspend fun guardarEvaluacion(evaluacion: Evaluacion)

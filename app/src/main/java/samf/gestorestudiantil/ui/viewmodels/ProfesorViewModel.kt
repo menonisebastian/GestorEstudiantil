@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -426,7 +427,7 @@ class ProfesorViewModel @Inject constructor(
                     FirebaseMessaging.getInstance().subscribeToTopic("asignatura_${asignatura.id}_profesores")
                 }
                 // Al cargar asignaturas, necesitamos conocer a todos los estudiantes de esos cursos para la pestaña global
-                cargarTodosMisEstudiantes(lista.map { it.cursoId }.distinct())
+                cargarTodosMisEstudiantes(lista)
                 
                 observarCambiosEnEntregas(lista.map { it.id })
                 recalcularNotificaciones(lista, currentUltimaVez)
@@ -512,27 +513,32 @@ class ProfesorViewModel @Inject constructor(
     // ====================================================================
     // 2. TODOS LOS ESTUDIANTES DE LOS CURSOS DONDE IMPARTE (tiempo real)
     // ====================================================================
-    fun cargarTodosMisEstudiantes(cursoIds: List<String>) {
-        if (cursoIds.isEmpty()) {
+    fun cargarTodosMisEstudiantes(asignaturas: List<Asignatura>) {
+        if (asignaturas.isEmpty()) {
             _state.update { it.copy(todosMisEstudiantes = emptyList()) }
             return
         }
         viewModelScope.launch {
-            profesorRepository.getEstudiantesPorCursos(cursoIds).collect { lista ->
+            // Recolectamos estudiantes de todas las asignaturas y los combinamos
+            val flows = asignaturas.map { profesorRepository.getEstudiantesPorAsignatura(it) }
+            combine(flows) { arrays: Array<List<User>> ->
+                arrays.flatMap { it }.distinctBy { it.id }
+            }.collect { lista ->
                 _state.update { it.copy(todosMisEstudiantes = lista) }
             }
         }
     }
 
     // ====================================================================
-    // 3. ESTUDIANTES DE UN CURSO CONCRETO (para la pestaña Asignaturas -> Estudiantes)
+    // 3. ESTUDIANTES DE UNA ASIGNATURA CONCRETA (Ciclo y Turno específicos)
     // ====================================================================
-    fun cargarEstudiantesPorCurso(cursoId: String) {
+    fun cargarEstudiantesPorAsignatura(asignatura: Asignatura) {
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
-                val estudiantes = profesorRepository.getEstudiantesPorCurso(cursoId)
-                _state.update { it.copy(isLoading = false, estudiantes = estudiantes) }
+                profesorRepository.getEstudiantesPorAsignatura(asignatura).collect { lista ->
+                    _state.update { it.copy(isLoading = false, estudiantes = lista) }
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = e.localizedMessage) }
             }

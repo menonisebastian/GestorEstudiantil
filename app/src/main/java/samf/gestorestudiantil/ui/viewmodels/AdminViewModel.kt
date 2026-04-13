@@ -24,7 +24,8 @@ data class AdminState(
     val usuarios: List<User> = emptyList(),
     val centros: List<Centro> = emptyList(),
     val cursos: List<Curso> = emptyList(),
-    val asignaturas: List<Asignatura> = emptyList(),
+    val asignaturas: List<Asignatura> = emptyList(), // Asignaturas del curso actual
+    val asignaturasDisponibles: List<Asignatura> = emptyList(), // Para diálogos de asignación
     val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
@@ -112,7 +113,7 @@ class AdminViewModel @Inject constructor(
     fun cargarAsignaturasSinProfesor(turno: String) {
         viewModelScope.launch {
             adminRepository.getAsignaturasSinProfesor(turno).collect { lista ->
-                _adminState.value = _adminState.value.copy(asignaturas = lista)
+                _adminState.value = _adminState.value.copy(asignaturasDisponibles = lista)
             }
         }
     }

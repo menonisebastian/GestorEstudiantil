@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.4.8] - 2026-04-27
+- **Filtros de Seguridad**: Implementado filtrado estricto por Turno y Ciclo en el `ProfesorRepository`. Ahora los profesores solo ven a los alumnos que corresponden exactamente a su grupo, evitando la mezcla de estudiantes de diferentes turnos o años.
+- **Sincronización de Horarios**: Corregida la desincronización de datos entre la asignación de materias y los horarios. Al asignar un profesor desde el panel de administración, el cambio se refleja automáticamente en todos los bloques horarios correspondientes.
+- **Desacoplamiento de Estado**: Refactorizado el `AdminViewModel` para separar la lista de asignaturas del curso de la lista de asignaturas disponibles para asignación, eliminando el error que causaba que la vista principal se "resetease" al asignar un docente.
+- **Estandarización de Títulos**: Actualizado el formato de títulos en los paneles de calificaciones y horarios a "Acrónimo Curso + Turno + Ciclo" (ej. "DAMV2") para una identificación rápida y consistente.
+- **Mejora de UX en Calificaciones**: Ajustada la `AsignaturaCard` para profesores; ahora muestra el curso al que pertenece la materia en lugar del nombre del propio profesor, facilitando la gestión multiclase.
+
 ## [v0.4.7] - 2026-04-26
 - Estandarización de UI: Unificados los componentes de selección (dropdowns) mediante el uso de `CustomOptionsTextField` en toda la aplicación para asegurar la integridad de los datos.
 - Mejora de UX: Implementado estilo "pill" con `RoundedCornerShape(20.dp)` en campos de selección, restringiendo la entrada a opciones válidas y mejorando la estética visual.

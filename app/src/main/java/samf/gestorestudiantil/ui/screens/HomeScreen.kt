@@ -514,8 +514,8 @@ fun HomeScreen(
                         val profesorViewModel: ProfesorViewModel = hiltViewModel()
                         val pState by profesorViewModel.state.collectAsState()
 
-                        LaunchedEffect(route.asignatura.cursoId) {
-                            profesorViewModel.cargarEstudiantesPorCurso(route.asignatura.cursoId)
+                        LaunchedEffect(route.asignatura.id) {
+                            profesorViewModel.cargarEstudiantesPorAsignatura(route.asignatura)
                         }
 
                         EstudiantesAsignaturaLista(

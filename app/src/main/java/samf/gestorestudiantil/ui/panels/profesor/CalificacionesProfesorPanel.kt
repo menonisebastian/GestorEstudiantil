@@ -263,9 +263,9 @@ fun EstudiantesAsignaturaLista(
                     color = textColor
                 )
                 val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                val cursoAcronimo = try { asignatura.id.substringAfter("_").substringBefore("_").uppercase() } catch (e: Exception) { "" }
+                val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                 Text(
-                    text = "$cursoAcronimo - [$cursoAcronimo$turnoLetra${asignatura.cicloNum}]",
+                    text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
                     fontSize = 12.sp,
                     color = surfaceDimColor
                 )
@@ -380,16 +380,16 @@ fun CalificacionesDetalleEstudiante(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Column(horizontalAlignment = Alignment.End) {
+                    val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
+                    val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                     Text(
                         text = estudiante.nombre,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColor
                     )
-                    val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                    val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                     Text(
-                        text = "${asignatura.nombre} - [$cursoAcronimo$turnoLetra${asignatura.cicloNum}]",
+                        text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
                         fontSize = 12.sp,
                         color = surfaceDimColor
                     )
