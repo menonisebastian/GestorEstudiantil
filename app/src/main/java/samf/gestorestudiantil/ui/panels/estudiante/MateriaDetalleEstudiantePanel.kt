@@ -3,8 +3,6 @@ package samf.gestorestudiantil.ui.panels.estudiante
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,14 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
-import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -57,10 +53,12 @@ fun MateriaDetalleEstudiantePanel(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AccImg(
+                        userName = asignatura.profesorNombre,
                         imgUrl = profesor?.imgUrl ?: "",
                         onClick = {
                             profesor?.let { onOpenDialog(DialogState.UserProfile(it)) }
-                        }
+                        },
+                        size = 40.dp
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {

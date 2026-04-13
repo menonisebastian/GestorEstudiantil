@@ -71,7 +71,6 @@ import samf.gestorestudiantil.domain.isDetailRoute
 import samf.gestorestudiantil.domain.tabToRoute
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.IconLogo
-import samf.gestorestudiantil.ui.components.TopBarRow
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
@@ -334,7 +333,8 @@ fun HomeScreen(
                     }
                 },
                 hazeState = hazeState,
-                userImgUrl = usuario.imgUrl
+                userImgUrl = usuario.imgUrl,
+                userName = usuario.nombre
             )
         },
         floatingActionButton = {
@@ -549,7 +549,8 @@ fun HomeScreen(
                             asignatura = route.asignatura,
                             evaluaciones = estudianteState.evaluaciones,
                             paddingValues = PaddingValues(0.dp),
-                            onBackClick = { pageBackStack.removeLastOrNull() }
+                            onBackClick = { pageBackStack.removeLastOrNull() },
+                            onOpenDialog = onOpenDialog
                         )
                     }
                     entry<Routes.HomeRoutes.Recordatorios> {

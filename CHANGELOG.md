@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.4.7] - 2026-04-26
+- Estandarización de UI: Unificados los componentes de selección (dropdowns) mediante el uso de `CustomOptionsTextField` en toda la aplicación para asegurar la integridad de los datos.
+- Mejora de UX: Implementado estilo "pill" con `RoundedCornerShape(20.dp)` en campos de selección, restringiendo la entrada a opciones válidas y mejorando la estética visual.
+- Administración: Actualizadas las pantallas `EditUserScreen` y `EditAsignaturaScreen` para usar selectores estandarizados en los campos de "Ciclo" y "Número de Ciclo".
+- Consistencia: Verificada y asegurada la uniformidad de los componentes de selección en los flujos de Registro, Configuración de Google y Diálogos comunes.
+- Refactorización: Implementado el componente reutilizable `FloatingPill` para menús de opciones, aplicado inicialmente en `UnidadCard`.
+
 ## [v0.4.6] - 2026-04-25
 - Mejora de UI: Rediseñados los botones de acción en las pantallas de edición de Administración como "píldoras flotantes".
 - UI/UX: Implementado `RoundedCornerShape(24.dp)` y elevación en los contenedores de botones para una estética más moderna y coherente.

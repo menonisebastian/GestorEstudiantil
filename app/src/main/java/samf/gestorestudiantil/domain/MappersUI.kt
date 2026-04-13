@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.domain
 
 import android.net.Uri
+import samf.gestorestudiantil.data.models.User
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.material.icons.Icons
@@ -194,4 +195,22 @@ fun compararFechaActual(fecha: String): Boolean {
     val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
     val fechaActual = LocalDate.now()
     return LocalDate.parse(fecha, formatter) <= fechaActual
+}
+
+/**
+ * Obtiene la primera letra del nombre y del apellido de un usuario.
+ * Si el nombre tiene varias partes, toma la primera y la última (asumiendo que es el apellido).
+ */
+fun obtenerIniciales(user: User?): String = obtenerInicialesDeNombre(user?.nombre)
+
+fun obtenerInicialesDeNombre(nombre: String?): String {
+    val nombreCompleto = nombre?.trim() ?: return ""
+    if (nombreCompleto.isEmpty()) return ""
+
+    val partes = nombreCompleto.split("\\s+".toRegex())
+    return if (partes.size >= 2) {
+        "${partes.first().first()}${partes.last().first()}".uppercase()
+    } else {
+        "${partes.first().first()}".uppercase()
+    }
 }

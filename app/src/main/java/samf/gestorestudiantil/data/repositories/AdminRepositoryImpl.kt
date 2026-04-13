@@ -129,13 +129,23 @@ class AdminRepositoryImpl @Inject constructor(
             .get().await()
 
         val asignaturas = snapshot.toObjects(Asignatura::class.java)
+
         val nuevoCursoOArea = asignaturas
             .map { it.acronimo }
             .distinct()
             .joinToString(", ")
 
+        // Creamos la lista de IDs deterministas (ej: ["ies_comercio_dam_2_di_vespertino"])
+        val listaIdsAsignaturas = asignaturas.map { it.id }
+
+        // Actualizamos el perfil del profesor con ambos campos
         db.collection("usuarios").document(profesorId)
-            .update("cursoOArea", nuevoCursoOArea).await()
+            .update(
+                mapOf(
+                    "cursoOArea" to nuevoCursoOArea,
+                    "asignaturasImpartidas" to listaIdsAsignaturas
+                )
+            ).await()
     }
 
     override suspend fun guardarCentro(centro: Centro) {

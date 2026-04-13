@@ -38,9 +38,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -94,10 +97,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import samf.gestorestudiantil.domain.obtenerInicialesDeNombre
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.ui.theme.textColor
 import coil.compose.AsyncImage
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -117,32 +121,7 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
-import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
-
-@Composable
-fun TopBarRow(
-    name: String,
-    role: String,
-    curso: String,
-    imgUrl: String = "",
-    onNavigateProfile: () -> Unit,
-    onLogout: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        AccBox(name, role, curso, imgUrl, onClick = { onNavigateProfile() })
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        DropDownMenu(
-            onNavigateProfile = { onNavigateProfile() },
-            onLogout = { onLogout() }
-        )
-    }
-}
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -151,7 +130,8 @@ fun BottomNavBar(
     selectedItem: String,
     onItemSelected: (String) -> Unit,
     hazeState: HazeState?,
-    userImgUrl: String = ""
+    userImgUrl: String = "",
+    userName: String = ""
 ) {
 
     val hazeStyle = CupertinoMaterials.thick()
@@ -207,32 +187,12 @@ fun BottomNavBar(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             if (label == "Perfil") {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isSelected) primaryColor.copy(alpha = 0.2f) else surfaceDimColor.copy(alpha = 0.1f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (userImgUrl.isNotEmpty()) {
-                                        AsyncImage(
-                                            model = coil.request.ImageRequest.Builder(LocalContext.current)
-                                                .data(userImgUrl)
-                                                .crossfade(true)
-                                                .build(),
-                                            contentDescription = label,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = icon,
-                                            contentDescription = label,
-                                            tint = animatedIconColor,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
+                                AccImg(
+                                    userName = userName,
+                                    imgUrl = userImgUrl,
+                                    size = 24.dp,
+                                    onClick = { onItemSelected(label) }
+                                )
                             } else {
                                 Icon(
                                     imageVector = icon,
@@ -312,6 +272,7 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
 // =========================================================
 @Composable
 fun ProfileImagePicker(
+    userName: String = "",
     currentPhotoUrl: String,
     onPhotoUploaded: (String) -> Unit
 ) {
@@ -345,27 +306,12 @@ fun ProfileImagePicker(
         contentAlignment = Alignment.Center
     ) {
         // Fondo / Imagen del usuario
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(CircleShape)
-                .background(primaryColor.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
-        ) {
-            if (currentPhotoUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = coil.request.ImageRequest.Builder(LocalContext.current)
-                        .data(currentPhotoUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Foto de perfil",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(Icons.Outlined.Person, contentDescription = null, modifier = Modifier.size(50.dp), tint = primaryColor)
-            }
-        }
+        AccImg(
+            userName = userName,
+            imgUrl = currentPhotoUrl,
+            size = 100.dp,
+            onClick = { if (!isUploading) photoPickerLauncher.launch("image/*") }
+        )
 
         // Icono de Lápiz / Edición
         if (!isUploading) {
@@ -754,7 +700,7 @@ fun CustomOptionsTextField(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             containerColor = surfaceColor, // Corregido para usar surfaceColor y ser consistente
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(20.dp)
         ) {
             opciones.forEach { opcion ->
                 DropdownMenuItem(
@@ -768,7 +714,11 @@ fun CustomOptionsTextField(
 
                 // Mantenemos tu divisor visual
                 if (opcion != opciones.last()) {
-                    HorizontalDivider(color = surfaceDimColor.copy(alpha = 0.2f))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        thickness = 0.5.dp,
+                        color = surfaceDimColor.copy(alpha = 0.2f)
+                    )
                 }
             }
         }
@@ -899,8 +849,20 @@ fun CustomTimeField(
     )
 }
 
+data class MenuItem(
+    val text: String,
+    val icon: ImageVector? = null,
+    val onClick: () -> Unit,
+    val isDestructive: Boolean = false,
+    val iconTint: Color? = null
+)
+
 @Composable
-fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOptionSelected: (String) -> Unit) {
+fun CustomDropDownMenu(
+    baseIcon: ImageVector = Icons.Default.MoreVert,
+    iconTint: Color = surfaceDimColor,
+    items: List<MenuItem>
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
@@ -910,24 +872,47 @@ fun CustomDropDownMenu(baseIcon: ImageVector, optionList: List<String>, onOption
             Icon(
                 imageVector = baseIcon,
                 contentDescription = "Opciones",
-                tint = surfaceDimColor
+                tint = iconTint
             )
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(30.dp),
+            shape = RoundedCornerShape(20.dp),
             offset = DpOffset(x = 0.dp, y = 0.dp),
-            containerColor = backgroundColor,
+            containerColor = surfaceColor,
         ) {
-            optionList.forEach { option ->
+            items.forEachIndexed { index, item ->
                 DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = { onOptionSelected(option); expanded = false })
+                    text = {
+                        Text(
+                            text = item.text,
+                            color = if (item.isDestructive) errorColor else textColor
+                        )
+                    },
+                    onClick = {
+                        item.onClick()
+                        expanded = false
+                    },
+                    leadingIcon = item.icon?.let {
+                        {
+                            Icon(
+                                imageVector = it,
+                                contentDescription = null,
+                                tint = item.iconTint ?: if (item.isDestructive) errorColor else surfaceDimColor
+                            )
+                        }
+                    }
+                )
 
-                if (option != optionList.last())
-                    HorizontalDivider()
+                if (index < items.size - 1) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        thickness = 0.5.dp,
+                        color = surfaceDimColor.copy(alpha = 0.2f)
+                    )
+                }
             }
         }
     }
@@ -956,6 +941,28 @@ fun TypeChip(option: ChipOption) {
 }
 
 @Composable
+fun FloatingPill(
+    text: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = color.copy(alpha = 0.1f),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, color.copy(alpha = 0.5f))
+    ) {
+        Text(
+            text = text,
+            color = color,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
 fun MensajeVacio() {
     Box(
         modifier = Modifier
@@ -968,35 +975,19 @@ fun MensajeVacio() {
 }
 
 @Composable
-fun AccBox(name: String, role: String, curso: String, imgUrl: String = "", onClick: () -> Unit) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        AccImg(imgUrl = imgUrl, onClick = onClick)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text("Hola, $name", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
-            Text("$role - $curso", fontSize = 12.sp, color = surfaceDimColor)
-        }
-    }
-}
-
-@Composable
-fun AccImg(imgUrl: String = "", onClick: () -> Unit = {}) {
-    val context = LocalContext.current // Necesario para ImageRequest
+fun AccImg(userName: String = "", imgUrl: String = "", onClick: () -> Unit = {}, size: Dp) {
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(size)
             .clip(CircleShape)
             .clickable(onClick = onClick)
-            .background(Color.Blue),
+            .background(tertiaryColor.copy(alpha = 0.2f)),
         contentAlignment = Alignment.Center
     ) {
         if (imgUrl.isNotEmpty()) {
             AsyncImage(
-                // Se construye un ImageRequest para poder usar crossfade
                 model = coil.request.ImageRequest.Builder(context)
                     .data(imgUrl)
                     .crossfade(true)
@@ -1006,44 +997,11 @@ fun AccImg(imgUrl: String = "", onClick: () -> Unit = {}) {
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            Icon(
-                imageVector = Icons.Outlined.Person,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun UserImg(imgUrl: String = "") {
-    val context = LocalContext.current // Necesario para ImageRequest
-
-    Box(
-        modifier = Modifier
-            .size(100.dp)
-            .clip(CircleShape)
-            .background(Color.Blue),
-        contentAlignment = Alignment.Center
-    ) {
-        if (imgUrl.isNotEmpty()) {
-            AsyncImage(
-                // Se construye un ImageRequest para poder usar crossfade
-                model = coil.request.ImageRequest.Builder(context)
-                    .data(imgUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Foto de perfil",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Outlined.Person,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
+            Text(
+                text = obtenerInicialesDeNombre(userName),
+                color = primaryColor,
+                fontSize = (size.value * 0.35).sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

@@ -86,10 +86,11 @@ fun EditCentroScreen(
                 onValueChange = { direccion = it },
                 label = "Dirección"
             )
-            CustomTextField(
-                value = tipo,
+            CustomOptionsTextField(
+                texto = tipo,
                 onValueChange = { tipo = it },
-                label = "Tipo (ej. Instituto de Educación Secundaria)"
+                opciones = listOf("IES", "Centro Privado", "Centro Concertado", "Universidad"),
+                label = "Tipo"
             )
             Spacer(modifier = Modifier.height(180.dp))
         }
@@ -192,8 +193,18 @@ fun EditCursoScreen(
             CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. DAM)")
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
             CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
-            CustomTextField(value = tipo, onValueChange = { tipo = it }, label = "Tipo (ej. FP Grado Superior)")
-            CustomTextField(value = modalidad, onValueChange = { modalidad = it }, label = "Modalidad (presencial/dual)")
+            CustomOptionsTextField(
+                texto = tipo,
+                onValueChange = { tipo = it },
+                opciones = listOf("FP Grado Medio", "FP Grado Superior", "Bachillerato", "ESO"),
+                label = "Tipo"
+            )
+            CustomOptionsTextField(
+                texto = modalidad,
+                onValueChange = { modalidad = it },
+                opciones = listOf("presencial", "dual", "online"),
+                label = "Modalidad"
+            )
             CustomTextField(value = urlInfo, onValueChange = { urlInfo = it }, label = "URL Info")
             CustomTextField(value = horasTotalesCurso, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotalesCurso = it }, label = "Horas Totales")
             CustomTextField(value = turnosStr, onValueChange = { turnosStr = it }, label = "Turnos (separados por coma)")
@@ -313,8 +324,18 @@ fun EditAsignaturaScreen(
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
             CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
             CustomTextField(value = profesorId, onValueChange = { profesorId = it }, label = "ID Profesor")
-            CustomTextField(value = ciclo, onValueChange = { ciclo = it }, label = "Ciclo (ej. 1, 2, único)")
-            CustomTextField(value = cicloNum, onValueChange = { if (it.all { c -> c.isDigit() }) cicloNum = it }, label = "Número de Ciclo (1 o 2)")
+            CustomOptionsTextField(
+                texto = ciclo,
+                onValueChange = { ciclo = it },
+                opciones = listOf("1", "2", "único"),
+                label = "Ciclo"
+            )
+            CustomOptionsTextField(
+                texto = cicloNum,
+                onValueChange = { cicloNum = it },
+                opciones = listOf("1", "2"),
+                label = "Número de Ciclo"
+            )
             CustomTextField(value = horasTotales, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotales = it }, label = "Horas Totales")
             CustomTextField(value = horasSemanales, onValueChange = { if (it.all { c -> c.isDigit() }) horasSemanales = it }, label = "Horas Semanales")
 
@@ -464,17 +485,16 @@ fun EditUserScreen(
                 label = "Turno"
             )
 
-            CustomTextField(
-                value = cicloNum,
+            CustomOptionsTextField(
+                texto = cicloNum,
                 onValueChange = { 
-                    if (it.all { c -> c.isDigit() }) {
-                        cicloNum = it
-                        // Actualizar cursoOArea cuando cambia el ciclo
-                        val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
-                        val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                        cursoOArea = "${acronimo}${letraTurno}${cicloNum}"
-                    }
+                    cicloNum = it
+                    // Actualizar cursoOArea cuando cambia el ciclo
+                    val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
+                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                    cursoOArea = "${acronimo}${letraTurno}${cicloNum}"
                 },
+                opciones = listOf("1", "2"),
                 label = "Ciclo (1 o 2)"
             )
             Spacer(modifier = Modifier.height(180.dp))

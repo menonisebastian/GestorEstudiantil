@@ -59,7 +59,6 @@ import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -289,7 +288,7 @@ fun UsuarioCardAdmin(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Imagen de perfil
-                AccImg(imgUrl = usuario.imgUrl, { onUserDialog() })
+                AccImg(userName = usuario.nombre, imgUrl = usuario.imgUrl, onClick = { onUserDialog() }, size = 48.dp)
 
                 Spacer(modifier = Modifier.width(16.dp))
 

@@ -17,5 +17,6 @@ data class User(
     var imgUrl: String = "",
     var fotoUrl: String = "", // URL de la foto de perfil en Firestore
     var fcmToken: String = "", // Token para notificaciones individuales
-    var ultimaVezAsignaturas: Map<String, Long> = emptyMap() // Map<AsignaturaId, Timestamp>
+    var ultimaVezAsignaturas: Map<String, Long> = emptyMap(), // Map<AsignaturaId, Timestamp>
+    var asignaturasImpartidas: List<String> = emptyList() // Lista de asignaturas impartidas (para profesores)
 )

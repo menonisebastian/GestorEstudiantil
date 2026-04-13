@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.ui.components.UserImg
+import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
@@ -69,7 +69,7 @@ fun UserProfileDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Imagen de usuario
-                UserImg(imgUrl = user.imgUrl)
+                AccImg(userName = user.nombre, imgUrl = user.imgUrl, size = 100.dp)
 
                 Text(
                     text = user.nombre,

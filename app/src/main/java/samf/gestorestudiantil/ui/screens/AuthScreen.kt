@@ -616,6 +616,7 @@ fun RegistroPanelStep1(
                 Text("Crea tu cuenta ya!", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
                 ProfileImagePicker(
+                    userName = name,
                     currentPhotoUrl = fotoUrl,
                     onPhotoUploaded = { urlSegura -> fotoUrl = urlSegura }
                 )

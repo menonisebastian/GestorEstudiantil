@@ -107,86 +107,20 @@ fun UnidadCard(
                         }
                     }
                     if (onAddPost != null || onAddTarea != null) {
-                        var showMenu by remember { mutableStateOf(false) }
-                        Box {
-                            IconButton(onClick = { showMenu = true }) {
-                                Icon(Icons.Default.Add, contentDescription = "Añadir contenido", tint = primaryColor)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (onAddPost != null) {
+                                FloatingPill(
+                                    text = "Publicación",
+                                    color = secondaryColor,
+                                    onClick = onAddPost
+                                )
                             }
-                            DropdownMenu(
-                                expanded = showMenu,
-                                onDismissRequest = { showMenu = false },
-                                containerColor = Color.Transparent,
-                                shadowElevation = 0.dp,
-                                tonalElevation = 0.dp,
-                                modifier = Modifier.padding(end = 0.dp)
-                            ) {
-                                if (onAddPost != null) {
-                                    Surface(
-                                        onClick = {
-                                            showMenu = false
-                                            onAddPost()
-                                        },
-                                        shape = RoundedCornerShape(50),
-                                        color = surfaceColor,
-                                        shadowElevation = 6.dp,
-                                        modifier = Modifier
-                                            .padding(vertical = 0.dp) // Sin padding vertical entre las píldoras
-                                            .align(Alignment.End)
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Campaign,
-                                                contentDescription = null,
-                                                tint = secondaryColor,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = "Añadir Publicación",
-                                                color = textColor,
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(4.dp)) // Espacio mínimo controlado entre píldoras
-                                if (onAddTarea != null) {
-                                    Surface(
-                                        onClick = {
-                                            showMenu = false
-                                            onAddTarea()
-                                        },
-                                        shape = RoundedCornerShape(50),
-                                        color = surfaceColor,
-                                        shadowElevation = 6.dp,
-                                        modifier = Modifier
-                                            .padding(vertical = 0.dp) // Sin padding vertical entre las píldoras
-                                            .align(Alignment.End)
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Filled.Assignment,
-                                                contentDescription = null,
-                                                tint = tertiaryColor,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = "Añadir Tarea",
-                                                color = textColor,
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                    }
-                                }
+                            if (onAddTarea != null) {
+                                FloatingPill(
+                                    text = "Tarea",
+                                    color = tertiaryColor,
+                                    onClick = onAddTarea
+                                )
                             }
                         }
                     }

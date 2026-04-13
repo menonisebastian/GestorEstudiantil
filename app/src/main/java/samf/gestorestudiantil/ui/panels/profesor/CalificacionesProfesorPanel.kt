@@ -23,7 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import samf.gestorestudiantil.ui.components.AccImg
+import samf.gestorestudiantil.ui.components.CustomDropDownMenu
+import samf.gestorestudiantil.ui.components.MenuItem
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.User
@@ -320,15 +322,11 @@ fun EstudianteCard(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = estudiante.imgUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
-                    .clickable { onImageClick() },
-                contentScale = ContentScale.Crop
+            AccImg(
+                userName = estudiante.nombre,
+                imgUrl = estudiante.imgUrl,
+                size = 50.dp,
+                onClick = { onImageClick() }
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -364,15 +362,11 @@ fun CalificacionesDetalleEstudiante(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
-                AsyncImage(
-                    model = estudiante.imgUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                        .clickable { onOpenDialog(DialogState.UserProfile(estudiante)) },
-                    contentScale = ContentScale.Crop
+                AccImg(
+                    userName = estudiante.nombre,
+                    imgUrl = estudiante.imgUrl,
+                    size = 40.dp,
+                    onClick = { onOpenDialog(DialogState.UserProfile(estudiante)) }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 val notaMedia = if (state.evaluaciones.isNotEmpty()) state.evaluaciones.map { it.nota }.average() else 0.0
@@ -482,29 +476,26 @@ fun EvaluacionProfesorItem(
                 color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
             )
             
-            var expanded by remember { mutableStateOf(false) }
-            Box {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = surfaceDimColor)
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Editar") },
-                        onClick = { onEdit(); expanded = false },
-                        leadingIcon = { Icon(Icons.Default.Edit, null) }
+            CustomDropDownMenu(
+                items = listOf(
+                    MenuItem(
+                        text = "Editar",
+                        icon = Icons.Default.Edit,
+                        onClick = onEdit
+                    ),
+                    MenuItem(
+                        text = if (evaluacion.visible) "Ocultar" else "Mostrar",
+                        icon = if (evaluacion.visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        onClick = onToggleVisibility
+                    ),
+                    MenuItem(
+                        text = "Eliminar",
+                        icon = Icons.Default.Delete,
+                        onClick = onDelete,
+                        isDestructive = true
                     )
-                    DropdownMenuItem(
-                        text = { Text(if (evaluacion.visible) "Ocultar" else "Mostrar") },
-                        onClick = { onToggleVisibility(); expanded = false },
-                        leadingIcon = { Icon(if (evaluacion.visible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Eliminar", color = Color.Red) },
-                        onClick = { onDelete(); expanded = false },
-                        leadingIcon = { Icon(Icons.Default.Delete, null, tint = Color.Red) }
-                    )
-                }
-            }
+                )
+            )
         }
     }
 }
