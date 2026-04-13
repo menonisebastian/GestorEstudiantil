@@ -197,10 +197,6 @@ fun HomeScreen(
         }
     }
 
-    // ✅ Back stack INTERNO de HomeScreen (independiente del de AppNavigation)
-    val homeBackStack = remember {
-        mutableStateListOf<NavKey>(tabToRoute(tabs.first(), usuario.rol))
-    }
 
     // Gestión de diálogos (Pila para permitir pickers sobre otros diálogos)
     val dialogStack = remember { mutableStateListOf<DialogState>() }
@@ -269,13 +265,14 @@ fun HomeScreen(
         if (currentPageBackStack != null && currentPageBackStack.size > 1) {
             currentPageBackStack.removeLastOrNull()
         } else {
-            val currentHomeRoute = homeBackStack.lastOrNull()
-            val firstTabRoute = tabToRoute(tabs.first(), usuario.rol)
-            if (currentHomeRoute != null && currentHomeRoute::class != firstTabRoute::class) {
-                homeBackStack.clear()
-                homeBackStack.add(firstTabRoute)
+            if (pagerState.currentPage != 0) {
+                // Si no estamos en la primera pestaña (Asignaturas/Usuarios), volvemos a ella
+                scope.launch {
+                    pagerState.animateScrollToPage(0)
+                }
             } else {
-                (context as? Activity)?.finish()
+                // Si ya estamos en la primera pestaña, minimizamos la app sin cerrar sesión
+                (context as? Activity)?.moveTaskToBack(true)
             }
         }
     }
@@ -404,11 +401,6 @@ fun HomeScreen(
 
             NavDisplay(
                 backStack = pageBackStack,
-                onBack = {
-                    if (pageBackStack.size > 1) {
-                        pageBackStack.removeLastOrNull()
-                    }
-                },
                 transitionSpec = {
                     slideInHorizontally(
                         initialOffsetX = { it },

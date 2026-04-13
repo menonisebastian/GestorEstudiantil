@@ -56,6 +56,7 @@ fun FilterByDialog(
     val userOptions = listOf("Estudiante", "Admin", "Profesor")
     val recordatorioOptions = listOf("Examen", "Tarea", "Evento")
     val cicloOptions = listOf("1", "2")
+    val turnoOptions = listOf("Matutino", "Vespertino")
 
     // Opciones dinámicas pasadas desde el ViewModel
     val cursoOptions = state.opcionesPersonalizadas["cursos"] ?: emptyList()
@@ -129,6 +130,16 @@ fun FilterByDialog(
                         onSelectionChanged = { options ->
                             val newValue = options.joinToString(",")
                             tempFilters = if (newValue.isEmpty()) tempFilters - "ciclo" else tempFilters + ("ciclo" to newValue)
+                        }
+                    )
+
+                    FilterChipGroup(
+                        label = "Turno",
+                        options = turnoOptions,
+                        selectedOptions = tempFilters["turno"]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList(),
+                        onSelectionChanged = { options ->
+                            val newValue = options.joinToString(",")
+                            tempFilters = if (newValue.isEmpty()) tempFilters - "turno" else tempFilters + ("turno" to newValue)
                         }
                     )
                 }

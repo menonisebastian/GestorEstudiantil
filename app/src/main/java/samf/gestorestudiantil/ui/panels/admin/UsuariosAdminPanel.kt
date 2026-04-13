@@ -75,10 +75,11 @@ fun UsuariosAdminPanel(
     appViewModel: AppViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    var textoBusqueda by remember { mutableStateOf("") }
-    var filtroRol by remember { mutableStateOf("") }
-    var filtroCurso by remember { mutableStateOf("") }
-    var filtroCiclo by remember { mutableStateOf("") }
+    var textoBusqueda by rememberSaveable { mutableStateOf("") }
+    var filtroRol by rememberSaveable { mutableStateOf("") }
+    var filtroCurso by rememberSaveable { mutableStateOf("") }
+    var filtroCiclo by rememberSaveable { mutableStateOf("") }
+    var filtroTurno by rememberSaveable { mutableStateOf("") }
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Activos, 1: Pendientes
     val tabs = listOf("Activos", "Pendientes")
     //var confirmDialogVisible by remember { mutableStateOf(false) }
@@ -101,11 +102,12 @@ fun UsuariosAdminPanel(
     }
 
     // Filtrar la lista real proveniente de Firebase
-    val usuariosFiltrados = remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, selectedTabIndex, adminState.usuarios) {
+    val usuariosFiltrados = remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, filtroTurno, selectedTabIndex, adminState.usuarios) {
         val estadoFiltro = if (selectedTabIndex == 1) "PENDIENTE" else "ACTIVO"
         val rolesSeleccionados = filtroRol.split(",").filter { it.isNotEmpty() }
         val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
         val ciclosSeleccionados = filtroCiclo.split(",").filter { it.isNotEmpty() }
+        val turnosSeleccionados = filtroTurno.split(",").filter { it.isNotEmpty() }
 
         adminState.usuarios.filter {
             val coincideEstado = it.estado == estadoFiltro
@@ -116,8 +118,9 @@ fun UsuariosAdminPanel(
             val coincideCiclo = if (ciclosSeleccionados.isEmpty()) true else {
                 ciclosSeleccionados.any { ciclo -> it.cursoOArea.contains(ciclo) }
             }
+            val coincideTurno = if (turnosSeleccionados.isEmpty()) true else turnosSeleccionados.any { turno -> it.turno.equals(turno, ignoreCase = true) }
             
-            coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo
+            coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo && coincideTurno
         }
     }
 
@@ -150,7 +153,8 @@ fun UsuariosAdminPanel(
                             currentFilters = mapOf(
                                 "rol" to filtroRol,
                                 "curso" to filtroCurso,
-                                "ciclo" to filtroCiclo
+                                "ciclo" to filtroCiclo,
+                                "turno" to filtroTurno
                             ),
                             opcionesPersonalizadas = mapOf(
                                 "cursos" to adminState.cursos.map { it.acronimo }.distinct()
@@ -159,6 +163,7 @@ fun UsuariosAdminPanel(
                                 filtroRol = seleccion["rol"] ?: ""
                                 filtroCurso = seleccion["curso"] ?: ""
                                 filtroCiclo = seleccion["ciclo"] ?: ""
+                                filtroTurno = seleccion["turno"] ?: ""
                             }
                         )
                     )
@@ -166,7 +171,8 @@ fun UsuariosAdminPanel(
                 filters = mapOf(
                     "rol" to filtroRol,
                     "curso" to filtroCurso,
-                    "ciclo" to filtroCiclo
+                    "ciclo" to filtroCiclo,
+                    "turno" to filtroTurno
                 ),
                 onRemoveFilter = { keyPlusValue ->
                     val (key, newValue) = if (keyPlusValue.contains(":")) {
@@ -179,6 +185,7 @@ fun UsuariosAdminPanel(
                         "rol" -> filtroRol = newValue
                         "curso" -> filtroCurso = newValue
                         "ciclo" -> filtroCiclo = newValue
+                        "turno" -> filtroTurno = newValue
                     }
                 }
             )
