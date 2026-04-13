@@ -49,7 +49,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.firebase.firestore.FirebaseFirestore
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.TitleLogo
@@ -105,23 +104,12 @@ fun ProfileScreen(
                 userName = usuario?.nombre ?: "",
                 currentPhotoUrl = currentPhotoUrl,
                 onPhotoUploaded = { secureUrl ->
-                    // 1. Actualizamos la imagen localmente (lo que ya hacías)
                     currentPhotoUrl = secureUrl
-
-                    // 2. Guardar en Firestore
                     usuario?.id?.let { uid ->
-                        FirebaseFirestore.getInstance().collection("usuarios").document(uid)
-                            .update(
-                                "imgUrl", secureUrl,
-                                "fotoUrl", secureUrl
-                            )
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
-
-                                // 3. CLAVE: Notificar a la App del cambio para que el Home se entere
-                                val usuarioActualizado = usuario.copy(imgUrl = secureUrl, fotoUrl = secureUrl)
-                                onProfileUpdated(usuarioActualizado)
-                            }
+                        settingsViewModel.updateProfileImage(uid, secureUrl) {
+                            Toast.makeText(context, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
+                            onProfileUpdated(usuario.copy(imgUrl = secureUrl, fotoUrl = secureUrl))
+                        }
                     }
                 }
             )
@@ -148,13 +136,10 @@ fun ProfileScreen(
                                     DialogState.EditSelfProfile(
                                         user = usuario,
                                         onSave = { nuevoNombre ->
-                                            FirebaseFirestore.getInstance().collection("usuarios")
-                                                .document(usuario.id)
-                                                .update("nombre", nuevoNombre)
-                                                .addOnSuccessListener {
-                                                    Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
-                                                    onProfileUpdated(usuario.copy(nombre = nuevoNombre))
-                                                }
+                                            settingsViewModel.updateName(usuario.id, nuevoNombre) {
+                                                Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+                                                onProfileUpdated(usuario.copy(nombre = nuevoNombre))
+                                            }
                                         }
                                     )
                                 )

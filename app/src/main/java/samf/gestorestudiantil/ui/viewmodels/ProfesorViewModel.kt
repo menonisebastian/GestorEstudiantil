@@ -195,7 +195,7 @@ class ProfesorViewModel @Inject constructor(
                 val accessToken = getAccessToken(context) ?: return@launch
 
                 val client = OkHttpClient()
-                val notificationTitle = "Nuevo post de $nombreProfesor en $acronimoAsignatura"
+                val notificationTitle = "Nuevo post en $acronimoAsignatura"
                 
                 val json = JSONObject().apply {
                     put("message", JSONObject().apply {

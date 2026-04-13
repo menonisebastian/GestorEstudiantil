@@ -30,4 +30,15 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun updateFcmToken(uid: String, token: String) {
         db.collection("usuarios").document(uid).update("fcmToken", token).await()
     }
+
+    override suspend fun updateProfileImage(uid: String, imageUrl: String) {
+        db.collection("usuarios").document(uid).update(
+            "imgUrl", imageUrl,
+            "fotoUrl", imageUrl
+        ).await()
+    }
+
+    override suspend fun updateName(uid: String, name: String) {
+        db.collection("usuarios").document(uid).update("nombre", name).await()
+    }
 }

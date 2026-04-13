@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.screens
 
+import android.content.Context
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -92,7 +93,8 @@ fun AuthScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     onAuthSuccess: (User) -> Unit,
     onRequireGoogleSetup: () -> Unit,
-    onNavigateToRegisterStep2: (name: String, email: String, pass: String, fotoUrl: String) -> Unit
+    onNavigateToRegisterStep2: (name: String, email: String, pass: String, fotoUrl: String) -> Unit,
+    darkTheme: Boolean
 ) {
     val tabs = remember { itemsAuth.keys.toList() }
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -214,6 +216,8 @@ fun AuthScreen(
 
                         entry<Routes.AuthRoutes.Login> {
                             LoginPanel(
+                                darkTheme = darkTheme,
+                                context = context,
                                 paddingValues = PaddingValues(0.dp),
                                 isLoading = authState.isLoading,
                                 onLoginClick = { email, pass ->
@@ -456,7 +460,9 @@ fun LoginPanel(
     isLoading: Boolean,
     onLoginClick: (String, String) -> Unit,
     onGoogleClick: () -> Unit,
-    onForgotPassword: () -> Unit
+    onForgotPassword: () -> Unit,
+    darkTheme: Boolean,
+    context: Context
 ) {
     val buttonSize = 60.dp
     var email by remember { mutableStateOf("") }
@@ -552,11 +558,23 @@ fun LoginPanel(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            SocialMediaButton(
-                iconRes = R.drawable.google,
-                size = buttonSize,
-                onClick = onGoogleClick
-            )
+            Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+
+                SocialMediaButton(
+                    iconRes = R.drawable.google,
+                    size = buttonSize,
+                    onClick = onGoogleClick
+                )
+
+                SocialMediaButton(
+                    iconRes = if (darkTheme) R.drawable.darkgithub else R.drawable.daygithub,
+                    size = buttonSize,
+                    onClick = {
+                        // TODO login Github
+                        Toast.makeText(context, "El login con github no ha sido implementado aun", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
         }
     }
 }

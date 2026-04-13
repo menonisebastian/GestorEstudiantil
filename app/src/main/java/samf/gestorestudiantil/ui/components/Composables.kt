@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -1085,12 +1086,18 @@ fun AccImg(userName: String = "", imgUrl: String = "", onClick: () -> Unit = {},
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            Text(
-                text = obtenerInicialesDeNombre(userName),
-                color = primaryColor,
-                fontSize = (size.value * 0.35).sp,
-                fontWeight = FontWeight.Bold
-            )
+            if (userName.isEmpty()) {
+                Icon(Icons.Filled.Person, "Foto de perfil", tint = primaryColor, modifier = Modifier.size(size * 0.6f))
+            }
+            else
+            {
+                Text(
+                    text = obtenerInicialesDeNombre(userName),
+                    color = primaryColor,
+                    fontSize = (size.value * 0.35).sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
@@ -1124,7 +1131,7 @@ fun IconLogo(
     width: Dp
 ) {
     Image(
-        painter = painterResource(R.drawable.icononexopluscut),
+        painter = painterResource(R.drawable.newicononexoplus),
         contentDescription = "IconLogo",
         modifier = Modifier
             .width(width)
@@ -1138,7 +1145,7 @@ fun TitleLogo(
     width: Dp
 ) {
     Image(
-        painter = painterResource(R.drawable.logonexoplus),
+        painter = painterResource(R.drawable.newlogoplus),
         contentDescription = "IconLogo",
         modifier = Modifier
             .width(width)

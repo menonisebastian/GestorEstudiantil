@@ -25,10 +25,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.screens.AuthScreen
 import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
@@ -43,7 +39,8 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 @Composable
 fun AppNavigation(
     targetAsignaturaId: String? = null,
-    onNotificationHandled: () -> Unit = {}
+    onNotificationHandled: () -> Unit = {},
+    darkTheme: Boolean
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
     var currentUser by remember { mutableStateOf<User?>(null) }
@@ -171,11 +168,12 @@ fun AppNavigation(
             entry<Routes.Auth> {
                 AuthScreen(
                     authViewModel = authViewModel,
+                    darkTheme = darkTheme,
                     onAuthSuccess = { /* El listener maneja esto */ },
                     onRequireGoogleSetup = { needsGoogleSetup = true },
                     onNavigateToRegisterStep2 = { name, email, pass, fotoUrl ->
                         backStack.add(Routes.RegisterStep2(name, email, pass, fotoUrl))
-                    }
+                    },
                 )
             }
 

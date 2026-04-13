@@ -60,7 +60,8 @@ class MainActivity : ComponentActivity() {
                 RegisterFcmToken()
                 AppNavigation(
                     targetAsignaturaId = targetAsignaturaId,
-                    onNotificationHandled = { targetAsignaturaId = null }
+                    onNotificationHandled = { targetAsignaturaId = null },
+                    darkTheme = darkTheme
                 )
             }
         }

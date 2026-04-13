@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.5.2] - 2026-05-01
+- **Branding**: Actualización completa de la identidad visual de la aplicación, incluyendo nuevos logotipos y recursos gráficos.
+- **Autenticación**: Preparación de la infraestructura para el inicio de sesión con GitHub; implementado el botón de acceso en la pantalla de autenticación (funcionalidad en desarrollo).
+- **Refactorización**: Migración de la lógica de negocio de `ProfileScreen` hacia el patrón Repository/ViewModel. Las actualizaciones de perfil ahora se gestionan a través de `SettingsViewModel` y `UserRepository`, mejorando la mantenibilidad y separación de conceptos.
+- **Repositorio**: Añadidas funciones de actualización de nombre e imagen de perfil en `UserRepositoryImpl` con soporte para persistencia en Firebase Firestore.
+
 ## [v0.5.1] - 2026-04-30
 - **Calificaciones**: Unificación del sistema de evaluación. Ahora las notas incluyen feedback detallado (comentarios) y archivos adjuntos devueltos por el profesor.
 - **Estudiantes**: Implementado el diálogo `VerDetalleEvaluacion` que permite consultar el feedback del profesor y descargar archivos adjuntos directamente desde la tarjeta de calificación.
