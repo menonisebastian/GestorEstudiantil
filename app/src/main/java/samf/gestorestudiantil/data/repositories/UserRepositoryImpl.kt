@@ -1,6 +1,9 @@
 package samf.gestorestudiantil.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.UserRepository
@@ -27,6 +30,30 @@ class UserRepositoryImpl @Inject constructor(
             "ADMIN" -> doc.toObject(User.Admin::class.java)
             else -> doc.toObject(User.Incompleto::class.java)
         }
+    }
+
+    override fun getUserFlow(uid: String): Flow<User?> = callbackFlow {
+        val registration = db.collection("usuarios").document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val rol = snapshot.getString("rol")
+                    val user = when (rol) {
+                        "ESTUDIANTE" -> snapshot.toObject(User.Estudiante::class.java)
+                        "PROFESOR" -> snapshot.toObject(User.Profesor::class.java)
+                        "ADMIN" -> snapshot.toObject(User.Admin::class.java)
+                        else -> snapshot.toObject(User.Incompleto::class.java)
+                    }
+                    trySend(user)
+                } else {
+                    trySend(null)
+                }
+            }
+        awaitClose { registration.remove() }
     }
 
     override suspend fun checkAdminsInCenter(centroId: String): Boolean {

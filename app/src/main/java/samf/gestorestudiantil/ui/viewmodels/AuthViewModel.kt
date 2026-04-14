@@ -1,12 +1,18 @@
 package samf.gestorestudiantil.ui.viewmodels
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
@@ -20,6 +26,7 @@ import javax.inject.Inject
 
 data class AuthState(
     val isLoading: Boolean = false,
+    val isCheckingSession: Boolean = true,
     val isSuccess: Boolean = false,
     val user: User? = null,
     val errorMessage: String? = null,
@@ -45,8 +52,55 @@ class AuthViewModel @Inject constructor(
     val cursos: StateFlow<List<Curso>> = _cursos.asStateFlow()
 
     init {
-        checkCurrentUser()
         loadCentros()
+        observeAuthState()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeAuthState() {
+        viewModelScope.launch {
+            authRepository.getAuthStateFlow().flatMapLatest { uid ->
+                if (uid == null) {
+                    flowOf(null)
+                } else {
+                    userRepository.getUserFlow(uid).catch { emit(null) }
+                }
+            }.collect { user ->
+                val firebaseUid = authRepository.getCurrentUserUid()
+                if (firebaseUid == null) {
+                    _authState.value = _authState.value.copy(
+                        isCheckingSession = false,
+                        isLoading = false,
+                        isSuccess = false,
+                        user = null,
+                        requireGooglePasswordSetup = false
+                    )
+                } else {
+                    if (user != null && user.rol.isNotBlank()) {
+                        _authState.value = _authState.value.copy(
+                            isCheckingSession = false,
+                            isSuccess = true,
+                            isLoading = false,
+                            user = user
+                        )
+                    } else {
+                        // Si el usuario existe en Auth pero no en Firestore o no tiene rol
+                        _authState.value = _authState.value.copy(
+                            isCheckingSession = false,
+                            isLoading = false,
+                            requireGooglePasswordSetup = true,
+                            user = user ?: User.Incompleto(
+                                id = firebaseUid,
+                                nombre = authRepository.getCurrentUserName() ?: "",
+                                email = authRepository.getCurrentUserEmail() ?: "",
+                                imgUrl = authRepository.getCurrentUserPhotoUrl() ?: "",
+                                rol = ""
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun loadCentros() {
@@ -69,25 +123,17 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private fun checkCurrentUser() {
-        val uid = authRepository.getCurrentUserUid()
-        if (uid != null) {
-            viewModelScope.launch { fetchUserFromFirestore(uid) }
-        }
-    }
-
     fun loginWithEmail(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
-            _authState.value = AuthState(errorMessage = "Rellena todos los campos")
+            _authState.value = _authState.value.copy(errorMessage = "Rellena todos los campos")
             return
         }
-        _authState.value = AuthState(isLoading = true)
+        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
-                val uid = authRepository.loginWithEmail(email, pass)
-                fetchUserFromFirestore(uid)
-            } catch (_: Exception) {
-                _authState.value = AuthState(errorMessage = "Credenciales incorrectas")
+                authRepository.loginWithEmail(email, pass)
+            } catch (e: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Credenciales incorrectas")
             }
         }
     }
@@ -98,48 +144,76 @@ class AuthViewModel @Inject constructor(
         ciclo: Int, imgUrl: String
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
-            _authState.value = AuthState(errorMessage = "Faltan datos obligatorios")
+            _authState.value = _authState.value.copy(errorMessage = "Faltan datos obligatorios")
             return
         }
 
-        _authState.value = AuthState(isLoading = true)
+        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
-                val newUser = registerUserUseCase(
+                registerUserUseCase(
                     email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, imgUrl
                 )
-                _authState.value = AuthState(isSuccess = true, user = newUser)
-
-            } catch (_: FirebaseAuthUserCollisionException) {
-                _authState.value = AuthState(errorMessage = "El correo ya está registrado.")
+            } catch (e: FirebaseAuthUserCollisionException) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "El correo ya está registrado.")
             } catch (e: Exception) {
-                _authState.value = AuthState(errorMessage = "Error en registro: ${e.message}")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error en registro: ${e.message}")
             }
         }
     }
 
     fun loginWithGoogleToken(idToken: String) {
-        _authState.value = AuthState(isLoading = true)
+        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
-                val uid = authRepository.signInWithGoogle(idToken)
-                val user = userRepository.getUser(uid)
+                authRepository.signInWithGoogle(idToken)
+            } catch (e: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Error con Google Sign-In")
+            }
+        }
+    }
 
-                if (user != null && user.rol.isNotBlank()) {
-                    _authState.value = AuthState(isSuccess = true, user = user)
-                } else {
-                    // Pre-poblamos con datos de Google para el proceso de configuración
-                    val googleUser = User.Incompleto(
-                        id = uid,
-                        nombre = authRepository.getCurrentUserName() ?: "",
-                        email = authRepository.getCurrentUserEmail() ?: "",
-                        imgUrl = authRepository.getCurrentUserPhotoUrl() ?: "",
-                        rol = ""
-                    )
-                    _authState.value = AuthState(requireGooglePasswordSetup = true, user = googleUser)
+    fun loginWithGithub(activity: Activity) {
+        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            try {
+                authRepository.signInWithGithub(activity)
+
+                // Temporizador de seguridad para evitar carga infinita si Firestore no responde
+                launch {
+                    delay(15000)
+                    if (_authState.value.isLoading) {
+                        _authState.value = _authState.value.copy(
+                            isLoading = false,
+                            errorMessage = "Autenticación exitosa, pero hay problemas de conexión con la base de datos."
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState(errorMessage = e.localizedMessage ?: "Error con Google Sign-In")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Error con GitHub Sign-In")
+            }
+        }
+    }
+
+    fun handleGitHubLoginSuccess(uid: String, name: String?, email: String?, photoUrl: String?) {
+        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            try {
+                val user = userRepository.getUser(uid)
+                if (user != null && user.rol.isNotBlank()) {
+                    _authState.value = _authState.value.copy(isSuccess = true, user = user, isLoading = false)
+                } else {
+                    val githubUser = User.Incompleto(
+                        id = uid,
+                        nombre = name ?: "",
+                        email = email ?: "",
+                        imgUrl = photoUrl ?: "",
+                        rol = ""
+                    )
+                    _authState.value = _authState.value.copy(requireGooglePasswordSetup = true, user = githubUser, isLoading = false)
+                }
+            } catch (e: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error verificando usuario: ${e.localizedMessage}")
             }
         }
     }
@@ -157,37 +231,22 @@ class AuthViewModel @Inject constructor(
         imgUrl: String,
         departamento: String = "Sin asignar"
     ) {
-        _authState.value = AuthState(isLoading = true)
+        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
-                val newUser = completeGoogleSetupUseCase(
+                completeGoogleSetupUseCase(
                     password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, name, email, imgUrl, departamento
                 )
-                _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _authState.value = AuthState(errorMessage = "Error al completar registro: ${e.localizedMessage}")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al completar registro: ${e.localizedMessage}")
             }
-        }
-    }
-
-    private suspend fun fetchUserFromFirestore(uid: String) {
-        try {
-            val user = userRepository.getUser(uid)
-            if (user != null && user.rol.isNotBlank()) {
-                _authState.value = AuthState(isSuccess = true, user = user)
-            } else {
-                _authState.value = AuthState(requireGooglePasswordSetup = true)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _authState.value = AuthState(errorMessage = "Error al leer datos")
         }
     }
 
     fun resetPassword(email: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            _authState.value = _authState.value.copy(isLoading = true)
+            _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
             try {
                 authRepository.sendPasswordResetEmail(email)
                 _authState.value = _authState.value.copy(isLoading = false)

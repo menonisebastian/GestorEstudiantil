@@ -9,23 +9,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.screens.AuthScreen
 import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
 import samf.gestorestudiantil.ui.screens.GooglePasswordSetupScreen
@@ -43,75 +37,26 @@ fun AppNavigation(
     darkTheme: Boolean
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
-    var currentUser by remember { mutableStateOf<User?>(null) }
-    var isCheckingSession by remember { mutableStateOf(true) }
-    var needsGoogleSetup by remember { mutableStateOf(false) }
+    val authState by authViewModel.authState.collectAsState()
+    
+    val currentUser = authState.user
+    val isCheckingSession = authState.isCheckingSession
+    val needsGoogleSetup = authState.requireGooglePasswordSetup
 
-    val scope = rememberCoroutineScope()
     val backStack = remember { mutableStateListOf<Any>() }
     
-    // 1. LISTENER DE SESIÓN Y DATOS DE USUARIO EN TIEMPO REAL
-    DisposableEffect(Unit) {
-        val auth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance()
-        var userListener: ListenerRegistration? = null
-
-        val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val firebaseUser = firebaseAuth.currentUser
-            userListener?.remove()
-
-            if (firebaseUser == null) {
-                currentUser = null
-                needsGoogleSetup = false
-                isCheckingSession = false
-            } else {
-                    userListener = db.collection("usuarios")
-                    .document(firebaseUser.uid)
-                    .addSnapshotListener { snapshot, _ ->
-                        if (snapshot != null && snapshot.exists()) {
-                            val rol = snapshot.getString("rol")
-                            val user = when (rol) {
-                                "ESTUDIANTE" -> snapshot.toObject(User.Estudiante::class.java)
-                                "PROFESOR" -> snapshot.toObject(User.Profesor::class.java)
-                                "ADMIN" -> snapshot.toObject(User.Admin::class.java)
-                                else -> snapshot.toObject(User.Incompleto::class.java)
-                            }
-                            if (user != null && user.rol.isNotBlank()) {
-                                currentUser = user
-                                needsGoogleSetup = false
-                            } else {
-                                needsGoogleSetup = true
-                            }
-                        } else {
-                            needsGoogleSetup = true
-                        }
-                        isCheckingSession = false
-                    }
-            }
-        }
-
-        auth.addAuthStateListener(authListener)
-        onDispose {
-            auth.removeAuthStateListener(authListener)
-            userListener?.remove()
-        }
-    }
-
     // 2. GESTIÓN DE NAVEGACIÓN AUTOMÁTICA
     LaunchedEffect(currentUser, isCheckingSession, needsGoogleSetup) {
         if (isCheckingSession) return@LaunchedEffect
 
         val currentDestination = backStack.lastOrNull()
-        val firebaseUser = FirebaseAuth.getInstance().currentUser
-
-        if (firebaseUser == null) {
+        
+        if (currentUser == null && !needsGoogleSetup) {
             // Caso: No logueado -> Ir a Auth
             if (currentDestination !is Routes.Auth && currentDestination !is Routes.RegisterStep2) {
                 backStack.clear()
                 backStack.add(Routes.Auth)
             }
-        } else if (isCheckingSession) {
-            // Do nothing while checking session
         } else {
             // Caso: Logueado -> Decidir destino
             if (needsGoogleSetup) {
@@ -120,7 +65,7 @@ fun AppNavigation(
                     backStack.add(Routes.GooglePasswordSetup)
                 }
             } else if (currentUser != null) {
-                val targetDestination = if (currentUser?.estado == "PENDIENTE") {
+                val targetDestination = if (currentUser.estado == "PENDIENTE") {
                     Routes.Pending
                 } else {
                     Routes.Home
@@ -176,7 +121,7 @@ fun AppNavigation(
                     authViewModel = authViewModel,
                     darkTheme = darkTheme,
                     onAuthSuccess = { /* El listener maneja esto */ },
-                    onRequireGoogleSetup = { needsGoogleSetup = true },
+                    onRequireGoogleSetup = { /* El listener maneja esto */ },
                     onNavigateToRegisterStep2 = { name, email, pass, imgUrl ->
                         backStack.add(Routes.RegisterStep2(name, email, pass, imgUrl))
                     },
@@ -189,16 +134,15 @@ fun AppNavigation(
                     authViewModel = authViewModel,
                     onBack = { backStack.removeLastOrNull() },
                     onNavigateToHome = {
-                        // The session listener in AppNavigation will handle the switch
-                        // once authState.user is set and Firebase Auth state changes.
+                        // El listener de sesión en el ViewModel manejará el cambio
                     }
                 )
             }
 
             entry<Routes.Pending> {
-                if (currentUser != null) {
+                currentUser?.let { user ->
                     PendingApprovalScreen(
-                        usuario = currentUser!!,
+                        usuario = user,
                         onLogout = { FirebaseAuth.getInstance().signOut() }
                     )
                 }
@@ -223,17 +167,16 @@ fun AppNavigation(
                     authViewModel = authViewModel,
                     passwordValue = route.password,
                     onBack = { backStack.removeLastOrNull() },
-                    onSetupComplete = { user ->
-                        currentUser = user
-                        needsGoogleSetup = false
+                    onSetupComplete = { _ ->
+                        // El listener de sesión en el ViewModel manejará el cambio
                     }
                 )
             }
 
             entry<Routes.Home> {
-                if (currentUser != null) {
+                currentUser?.let { user ->
                     HomeScreen(
-                        usuario = currentUser!!,
+                        usuario = user,
                         targetAsignaturaId = targetAsignaturaId,
                         onNotificationHandled = onNotificationHandled,
                         onLogout = {
@@ -241,7 +184,7 @@ fun AppNavigation(
                         },
                         onNavigateProfile = { backStack.add(Routes.Profile) }
                     )
-                } else {
+                } ?: run {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
@@ -255,9 +198,8 @@ fun AppNavigation(
                     onLogout = {
                         FirebaseAuth.getInstance().signOut()
                     },
-                    onProfileUpdated = {usuarioEditado ->
-                        // Aquí actualizas el estado en el ViewModel que leen todas las pantallas
-                        currentUser = usuarioEditado
+                    onProfileUpdated = { _ ->
+                        // El listener de sesión en el ViewModel actualizará el estado automáticamente
                     }
                 )
             }

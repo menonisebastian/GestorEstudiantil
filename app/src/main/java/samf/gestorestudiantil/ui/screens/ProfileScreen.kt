@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
@@ -54,6 +55,7 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,11 +71,9 @@ fun ProfileScreen(
     val context = LocalContext.current
     val themePreference by settingsViewModel.themePreference.collectAsState()
 
-    // Estado local para actualizar la UI inmediatamente tras la subida
     var currentPhotoUrl by remember { mutableStateOf(usuario?.imgUrl ?: "") }
     val notificationsEnabled by settingsViewModel.notificationsEnabled.collectAsState()
 
-    // Gestión de diálogos
     val dialogStack = remember { mutableStateListOf<DialogState>() }
 
     Box(
@@ -88,7 +88,6 @@ fun ProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
 
             TitleLogo(150.dp)
 
@@ -129,7 +128,9 @@ fun ProfileScreen(
                     ) {
                         Text("Datos", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         
-                        IconButton(onClick = {
+                        IconButton(
+                            modifier = Modifier.size(20.dp),
+                            onClick = {
                             if (usuario != null) {
                                 dialogStack.add(
                                     DialogState.EditSelfProfile(
@@ -150,7 +151,7 @@ fun ProfileScreen(
                                 )
                             }
                         }) {
-                            Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = primaryColor)
+                            Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
                         }
                     }
 
@@ -205,8 +206,8 @@ fun ProfileScreen(
                                 settingsViewModel.setNotificationsEnabled(isEnabled)
                             },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = primaryColor,
-                                checkedTrackColor = primaryColor.copy(alpha = 0.5f),
+                                checkedThumbColor = whiteColor,
+                                checkedTrackColor = primaryColor,
                                 uncheckedThumbColor = surfaceDimColor,
                                 uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
                             )

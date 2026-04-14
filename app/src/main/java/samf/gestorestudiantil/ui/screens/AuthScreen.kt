@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.screens
 
+import android.app.Activity
 import android.content.Context
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
@@ -217,7 +218,6 @@ fun AuthScreen(
                         entry<Routes.AuthRoutes.Login> {
                             LoginPanel(
                                 darkTheme = darkTheme,
-                                context = context,
                                 paddingValues = PaddingValues(0.dp),
                                 isLoading = authState.isLoading,
                                 onLoginClick = { email, pass ->
@@ -239,6 +239,12 @@ fun AuthScreen(
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
+                                    }
+                                },
+                                onGithubClick = {
+                                    val activity = context as? Activity
+                                    if (activity != null) {
+                                        authViewModel.loginWithGithub(activity)
                                     }
                                 },
                                 onForgotPassword = {
@@ -460,9 +466,9 @@ fun LoginPanel(
     isLoading: Boolean,
     onLoginClick: (String, String) -> Unit,
     onGoogleClick: () -> Unit,
+    onGithubClick: () -> Unit,
     onForgotPassword: () -> Unit,
-    darkTheme: Boolean,
-    context: Context
+    darkTheme: Boolean
 ) {
     val buttonSize = 60.dp
     var email by remember { mutableStateOf("") }
@@ -569,10 +575,7 @@ fun LoginPanel(
                 SocialMediaButton(
                     iconRes = if (darkTheme) R.drawable.darkgithub else R.drawable.daygithub,
                     size = buttonSize,
-                    onClick = {
-                        // TODO login Github
-                        Toast.makeText(context, "El login con github no ha sido implementado aun", Toast.LENGTH_SHORT).show()
-                    }
+                    onClick = onGithubClick
                 )
             }
         }
