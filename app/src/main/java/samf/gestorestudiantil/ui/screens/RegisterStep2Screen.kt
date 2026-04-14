@@ -42,7 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -50,9 +50,7 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.LaunchedEffect
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

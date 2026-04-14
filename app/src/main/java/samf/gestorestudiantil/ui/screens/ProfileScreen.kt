@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -44,10 +42,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
-import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.errorColor
@@ -62,7 +59,6 @@ import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 @Composable
 fun ProfileScreen(
     usuario: User?,
-    onBack: () -> Unit = {},
     onLogout: () -> Unit = {},
     onProfileUpdated: (User) -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -83,13 +79,10 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-//            TitleLogo(150.dp)
 
             // === AVATAR ===
             ProfileImagePicker(

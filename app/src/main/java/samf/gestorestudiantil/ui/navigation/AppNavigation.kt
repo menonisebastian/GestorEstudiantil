@@ -19,7 +19,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.google.firebase.auth.FirebaseAuth
@@ -197,7 +197,6 @@ fun AppNavigation(
             entry<Routes.Profile> {
                 ProfileScreen(
                     usuario = currentUser,
-                    onBack = { backStack.removeLastOrNull()},
                     onLogout = {
                         authViewModel.signOut()
                     },

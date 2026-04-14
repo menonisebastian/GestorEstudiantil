@@ -51,7 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar

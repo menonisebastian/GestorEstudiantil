@@ -18,7 +18,7 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel

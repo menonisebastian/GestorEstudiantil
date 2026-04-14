@@ -34,7 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.enums.tipoEvaluacion
