@@ -28,7 +28,6 @@ import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
 import samf.gestorestudiantil.ui.screens.GooglePasswordSetupScreen
 import samf.gestorestudiantil.ui.screens.HomeScreen
 import samf.gestorestudiantil.ui.screens.PendingApprovalScreen
-import samf.gestorestudiantil.ui.screens.ProfileScreen
 import samf.gestorestudiantil.ui.screens.RegisterStep2Screen
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
@@ -42,51 +41,33 @@ fun AppNavigation(
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
     
-    val currentUser = authState.user
-    val isCheckingSession = authState.isCheckingSession
-    val needsGoogleSetup = authState.requireGooglePasswordSetup
+    // 1. DETERMINAR RUTA RAÍZ DECLARATIVAMENTE
+    val rootRoute = when {
+        authState.isCheckingSession -> null
+        authState.user == null && !authState.requireGooglePasswordSetup -> Routes.Auth
+        authState.requireGooglePasswordSetup -> Routes.GooglePasswordSetup
+        authState.user?.estado == "PENDIENTE" -> Routes.Pending
+        else -> Routes.Home
+    }
 
+    // 2. BACKSTACK DINÁMICO
     val backStack = remember { mutableStateListOf<Any>() }
-    
-    // 2. GESTIÓN DE NAVEGACIÓN AUTOMÁTICA
-    LaunchedEffect(currentUser, isCheckingSession, needsGoogleSetup) {
-        if (isCheckingSession) return@LaunchedEffect
 
-        val currentDestination = backStack.lastOrNull()
-        
-        if (currentUser == null && !needsGoogleSetup) {
-            // Caso: No logueado -> Ir a Auth
-            if (currentDestination !is Routes.Auth && currentDestination !is Routes.RegisterStep2) {
+    // 3. ACTUALIZAR BACKSTACK CUANDO CAMBIA LA RUTA RAÍZ O EL ESTADO CRÍTICO
+    LaunchedEffect(rootRoute) {
+        if (rootRoute != null) {
+            val currentRoot = backStack.firstOrNull()
+            
+            // Si el root cambió (ej.: Login/Logout/Estado), reseteamos el stack
+            if (currentRoot != rootRoute) {
                 backStack.clear()
-                backStack.add(Routes.Auth)
-            }
-        } else {
-            // Caso: Logueado -> Decidir destino
-            if (needsGoogleSetup) {
-                if (currentDestination !is Routes.GooglePasswordSetup && currentDestination !is Routes.GoogleAcademicSetup) {
-                    backStack.clear()
-                    backStack.add(Routes.GooglePasswordSetup)
-                }
-            } else if (currentUser != null) {
-                val targetDestination = if (currentUser.estado == "PENDIENTE") {
-                    Routes.Pending
-                } else {
-                    Routes.Home
-                }
-
-                // Navegar solo si el destino es diferente (evita recargas innecesarias)
-                if (currentDestination != targetDestination &&
-                    currentDestination !is Routes.Profile) {
-
-                    backStack.clear()
-                    backStack.add(targetDestination)
-                }
+                backStack.add(rootRoute)
             }
         }
     }
 
-    // 3. PANTALLA DE CARGA
-    if (isCheckingSession || backStack.isEmpty()) {
+    // 4. PANTALLA DE CARGA MIENTRAS SE DETERMINA EL DESTINO
+    if (rootRoute == null || backStack.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize().background(backgroundColor),
             contentAlignment = Alignment.Center
@@ -96,27 +77,31 @@ fun AppNavigation(
         return
     }
 
-    // 4. NAV DISPLAY
+    val currentUser = authState.user
+
+    // 5. NAV DISPLAY
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         transitionSpec = {
-            slideInHorizontally(
+            (slideInHorizontally(
                 initialOffsetX = { it },
                 animationSpec = tween(300)
-            ) togetherWith slideOutHorizontally(
-                targetOffsetX = { -it },
-                animationSpec = tween(300)
-            )
+            ) + fadeIn(animationSpec = tween(300))) togetherWith
+                    (slideOutHorizontally(
+                        targetOffsetX = { -it },
+                        animationSpec = tween(300)
+                    ) + fadeOut(animationSpec = tween(300)))
         },
         popTransitionSpec = {
-            slideInHorizontally(
+            (slideInHorizontally(
                 initialOffsetX = { -it },
                 animationSpec = tween(300)
-            ) togetherWith slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = tween(300)
-            )
+            ) + fadeIn(animationSpec = tween(300))) togetherWith
+                    (slideOutHorizontally(
+                        targetOffsetX = { it },
+                        animationSpec = tween(300)
+                    ) + fadeOut(animationSpec = tween(300)))
         },
         entryProvider = entryProvider {
             entry<Routes.Auth> {
@@ -193,17 +178,6 @@ fun AppNavigation(
                 }
             }
 
-            entry<Routes.Profile> {
-                ProfileScreen(
-                    usuario = currentUser,
-                    onLogout = {
-                        authViewModel.signOut()
-                    },
-                    onProfileUpdated = { _ ->
-                        // El listener de sesión en el ViewModel actualizará el estado automáticamente
-                    }
-                )
-            }
         }
     )
 
