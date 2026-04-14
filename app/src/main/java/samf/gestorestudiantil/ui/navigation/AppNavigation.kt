@@ -1,6 +1,9 @@
 package samf.gestorestudiantil.ui.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -143,7 +146,7 @@ fun AppNavigation(
                 currentUser?.let { user ->
                     PendingApprovalScreen(
                         usuario = user,
-                        onLogout = { FirebaseAuth.getInstance().signOut() }
+                        onLogout = { authViewModel.signOut() }
                     )
                 }
             }
@@ -180,7 +183,7 @@ fun AppNavigation(
                         targetAsignaturaId = targetAsignaturaId,
                         onNotificationHandled = onNotificationHandled,
                         onLogout = {
-                            FirebaseAuth.getInstance().signOut()
+                            authViewModel.signOut()
                         },
                         onNavigateProfile = { backStack.add(Routes.Profile) }
                     )
@@ -196,7 +199,7 @@ fun AppNavigation(
                     usuario = currentUser,
                     onBack = { backStack.removeLastOrNull()},
                     onLogout = {
-                        FirebaseAuth.getInstance().signOut()
+                        authViewModel.signOut()
                     },
                     onProfileUpdated = { _ ->
                         // El listener de sesión en el ViewModel actualizará el estado automáticamente
@@ -205,4 +208,19 @@ fun AppNavigation(
             }
         }
     )
+
+    AnimatedVisibility(
+        visible = authState.isLoading,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundColor.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
 }

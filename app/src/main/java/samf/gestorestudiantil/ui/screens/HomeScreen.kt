@@ -1,6 +1,9 @@
 package samf.gestorestudiantil.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -51,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
@@ -71,6 +75,7 @@ import samf.gestorestudiantil.domain.isDetailRoute
 import samf.gestorestudiantil.domain.tabToRoute
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.IconLogo
+import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.Routes
@@ -308,31 +313,48 @@ fun HomeScreen(
             }
         },
         topBar = {
-            if (currentPageTab != "Perfil") {
-                CenterAlignedTopAppBar(
-                    title = {
-                        IconLogo(width = 125.dp)
-                    },
-                    navigationIcon = {
-                        if (currentPageBackStack != null && currentPageBackStack.size > 1) {
-                            IconButton(
-                                onClick = { currentPageBackStack.removeLastOrNull() },
-                                colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.ArrowBackIosNew,
-                                    contentDescription = "Regresar",
-                                    tint = surfaceDimColor
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = backgroundColor
+            AnimatedContent(
+                targetState = currentPageTab,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                },
+                label = "TopBarAnimation"
+            ) { targetTab ->
+                if (targetTab == "Perfil") {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            TitleLogo(125.dp)
+                        },
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = backgroundColor
+                        )
                     )
-                )
+                } else {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            IconLogo(width = 125.dp)
+                        },
+                        navigationIcon = {
+                            if (currentPageBackStack != null && currentPageBackStack.size > 1) {
+                                IconButton(
+                                    onClick = { currentPageBackStack.removeLastOrNull() },
+                                    colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBackIosNew,
+                                        contentDescription = "Regresar",
+                                        tint = surfaceDimColor
+                                    )
+                                }
+                            }
+                        },
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = backgroundColor
+                        )
+                    )
+                }
             }
         },
         bottomBar = {
@@ -409,7 +431,7 @@ fun HomeScreen(
             state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = if (currentPageTab == "Perfil") 0.dp else paddingValues.calculateTopPadding()),
+                .padding(top = paddingValues.calculateTopPadding()),
             userScrollEnabled = currentRoute?.let { !isDetailRoute(it) } ?: true
         ) { page ->
             val pageTab = tabs.getOrNull(page) ?: ""

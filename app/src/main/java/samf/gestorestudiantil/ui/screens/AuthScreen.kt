@@ -2,7 +2,10 @@ package samf.gestorestudiantil.ui.screens
 
 import android.app.Activity
 import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -287,11 +290,15 @@ fun AuthScreen(
                 )
             }
 
-            if (authState.isLoading) {
+            AnimatedVisibility(
+                visible = authState.isLoading,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(backgroundColor),
+                        .background(backgroundColor.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
             }

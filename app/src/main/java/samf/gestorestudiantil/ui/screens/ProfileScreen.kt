@@ -89,7 +89,7 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            TitleLogo(150.dp)
+//            TitleLogo(150.dp)
 
             // === AVATAR ===
             ProfileImagePicker(

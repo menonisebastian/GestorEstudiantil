@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.5.5] - 2026-05-02
+- **UI/UX**: Implementación de `AnimatedVisibility` con efectos de fundido (`fadeIn`/`fadeOut`) para los indicadores de carga en `AuthScreen` y `RegisterStep2Screen`.
+- **UI/UX**: Añadida transición animada en la `TopAppBar` de la `HomeScreen` mediante `AnimatedContent`, permitiendo un cambio fluido entre el logo y el título de perfil.
+- **UI/UX**: Implementado indicador de carga (`CircularProgressIndicator`) con transición suave durante el proceso de cierre de sesión.
+- **Refactorización**: Centralización del cierre de sesión en `AuthViewModel` y `AuthRepository`, permitiendo una gestión de estado más reactiva y visual durante el *logout*.
+
 ## [v0.5.4] - 2026-05-02
 - **Autenticación con GitHub**: Se ha implementado la logica de login con GitHub.
 - **UI/UX**: Realizados varios cambios visuales en la interfaz de usuario.

@@ -15,4 +15,5 @@ interface AuthRepository {
     fun getCurrentUserEmail(): String?
     fun getCurrentUserPhotoUrl(): String?
     suspend fun sendPasswordResetEmail(email: String)
+    fun signOut()
 }

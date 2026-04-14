@@ -267,6 +267,17 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun signOut() {
+        _authState.value = _authState.value.copy(isLoading = true)
+        viewModelScope.launch {
+            try {
+                authRepository.signOut()
+            } catch (e: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al cerrar sesión")
+            }
+        }
+    }
+
     fun clearError() {
         _authState.value = _authState.value.copy(errorMessage = null)
     }

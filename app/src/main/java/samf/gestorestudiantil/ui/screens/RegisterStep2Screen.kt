@@ -1,5 +1,8 @@
 package samf.gestorestudiantil.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -290,11 +293,15 @@ fun RegisterStep2Screen(
                 }
             }
             
-            if (isLoading) {
+            AnimatedVisibility(
+                visible = isLoading,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
+                        .background(backgroundColor.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
             }

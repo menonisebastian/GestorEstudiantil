@@ -96,4 +96,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun sendPasswordResetEmail(email: String) {
         auth.sendPasswordResetEmail(email).await()
     }
+
+    override fun signOut() {
+        auth.signOut()
+    }
 }
