@@ -388,19 +388,19 @@ fun HomeScreen(
                 transitionSpec = {
                     slideInHorizontally(
                         initialOffsetX = { it },
-                        animationSpec = tween(300)
+                        animationSpec = tween(150)
                     ) togetherWith slideOutHorizontally(
                         targetOffsetX = { -it },
-                        animationSpec = tween(300)
+                        animationSpec = tween(150)
                     )
                 },
                 popTransitionSpec = {
                     slideInHorizontally(
                         initialOffsetX = { -it },
-                        animationSpec = tween(300)
+                        animationSpec = tween(150)
                     ) togetherWith slideOutHorizontally(
                         targetOffsetX = { it },
-                        animationSpec = tween(300)
+                        animationSpec = tween(150)
                     )
                 },
                 entryProvider = entryProvider {
