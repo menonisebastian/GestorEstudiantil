@@ -100,11 +100,13 @@ fun CentrosListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 160.dp)
             ) {
-                item {
-                    Button(onClick = { adminViewModel.cargarDatosDesdeJsonl(context) }, modifier = Modifier.padding(vertical = 8.dp)) {
-                        Text("Importar y limpiar IES Comercio")
-                    }
-                }
+
+                // Boton temporal para importar datos desde jsonl
+//                item {
+//                    Button(onClick = { adminViewModel.cargarDatosDesdeJsonl(context) }, modifier = Modifier.padding(vertical = 8.dp)) {
+//                        Text("Importar y limpiar IES Comercio")
+//                    }
+//                }
                 items(adminState.centros) { centro ->
                     CentroCard(centro = centro, onClick = { onCentroClick(centro) }, onEdit = { onEditCentro(centro) })
                 }
