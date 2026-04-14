@@ -34,8 +34,11 @@ fun AsignarAsignaturasDialog(
     val adminState by adminViewModel.adminState.collectAsState()
     
     // Al abrir, cargamos las asignaturas del profesor y las que no tienen profesor
-    LaunchedEffect(state.profesor.id, state.profesor.turno) {
-        adminViewModel.cargarAsignaturasSinProfesor(state.profesor.turno)
+    LaunchedEffect(state.profesor.id) {
+        // Como el profesor ya no tiene "turno" fijo en el nuevo modelo, 
+        // cargamos todas las asignaturas disponibles o manejamos el filtro de otra forma.
+        // Por ahora pasamos "" para que el ViewModel decida qué cargar.
+        adminViewModel.cargarAsignaturasSinProfesor("")
     }
 
     var asignaturasProfesor by remember { mutableStateOf<List<samf.gestorestudiantil.data.models.Asignatura>>(emptyList()) }

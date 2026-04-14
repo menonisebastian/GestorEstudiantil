@@ -440,9 +440,15 @@ class ProfesorViewModel @Inject constructor(
         usuarioJob = viewModelScope.launch {
             db.collection("usuarios").document(usuarioId)
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null) return@addSnapshotListener
-                    val user = snapshot?.toObject(User::class.java)
-                    if (user != null) {
+                    if (error != null || snapshot == null) return@addSnapshotListener
+                    val rol = snapshot.getString("rol")
+                    val user = when (rol) {
+                        "ESTUDIANTE" -> snapshot.toObject(User.Estudiante::class.java)
+                        "PROFESOR" -> snapshot.toObject(User.Profesor::class.java)
+                        "ADMIN" -> snapshot.toObject(User.Admin::class.java)
+                        else -> snapshot.toObject(User.Incompleto::class.java)
+                    }
+                    if (user is User.Profesor) {
                         actualizarTiemposLectura(user.ultimaVezAsignaturas)
                     }
                 }

@@ -3,20 +3,69 @@ package samf.gestorestudiantil.data.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(
-    var id: String = "",
-    var nombre: String = "",
-    var email: String = "",
-    var rol: String = "", // "ESTUDIANTE", "PROFESOR", "ADMIN"
-    var cursoId: String = "", // ID del curso (para estudiantes)
-    var cursoOArea: String = "", // Nombre visual del curso o departamento
-    var centroId: String = "",
-    var estado: String = "ACTIVO", // "PENDIENTE" (esperando admin) o "ACTIVO"
-    var turno: String = "", // "matutino", "vespertino"
-    var cicloNum: Int = 1, // Ciclo en el que está matriculado (1 o 2)
-    var imgUrl: String = "",
-    var fotoUrl: String = "", // URL de la foto de perfil en Firestore
-    var fcmToken: String = "", // Token para notificaciones individuales
-    var ultimaVezAsignaturas: Map<String, Long> = emptyMap(), // Map<AsignaturaId, Timestamp>
-    var asignaturasImpartidas: List<String> = emptyList() // Lista de asignaturas impartidas (para profesores)
-)
+sealed class User {
+    abstract val id: String
+    abstract val nombre: String
+    abstract val email: String
+    abstract val centroId: String
+    abstract val estado: String
+    abstract val imgUrl: String
+    abstract val fcmToken: String
+    abstract val rol: String
+
+    @Serializable
+    data class Estudiante(
+        override val id: String = "",
+        override val nombre: String = "",
+        override val email: String = "",
+        override val centroId: String = "",
+        override val estado: String = "ACTIVO",
+        override val imgUrl: String = "",
+        override val fcmToken: String = "",
+        override val rol: String = "ESTUDIANTE",
+        val cursoId: String = "",
+        val curso: String = "",
+        val turno: String = "",
+        val cicloNum: Int = 1
+    ) : User()
+
+    @Serializable
+    data class Profesor(
+        override val id: String = "",
+        override val nombre: String = "",
+        override val email: String = "",
+        override val centroId: String = "",
+        override val estado: String = "ACTIVO",
+        override val imgUrl: String = "",
+        override val fcmToken: String = "",
+        override val rol: String = "PROFESOR",
+        val departamento: String = "",
+        val turno: String = "",
+        val asignaturasImpartidas: List<String> = emptyList(),
+        val ultimaVezAsignaturas: Map<String, Long> = emptyMap()
+    ) : User()
+
+    @Serializable
+    data class Admin(
+        override val id: String = "",
+        override val nombre: String = "",
+        override val email: String = "",
+        override val centroId: String = "",
+        override val estado: String = "ACTIVO",
+        override val imgUrl: String = "",
+        override val fcmToken: String = "",
+        override val rol: String = "ADMIN"
+    ) : User()
+
+    @Serializable
+    data class Incompleto(
+        override val id: String = "",
+        override val nombre: String = "",
+        override val email: String = "",
+        override val imgUrl: String = "",
+        override val centroId: String = "",
+        override val estado: String = "PENDIENTE",
+        override val fcmToken: String = "",
+        override val rol: String = ""
+    ) : User()
+}

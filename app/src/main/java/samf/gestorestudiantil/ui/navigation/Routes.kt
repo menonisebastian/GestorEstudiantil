@@ -31,7 +31,7 @@ sealed interface Routes {
         val name: String,
         val email: String,
         val pass: String,
-        val fotoUrl: String
+        val imgUrl: String
     ) : Routes, NavKey
 
     @Serializable

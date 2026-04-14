@@ -158,7 +158,7 @@ fun HomeScreen(
     val hazeState = rememberHazeState()
 
     // Cargar datos al entrar o cuando cambien los datos clave del usuario
-    LaunchedEffect(usuario.id, usuario.cursoId, usuario.turno, usuario.cicloNum) {
+    LaunchedEffect(usuario) {
         // Cargar usuario en AppViewModel para disparar carga de recordatorios
         appViewModel.setCurrentUser(
             CurrentUserUiState(
@@ -166,27 +166,43 @@ fun HomeScreen(
                 name = usuario.nombre,
                 role = usuario.rol,
                 photoUrl = usuario.imgUrl,
-                curso = usuario.cursoOArea
+                curso = when (usuario) {
+                    is User.Estudiante -> usuario.curso
+                    else -> ""
+                }
             )
         )
 
-        if (usuario.rol == "ESTUDIANTE") {
-            if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
-                estudianteViewModel.cargarAsignaturas(usuario.cursoId, usuario.turno, usuario.cicloNum, usuario.ultimaVezAsignaturas)
-                estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
+        when (usuario) {
+            is User.Estudiante -> {
+                if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
+                    estudianteViewModel.cargarAsignaturas(
+                        usuario.cursoId,
+                        usuario.turno,
+                        usuario.cicloNum,
+                        emptyMap() // Se sincroniza en el siguiente effect
+                    )
+                    estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
+                }
             }
-        } else if (usuario.rol == "PROFESOR") {
-            profesorViewModel.cargarAsignaturas(usuario.id, usuario.ultimaVezAsignaturas)
-            profesorViewModel.cargarHorariosProfesor(usuario.id)
+            is User.Profesor -> {
+                profesorViewModel.cargarAsignaturas(usuario.id, usuario.ultimaVezAsignaturas)
+                profesorViewModel.cargarHorariosProfesor(usuario.id)
+            }
+            else -> {}
         }
     }
 
     // Sincronizar tiempos de lectura cuando el usuario cambie en tiempo real (vía AppNavigation listener)
-    LaunchedEffect(usuario.ultimaVezAsignaturas) {
-        if (usuario.rol == "ESTUDIANTE") {
-            estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
-        } else if (usuario.rol == "PROFESOR") {
-            profesorViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
+    LaunchedEffect(usuario) {
+        when (usuario) {
+            is User.Estudiante -> {
+                estudianteViewModel.actualizarTiemposLectura(emptyMap()) // Ajustar si es necesario
+            }
+            is User.Profesor -> {
+                profesorViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
+            }
+            else -> {}
         }
     }
 
@@ -422,84 +438,101 @@ fun HomeScreen(
                 entryProvider = entryProvider {
                     // Estudiante / Profesor
                     entry<Routes.HomeRoutes.Materias> {
-                        if (usuario.rol == "PROFESOR") {
-                            AsignaturasProfesorPanel(
-                                profesor = usuario,
-                                paddingValues = PaddingValues(0.dp),
-                                onAsignaturaClick = { asignatura ->
-                                    pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
-                                }
-                            )
-                        } else {
-                            AsignaturasEstudiantePanel(
-                                asignaturas = estudianteState.asignaturas,
-                                paddingValues = PaddingValues(0.dp),
-                                onAsignaturaClick = { asignatura ->
-                                    if (usuario.rol == "ESTUDIANTE") {
-                                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
+                        when (usuario) {
+                            is User.Profesor -> {
+                                AsignaturasProfesorPanel(
+                                    profesor = usuario,
+                                    paddingValues = PaddingValues(0.dp),
+                                    onAsignaturaClick = { asignatura ->
+                                        pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
                                     }
-                                    pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
-                                }
-                            )
+                                )
+                            }
+                            is User.Estudiante -> {
+                                AsignaturasEstudiantePanel(
+                                    asignaturas = estudianteState.asignaturas,
+                                    paddingValues = PaddingValues(0.dp),
+                                    onAsignaturaClick = { asignatura ->
+                                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
+                                        pageBackStack.add(Routes.HomeRoutes.MateriaDetalle(asignatura))
+                                    }
+                                )
+                            }
+                            else -> {
+                                // Admin o Incompleto no suelen ver esta pestaña o ven un placeholder
+                                PlaceholderPanel("No disponible para este rol")
+                            }
                         }
                     }
                     entry<Routes.HomeRoutes.MateriaDetalle> { route ->
-                        if (usuario.rol == "PROFESOR") {
-                            MateriaDetalleProfesorPanel(
-                                asignatura = route.asignatura,
-                                profesor = usuario,
-                                onBackClick = { pageBackStack.removeLastOrNull() },
-                                onOpenDialog = onOpenDialog
-                            )
-                        } else {
-                            MateriaDetalleEstudiantePanel(
-                                asignatura = route.asignatura,
-                                estudiante = usuario,
-                                onBackClick = { pageBackStack.removeLastOrNull() },
-                                onOpenDialog = onOpenDialog
-                            )
+                        when (usuario) {
+                            is User.Profesor -> {
+                                MateriaDetalleProfesorPanel(
+                                    asignatura = route.asignatura,
+                                    profesor = usuario,
+                                    onBackClick = { pageBackStack.removeLastOrNull() },
+                                    onOpenDialog = onOpenDialog
+                                )
+                            }
+                            is User.Estudiante -> {
+                                MateriaDetalleEstudiantePanel(
+                                    asignatura = route.asignatura,
+                                    estudiante = usuario,
+                                    onBackClick = { pageBackStack.removeLastOrNull() },
+                                    onOpenDialog = onOpenDialog
+                                )
+                            }
+                            else -> pageBackStack.removeLastOrNull()
                         }
                     }
                     entry<Routes.HomeRoutes.Horarios> {
-                        if (usuario.rol == "PROFESOR") {
-                            HorariosProfesorPanel(
-                                paddingValues = PaddingValues(0.dp),
-                                horarios = profesorState.horarios,
-                                asignaturas = profesorState.asignaturas,
-                                turno = usuario.turno.ifEmpty { "matutino" }
-                            )
-                        } else {
-                            HorariosEstudiantePanel(
-                                paddingValues = PaddingValues(0.dp),
-                                horarios = estudianteState.horarios,
-                                asignaturas = estudianteState.asignaturas,
-                                turno = usuario.turno,
-                                isLoading = estudianteState.isLoading
-                            )
+                        when (usuario) {
+                            is User.Profesor -> {
+                                HorariosProfesorPanel(
+                                    paddingValues = PaddingValues(0.dp),
+                                    horarios = profesorState.horarios,
+                                    asignaturas = profesorState.asignaturas,
+                                    turno = usuario.turno // Ahora usa el turno real del profesor
+                                )
+                            }
+                            is User.Estudiante -> {
+                                HorariosEstudiantePanel(
+                                    paddingValues = PaddingValues(0.dp),
+                                    horarios = estudianteState.horarios,
+                                    asignaturas = estudianteState.asignaturas,
+                                    turno = usuario.turno,
+                                    isLoading = estudianteState.isLoading
+                                )
+                            }
+                            else -> PlaceholderPanel("Horarios no disponibles")
                         }
                     }
                     // HomeScreen.kt — al navegar
                     entry<Routes.HomeRoutes.Calificaciones> {
-                        if (usuario.rol == "PROFESOR") {
-                            CalificacionesProfesorPanel(
-                                profesor = usuario,
-                                paddingValues = PaddingValues(0.dp),
-                                onOpenDialog = onOpenDialog,
-                                onAsignaturaClick = { asignatura ->
-                                    pageBackStack.add(Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
-                                },
-                                onEstudianteClick = { estudiante, asignatura ->
-                                    pageBackStack.add(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
-                                }
-                            )
-                        } else {
-                            CalificacionesEstudiantePanel(
-                                asignaturas = estudianteState.asignaturas,
-                                paddingValues = PaddingValues(0.dp),
-                                onAsignaturaClick = { asignatura ->
-                                    pageBackStack.add(Routes.HomeRoutes.CalificacionesDetalle(asignatura))
-                                }
-                            )
+                        when (usuario) {
+                            is User.Profesor -> {
+                                CalificacionesProfesorPanel(
+                                    profesor = usuario,
+                                    paddingValues = PaddingValues(0.dp),
+                                    onOpenDialog = onOpenDialog,
+                                    onAsignaturaClick = { asignatura ->
+                                        pageBackStack.add(Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
+                                    },
+                                    onEstudianteClick = { estudiante, asignatura ->
+                                        pageBackStack.add(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
+                                    }
+                                )
+                            }
+                            is User.Estudiante -> {
+                                CalificacionesEstudiantePanel(
+                                    asignaturas = estudianteState.asignaturas,
+                                    paddingValues = PaddingValues(0.dp),
+                                    onAsignaturaClick = { asignatura ->
+                                        pageBackStack.add(Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                                    }
+                                )
+                            }
+                            else -> PlaceholderPanel("Calificaciones no disponibles")
                         }
                     }
                     entry<Routes.HomeRoutes.EstudiantesAsignatura> { route ->

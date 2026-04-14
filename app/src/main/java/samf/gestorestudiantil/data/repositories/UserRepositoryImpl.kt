@@ -16,7 +16,17 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun getUser(uid: String): User? {
         val doc = db.collection("usuarios").document(uid).get().await()
-        return doc.toObject(User::class.java)
+        
+        if (!doc.exists()) return null
+
+        val rol = doc.getString("rol")
+
+        return when (rol) {
+            "ESTUDIANTE" -> doc.toObject(User.Estudiante::class.java)
+            "PROFESOR" -> doc.toObject(User.Profesor::class.java)
+            "ADMIN" -> doc.toObject(User.Admin::class.java)
+            else -> doc.toObject(User.Incompleto::class.java)
+        }
     }
 
     override suspend fun checkAdminsInCenter(centroId: String): Boolean {
@@ -33,8 +43,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateProfileImage(uid: String, imageUrl: String) {
         db.collection("usuarios").document(uid).update(
-            "imgUrl", imageUrl,
-            "fotoUrl", imageUrl
+            "imgUrl", imageUrl
         ).await()
     }
 

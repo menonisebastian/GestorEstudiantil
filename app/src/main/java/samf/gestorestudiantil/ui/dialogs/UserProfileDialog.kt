@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -91,8 +92,16 @@ fun UserProfileDialog(
                     )
                     ProfileInfoRow(
                         icon = Icons.Outlined.School,
-                        label = "Curso / Área",
-                        value = user.cursoOArea
+                        label = when (user) {
+                            is User.Estudiante -> "Curso"
+                            is User.Profesor -> "Departamento"
+                            else -> "Curso / Área"
+                        },
+                        value = when (user) {
+                            is User.Estudiante -> user.curso
+                            is User.Profesor -> user.departamento
+                            else -> ""
+                        }
                     )
                     ProfileInfoRow(
                         icon = Icons.Outlined.Email,

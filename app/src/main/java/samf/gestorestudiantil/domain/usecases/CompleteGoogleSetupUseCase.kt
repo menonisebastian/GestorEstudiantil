@@ -21,7 +21,8 @@ class CompleteGoogleSetupUseCase @Inject constructor(
         ciclo: Int,
         name: String,
         email: String,
-        imgUrl: String
+        imgUrl: String,
+        departamento: String = "Sin asignar"
     ): User {
         // 1. Actualizar contraseña
         authRepository.updatePassword(password)
@@ -29,14 +30,14 @@ class CompleteGoogleSetupUseCase @Inject constructor(
         // 2. Lógica de Roles y Estados
         var finalRol = rolSeleccionado
         var estadoInicial = "ACTIVO"
-        var areaOCurso = cursoNombre
+        var cursoGenerado = ""
+        val finalDepartamento = if (departamento.isBlank()) "Sin asignar" else departamento
 
         if (rolSeleccionado == "ESTUDIANTE") {
             estadoInicial = "PENDIENTE"
             val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-            areaOCurso = "${cursoNombre}${letraTurno}${ciclo}"
+            cursoGenerado = "${cursoNombre}${letraTurno}${ciclo}"
         } else if (rolSeleccionado == "PROFESOR") {
-            areaOCurso = "Sin asignar"
             val hasAdmins = userRepository.checkAdminsInCenter(centroId)
             if (!hasAdmins) {
                 finalRol = "ADMIN"
@@ -51,20 +52,23 @@ class CompleteGoogleSetupUseCase @Inject constructor(
         val finalImgUrl = if (imgUrl.isBlank()) authRepository.getCurrentUserPhotoUrl() ?: "" else imgUrl
 
         // 4. Crear objeto Usuario
-        val newUser = User(
-            id = uid,
-            nombre = finalName,
-            email = finalEmail,
-            rol = finalRol,
-            cursoId = if (rolSeleccionado == "ESTUDIANTE") cursoId else "",
-            cursoOArea = areaOCurso,
-            centroId = centroId,
-            estado = estadoInicial,
-            turno = turno.lowercase().trim(),
-            cicloNum = ciclo,
-            imgUrl = finalImgUrl,
-            fotoUrl = finalImgUrl
-        )
+        val newUser: User = when (finalRol) {
+            "ESTUDIANTE" -> User.Estudiante(
+                id = uid, nombre = finalName, email = finalEmail, centroId = centroId,
+                estado = estadoInicial, imgUrl = finalImgUrl,
+                cursoId = cursoId, curso = cursoGenerado, turno = turno.lowercase().trim(), cicloNum = ciclo
+            )
+            "PROFESOR" -> User.Profesor(
+                id = uid, nombre = finalName, email = finalEmail, centroId = centroId,
+                estado = estadoInicial, imgUrl = finalImgUrl, departamento = finalDepartamento,
+                turno = turno.lowercase().trim()
+            )
+            "ADMIN" -> User.Admin(
+                id = uid, nombre = finalName, email = finalEmail, centroId = centroId,
+                estado = estadoInicial, imgUrl = finalImgUrl
+            )
+            else -> throw IllegalArgumentException("Rol no válido")
+        }
 
         // 5. Guardar en Firestore
         userRepository.saveUser(newUser)

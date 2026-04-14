@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,16 +50,64 @@ fun EditUserDialog(
     var nombre by remember { mutableStateOf(state.user.nombre) }
     var email by remember { mutableStateOf(state.user.email) }
     var rol by remember { mutableStateOf(state.user.rol) }
-    var turno by remember { mutableStateOf(state.user.turno) }
-    var ciclo by remember { mutableIntStateOf(state.user.cicloNum) }
-    var cursoId by remember { mutableStateOf(state.user.cursoId) }
-    var cursoOArea by remember { mutableStateOf(state.user.cursoOArea) }
+
+    // Campos de Estudiante
+    var turno by remember { 
+        mutableStateOf(if (state.user is User.Estudiante) state.user.turno else "matutino") 
+    }
+    var ciclo by remember { 
+        mutableIntStateOf(if (state.user is User.Estudiante) state.user.cicloNum else 1) 
+    }
+    var cursoId by remember { 
+        mutableStateOf(if (state.user is User.Estudiante) state.user.cursoId else "") 
+    }
+    var cursoInput by remember { 
+        mutableStateOf(if (state.user is User.Estudiante) state.user.curso else "") 
+    }
+
+    // Campo de Profesor
+    var departamento by remember { 
+        mutableStateOf(if (state.user is User.Profesor) state.user.departamento else "") 
+    }
 
     val roles = listOf("ESTUDIANTE", "PROFESOR", "ADMIN")
     val turnos = listOf("matutino", "vespertino")
     val ciclos = listOf("1", "2")
+    val departamentos = listOf(
+        "Actividades complementarias y extraescolares",
+        "Administración y Gestión",
+        "Artes plásticas",
+        "Biología y geología",
+        "Clásicas",
+        "Comercio y marketing",
+        "Economía",
+        "Educación física",
+        "Filosofía",
+        "Física y química",
+        "Formación y orientación laboral",
+        "Francés",
+        "Geografía e historia",
+        "Informática",
+        "Inglés",
+        "Lengua y literatura",
+        "Matemáticas",
+        "Música",
+        "Orientación",
+        "Tecnología"
+    )
 
-    val acronimosCursos = remember(state.cursos) { state.cursos.map { it.acronimo } }
+    // Lógica para autogenerar el acrónimo del curso
+    LaunchedEffect(cursoId, turno, ciclo, rol) {
+        if (rol == "ESTUDIANTE") {
+            val cursoObj = state.cursos.find { it.id == cursoId }
+            if (cursoObj != null) {
+                val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                // Solo añadir ciclo si el curso tiene más de uno (o siempre, según prefieras)
+                // Aquí asumo que si existe ciclo, se añade
+                cursoInput = "${cursoObj.acronimo}${letraTurno}${ciclo}"
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -90,7 +139,7 @@ fun EditUserDialog(
                     onValueChange = { email = it },
                     label = "Email",
                     icon = Icons.Outlined.Email,
-                    readOnly = true // El email suele ser el identificador único/login
+                    readOnly = true
                 )
 
                 CustomOptionsTextField(
@@ -101,61 +150,50 @@ fun EditUserDialog(
                     icon = Icons.Outlined.Badge
                 )
 
-                if (rol == "ESTUDIANTE" || rol == "PROFESOR") {
+                if (rol == "ESTUDIANTE") {
                     CustomOptionsTextField(
                         texto = turno,
-                        onValueChange = { 
-                            turno = it 
-                            // Actualizar cursoOArea cuando cambia el turno
-                            if (rol == "ESTUDIANTE") {
-                                val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
-                                val letraTurno = if (it.lowercase().contains("matutino")) "M" else "V"
-                                cursoOArea = "${acronimo}${letraTurno}${ciclo}"
-                            }
-                        },
+                        onValueChange = { turno = it },
                         opciones = turnos,
                         label = "Turno",
                         icon = Icons.Outlined.Schedule
                     )
 
-                    if (rol == "ESTUDIANTE" && state.cursos.isNotEmpty()) {
-                        CustomOptionsTextField(
-                            texto = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea,
-                            onValueChange = { acronimo ->
-                                val cursoSeleccionado = state.cursos.find { it.acronimo == acronimo }
-                                cursoSeleccionado?.let {
-                                    cursoId = it.id
-                                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                                    cursoOArea = "${it.acronimo}${letraTurno}${ciclo}"
-                                }
-                            },
-                            opciones = acronimosCursos,
-                            label = "Curso",
-                            icon = Icons.Outlined.School
-                        )
-                    } else {
-                        CustomTextField(
-                            value = cursoOArea,
-                            onValueChange = { cursoOArea = it },
-                            label = if (rol == "ESTUDIANTE") "Curso" else "Departamento / Área",
-                            icon = Icons.Outlined.School
-                        )
-                    }
-                }
+                    val acronimosCursos = state.cursos.map { it.acronimo }
+                    CustomOptionsTextField(
+                        texto = state.cursos.find { it.id == cursoId }?.acronimo ?: "",
+                        onValueChange = { acro ->
+                            cursoId = state.cursos.find { it.acronimo == acro }?.id ?: ""
+                        },
+                        opciones = acronimosCursos,
+                        label = "Curso Base",
+                        icon = Icons.Outlined.School
+                    )
 
-                if (rol == "ESTUDIANTE") {
                     CustomOptionsTextField(
                         texto = ciclo.toString(),
-                        onValueChange = { 
-                            ciclo = it.toInt() 
-                            // Actualizar cursoOArea cuando cambia el ciclo
-                            val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
-                            val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                            cursoOArea = "${acronimo}${letraTurno}${ciclo}"
-                        },
+                        onValueChange = { ciclo = it.toInt() },
                         opciones = ciclos,
                         label = "Ciclo",
                         icon = Icons.Outlined.Groups
+                    )
+
+                    CustomTextField(
+                        value = cursoInput,
+                        onValueChange = { cursoInput = it },
+                        label = "Acrónimo Final (Curso)",
+                        icon = Icons.Outlined.School,
+                        readOnly = true // Se autogenera
+                    )
+                }
+
+                if (rol == "PROFESOR") {
+                    CustomOptionsTextField(
+                        texto = departamento,
+                        onValueChange = { departamento = it },
+                        opciones = departamentos,
+                        label = "Departamento",
+                        icon = Icons.Outlined.School
                     )
                 }
             }
@@ -163,14 +201,51 @@ fun EditUserDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val updatedUser = state.user.copy(
-                        nombre = nombre,
-                        rol = rol,
-                        turno = turno,
-                        cicloNum = ciclo,
-                        cursoId = cursoId,
-                        cursoOArea = cursoOArea
-                    )
+                    val updatedUser = when {
+                        rol == "ESTUDIANTE" -> {
+                            User.Estudiante(
+                                id = state.user.id,
+                                nombre = nombre,
+                                email = email,
+                                centroId = state.user.centroId,
+                                estado = state.user.estado,
+                                imgUrl = state.user.imgUrl,
+                                fcmToken = state.user.fcmToken,
+                                rol = "ESTUDIANTE",
+                                turno = turno,
+                                cicloNum = ciclo,
+                                cursoId = cursoId,
+                                curso = cursoInput
+                            )
+                        }
+                        rol == "PROFESOR" -> {
+                            User.Profesor(
+                                id = state.user.id,
+                                nombre = nombre,
+                                email = email,
+                                centroId = state.user.centroId,
+                                estado = state.user.estado,
+                                imgUrl = state.user.imgUrl,
+                                fcmToken = state.user.fcmToken,
+                                rol = "PROFESOR",
+                                departamento = departamento,
+                                asignaturasImpartidas = if (state.user is User.Profesor) state.user.asignaturasImpartidas else emptyList(),
+                                ultimaVezAsignaturas = if (state.user is User.Profesor) state.user.ultimaVezAsignaturas else emptyMap()
+                            )
+                        }
+                        else -> {
+                            User.Admin(
+                                id = state.user.id,
+                                nombre = nombre,
+                                email = email,
+                                centroId = state.user.centroId,
+                                estado = state.user.estado,
+                                imgUrl = state.user.imgUrl,
+                                fcmToken = state.user.fcmToken,
+                                rol = "ADMIN"
+                            )
+                        }
+                    }
                     state.onSave(updatedUser)
                     onDismissRequest()
                 },

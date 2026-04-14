@@ -19,14 +19,14 @@ class RegisterUserUseCase @Inject constructor(
         // 1. LÓGICA DE NEGOCIO: Determinar rol, estado y área
         var finalRol = rolSeleccionado
         var estadoInicial = "ACTIVO"
-        var areaOCurso = cursoNombre
+        var cursoGenerado = ""
+        val departamento = "Sin asignar"
 
         if (rolSeleccionado == "ESTUDIANTE") {
             estadoInicial = "PENDIENTE"
             val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-            areaOCurso = "${cursoNombre}${letraTurno}${ciclo}"
+            cursoGenerado = "${cursoNombre}${letraTurno}${ciclo}"
         } else if (rolSeleccionado == "PROFESOR") {
-            areaOCurso = "Sin asignar"
             val hasAdmins = userRepository.checkAdminsInCenter(centroId)
             if (!hasAdmins) {
                 finalRol = "ADMIN"
@@ -37,16 +37,23 @@ class RegisterUserUseCase @Inject constructor(
         val uid = authRepository.registerUser(email, pass)
 
         // 3. CREAR OBJETO USUARIO
-        val newUser = User(
-            id = uid, nombre = name, email = email,
-            rol = finalRol, cursoId = if (finalRol == "ESTUDIANTE") cursoId else "", 
-            cursoOArea = areaOCurso,
-            centroId = centroId, estado = estadoInicial, 
-            turno = turno.lowercase().trim(),
-            cicloNum = ciclo, 
-            imgUrl = imgUrl,
-            fotoUrl = imgUrl
-        )
+        val newUser: User = when (finalRol) {
+            "ESTUDIANTE" -> User.Estudiante(
+                id = uid, nombre = name, email = email, centroId = centroId,
+                estado = estadoInicial, imgUrl = imgUrl,
+                cursoId = cursoId, curso = cursoGenerado, turno = turno.lowercase().trim(), cicloNum = ciclo
+            )
+            "PROFESOR" -> User.Profesor(
+                id = uid, nombre = name, email = email, centroId = centroId,
+                estado = estadoInicial, imgUrl = imgUrl, departamento = departamento,
+                turno = turno.lowercase().trim()
+            )
+            "ADMIN" -> User.Admin(
+                id = uid, nombre = name, email = email, centroId = centroId,
+                estado = estadoInicial, imgUrl = imgUrl
+            )
+            else -> throw IllegalArgumentException("Rol no válido")
+        }
 
         // 4. GUARDAR USUARIO
         userRepository.saveUser(newUser)

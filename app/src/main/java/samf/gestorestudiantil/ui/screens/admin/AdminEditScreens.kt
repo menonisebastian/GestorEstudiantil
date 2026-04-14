@@ -269,6 +269,7 @@ fun EditAsignaturaScreen(
 ) {
     var acronimo by remember { mutableStateOf(state.asignatura?.acronimo ?: "") }
     var nombre by remember { mutableStateOf(state.asignatura?.nombre ?: "") }
+    var departamento by remember { mutableStateOf(state.asignatura?.departamento ?: "") }
     var descripcion by remember { mutableStateOf(state.asignatura?.descripcion ?: "") }
     var profesorId by remember { mutableStateOf(state.asignatura?.profesorId ?: "") }
     var ciclo by remember { mutableStateOf(state.asignatura?.ciclo ?: "1") }
@@ -322,6 +323,33 @@ fun EditAsignaturaScreen(
             }
             CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. AD)")
             CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
+            CustomOptionsTextField(
+                texto = departamento,
+                onValueChange = { departamento = it },
+                opciones = listOf(
+                    "Actividades complementarias y extraescolares",
+                    "Administración y Gestión",
+                    "Artes plásticas",
+                    "Biología y geología",
+                    "Clásicas",
+                    "Comercio y marketing",
+                    "Economía",
+                    "Educación física",
+                    "Filosofía",
+                    "Física y química",
+                    "Formación y orientación laboral",
+                    "Francés",
+                    "Geografía e historia",
+                    "Informática",
+                    "Inglés",
+                    "Lengua y literatura",
+                    "Matemáticas",
+                    "Música",
+                    "Orientación",
+                    "Tecnología"
+                ),
+                label = "Departamento"
+            )
             CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
             CustomTextField(value = profesorId, onValueChange = { profesorId = it }, label = "ID Profesor")
             CustomOptionsTextField(
@@ -367,13 +395,14 @@ fun EditAsignaturaScreen(
                 Button(
                     onClick = {
                         val asignatura = state.asignatura?.copy(
-                            acronimo = acronimo, nombre = nombre, descripcion = descripcion, profesorId = profesorId,
+                            acronimo = acronimo, nombre = nombre, departamento = departamento, descripcion = descripcion, profesorId = profesorId,
                             cursoId = state.cursoId, centroId = state.centroId,
                             ciclo = ciclo, cicloNum = cicloNum.toIntOrNull() ?: 1, horasTotales = horasTotales.toIntOrNull() ?: 0,
                             horasSemanales = horasSemanales.toIntOrNull() ?: 0, iconoName = iconoName,
                             colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex
                         ) ?: Asignatura(
                             cursoId = state.cursoId, centroId = state.centroId, acronimo = acronimo, nombre = nombre,
+                            departamento = departamento,
                             descripcion = descripcion, profesorId = profesorId, ciclo = ciclo, cicloNum = cicloNum.toIntOrNull() ?: 1,
                             horasTotales = horasTotales.toIntOrNull() ?: 0, horasSemanales = horasSemanales.toIntOrNull() ?: 0,
                             iconoName = iconoName, colorFondoHex = colorFondoHex, colorIconoHex = colorIconoHex
@@ -399,15 +428,49 @@ fun EditUserScreen(
 ) {
     var nombre by remember { mutableStateOf(state.user.nombre) }
     var rol by remember { mutableStateOf(state.user.rol) }
-    var cursoId by remember { mutableStateOf(state.user.cursoId) }
-    var cursoOArea by remember { mutableStateOf(state.user.cursoOArea) }
-    var turno by remember { mutableStateOf(state.user.turno) }
-    var cicloNum by remember { mutableStateOf(state.user.cicloNum.toString()) }
+    var cursoId by remember { mutableStateOf(if (state.user is User.Estudiante) state.user.cursoId else "") }
+    var cursoInput by remember { mutableStateOf(if (state.user is User.Estudiante) state.user.curso else "") }
+    var turno by remember { mutableStateOf(if (state.user is User.Estudiante) state.user.turno else "") }
+    var cicloNum by remember { mutableStateOf(if (state.user is User.Estudiante) state.user.cicloNum.toString() else "1") }
+    var departamento by remember { mutableStateOf(if (state.user is User.Profesor) state.user.departamento else "") }
 
     val roles = listOf("ESTUDIANTE", "PROFESOR", "ADMIN")
-    val turnos = listOf("matutino", "vespertino", "")
+    val turnos = listOf("matutino", "vespertino")
+    val departamentos = listOf(
+        "Actividades complementarias y extraescolares",
+        "Administración y Gestión",
+        "Artes plásticas",
+        "Biología y geología",
+        "Clásicas",
+        "Comercio y marketing",
+        "Economía",
+        "Educación física",
+        "Filosofía",
+        "Física y química",
+        "Formación y orientación laboral",
+        "Francés",
+        "Geografía e historia",
+        "Informática",
+        "Inglés",
+        "Lengua y literatura",
+        "Matemáticas",
+        "Música",
+        "Orientación",
+        "Tecnología"
+    )
 
     val acronimosCursos = remember(state.cursos) { state.cursos.map { it.acronimo } }
+
+    // Lógica para autogenerar el acrónimo del curso
+    LaunchedEffect(cursoId, turno, cicloNum, rol) {
+        if (rol == "ESTUDIANTE") {
+            val cursoObj = state.cursos.find { it.id == cursoId }
+            if (cursoObj != null) {
+                val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
+                cursoInput = "${cursoObj.acronimo}${letraTurno}${cicloNum}"
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -446,57 +509,59 @@ fun EditUserScreen(
                 label = "Rol"
             )
 
-            if (rol == "ESTUDIANTE" && state.cursos.isNotEmpty()) {
-                Text("Curso", style = MaterialTheme.typography.labelLarge)
+            if (rol == "ESTUDIANTE") {
+                Text("Turno", style = MaterialTheme.typography.labelLarge)
                 CustomOptionsTextField(
-                    texto = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea,
-                    onValueChange = { acronimo ->
-                        val cursoSeleccionado = state.cursos.find { it.acronimo == acronimo }
-                        cursoSeleccionado?.let {
-                            cursoId = it.id
-                            val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                            cursoOArea = "${it.acronimo}${letraTurno}${cicloNum}"
-                        }
+                    texto = turno,
+                    onValueChange = { turno = it },
+                    opciones = turnos,
+                    label = "Turno"
+                )
+
+                Text("Curso Base", style = MaterialTheme.typography.labelLarge)
+                CustomOptionsTextField(
+                    texto = state.cursos.find { it.id == cursoId }?.acronimo ?: "",
+                    onValueChange = { acro ->
+                        cursoId = state.cursos.find { it.acronimo == acro }?.id ?: ""
                     },
                     opciones = acronimosCursos,
-                    label = "Curso"
+                    label = "Curso Base"
                 )
-            } else {
+
+                Text("Ciclo", style = MaterialTheme.typography.labelLarge)
+                CustomOptionsTextField(
+                    texto = cicloNum,
+                    onValueChange = { cicloNum = it },
+                    opciones = listOf("1", "2"),
+                    label = "Ciclo (1 o 2)"
+                )
+
                 CustomTextField(
-                    value = cursoOArea,
-                    onValueChange = { cursoOArea = it },
-                    label = if (rol == "ESTUDIANTE") "Curso" else "Departamento / Área"
+                    value = cursoInput,
+                    onValueChange = { cursoInput = it },
+                    label = "Acrónimo Final (Curso)",
+                    readOnly = true
                 )
             }
 
-            Text("Turno", style = MaterialTheme.typography.labelLarge)
-            CustomOptionsTextField(
-                texto = turno,
-                onValueChange = { 
-                    turno = it
-                    // Actualizar cursoOArea cuando cambia el turno
-                    if (rol == "ESTUDIANTE") {
-                        val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
-                        val letraTurno = if (it.lowercase().contains("matutino")) "M" else "V"
-                        cursoOArea = "${acronimo}${letraTurno}${cicloNum}"
-                    }
-                },
-                opciones = turnos.map { if(it.isEmpty()) "N/A" else it },
-                label = "Turno"
-            )
+            if (rol == "PROFESOR") {
+                Text("Turno", style = MaterialTheme.typography.labelLarge)
+                CustomOptionsTextField(
+                    texto = turno,
+                    onValueChange = { turno = it },
+                    opciones = turnos,
+                    label = "Turno"
+                )
 
-            CustomOptionsTextField(
-                texto = cicloNum,
-                onValueChange = { 
-                    cicloNum = it
-                    // Actualizar cursoOArea cuando cambia el ciclo
-                    val acronimo = state.cursos.find { it.id == cursoId }?.acronimo ?: cursoOArea.takeWhile { !it.isDigit() && it != 'M' && it != 'V' }
-                    val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                    cursoOArea = "${acronimo}${letraTurno}${cicloNum}"
-                },
-                opciones = listOf("1", "2"),
-                label = "Ciclo (1 o 2)"
-            )
+                Text("Departamento", style = MaterialTheme.typography.labelLarge)
+                CustomOptionsTextField(
+                    texto = departamento,
+                    onValueChange = { departamento = it },
+                    opciones = departamentos,
+                    label = "Departamento"
+                )
+            }
+
             Spacer(modifier = Modifier.height(180.dp))
         }
 
@@ -520,14 +585,30 @@ fun EditUserScreen(
                 }
                 Button(
                     onClick = {
-                        val updatedUser = state.user.copy(
-                            nombre = nombre,
-                            rol = rol,
-                            cursoId = cursoId,
-                            cursoOArea = cursoOArea,
-                            turno = turno,
-                            cicloNum = cicloNum.toIntOrNull() ?: 1
-                        )
+                        val updatedUser = when (state.user) {
+                            is User.Estudiante -> state.user.copy(
+                                nombre = nombre,
+                                rol = rol,
+                                turno = turno,
+                                cicloNum = cicloNum.toIntOrNull() ?: 1,
+                                cursoId = cursoId,
+                                curso = cursoInput
+                            )
+                            is User.Profesor -> state.user.copy(
+                                nombre = nombre,
+                                rol = rol,
+                                departamento = departamento,
+                                turno = turno
+                            )
+                            is User.Admin -> state.user.copy(
+                                nombre = nombre,
+                                rol = rol
+                            )
+                            is User.Incompleto -> state.user.copy(
+                                nombre = nombre,
+                                rol = rol
+                            )
+                        }
                         state.onSave(updatedUser)
                         onBack()
                     },

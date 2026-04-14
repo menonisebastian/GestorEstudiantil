@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -40,27 +42,29 @@ fun AsignarProfesorDialog(
         // Para este ejemplo, usaremos los usuarios ya cargados en adminState que sean profesores
     }
 
-    val profesores = remember(adminState.usuarios, state.asignatura.turno) {
-        adminState.usuarios.filter { 
-            it.rol == "PROFESOR" && it.turno.equals(state.asignatura.turno, ignoreCase = true)
-        }
+    val profesores = remember(adminState.usuarios, state.asignatura.departamento) {
+        adminState.usuarios
+            .filterIsInstance<User.Profesor>()
+            .sortedByDescending { it.departamento == state.asignatura.departamento }
     }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(onClick = onDismissRequest) { Text("Cerrar") }
+            TextButton(onClick = onDismissRequest) { Text("Cerrar", color = textColor) }
         },
         containerColor = backgroundColor,
         title = {
-            Text(text = "Asignar Profesor a ${state.asignatura.acronimo}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Asignar Profesor a ${state.asignatura.acronimo}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textColor)
         },
         text = {
             Column(modifier = Modifier.height(400.dp)) {
                 if (state.asignatura.profesorId.isNotEmpty()) {
-                    Text("Profesor Actual:", fontWeight = FontWeight.Bold)
+                    Text("Profesor Actual:", fontWeight = FontWeight.Bold, color = textColor)
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                         colors = CardDefaults.cardColors(containerColor = primaryColor.copy(alpha = 0.1f)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -83,17 +87,21 @@ fun AsignarProfesorDialog(
                 Text("Seleccionar Profesor:", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
                 
                 if (profesores.isEmpty()) {
-                    Text("No hay profesores registrados en este turno", color = errorColor, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+                    Text("No hay profesores registrados en este centro", color = errorColor, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
                 }
 
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(profesores) { profe ->
                         // No mostrar si ya es el profesor asignado
                         if (profe.id != state.asignatura.profesorId) {
+                            val esDelMismoDep = profe.departamento == state.asignatura.departamento
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = surfaceColor),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (esDelMismoDep) primaryColor.copy(alpha = 0.05f) else surfaceColor
+                                ),
+                                border = if (esDelMismoDep) androidx.compose.foundation.BorderStroke(1.dp, primaryColor.copy(alpha = 0.3f)) else null,
                                 onClick = {
                                     adminViewModel.asignarAsignaturaAProfesor(state.asignatura.id, profe.id)
                                     onDismissRequest()
@@ -105,7 +113,13 @@ fun AsignarProfesorDialog(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(profe.nombre, fontWeight = FontWeight.Bold, color = textColor)
-                                        Text(profe.email, fontSize = 10.sp, color = surfaceDimColor)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(profe.email, fontSize = 10.sp, color = surfaceDimColor)
+                                            if (profe.departamento.isNotEmpty()) {
+                                                Text(" • ", fontSize = 10.sp, color = surfaceDimColor)
+                                                Text(profe.departamento, fontSize = 10.sp, color = if (esDelMismoDep) primaryColor else surfaceDimColor, fontWeight = if (esDelMismoDep) FontWeight.Bold else FontWeight.Normal)
+                                            }
+                                        }
                                     }
                                     Icon(Icons.Default.Add, contentDescription = "Asignar", tint = tertiaryColor)
                                 }

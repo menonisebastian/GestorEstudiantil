@@ -86,7 +86,11 @@ class AdminViewModel @Inject constructor(
     fun actualizarDatosUsuario(usuarioId: String, nuevoRol: String, nuevoCurso: String) {
         viewModelScope.launch {
             try {
-                val updates = mapOf("rol" to nuevoRol, "cursoOArea" to nuevoCurso)
+                val updates = mutableMapOf<String, Any?>("rol" to nuevoRol)
+                when (nuevoRol) {
+                    "ESTUDIANTE" -> updates["curso"] = nuevoCurso
+                    "PROFESOR" -> updates["departamento"] = nuevoCurso
+                }
                 adminRepository.actualizarDatosUsuario(usuarioId, updates)
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)

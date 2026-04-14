@@ -27,7 +27,16 @@ class AdminRepositoryImpl @Inject constructor(
             .whereEqualTo("centroId", centroId)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(User::class.java))
+                    val users = snapshot.documents.mapNotNull { doc ->
+                        val rol = doc.getString("rol")
+                        when (rol) {
+                            "ESTUDIANTE" -> doc.toObject(User.Estudiante::class.java)
+                            "PROFESOR" -> doc.toObject(User.Profesor::class.java)
+                            "ADMIN" -> doc.toObject(User.Admin::class.java)
+                            else -> doc.toObject(User.Incompleto::class.java)
+                        }
+                    }
+                    trySend(users)
                 }
             }
         awaitClose { subscription.remove() }
@@ -66,14 +75,20 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override fun getAsignaturasSinProfesor(turno: String): Flow<List<Asignatura>> = callbackFlow {
-        val subscription = db.collection("asignaturas")
+        val query = db.collection("asignaturas")
             .whereEqualTo("profesorId", "")
-            .whereEqualTo("turno", turno.lowercase().trim())
-            .addSnapshotListener { snapshot, _ ->
-                if (snapshot != null) {
-                    trySend(snapshot.toObjects(Asignatura::class.java))
-                }
+            
+        val finalQuery = if (turno.isNotEmpty()) {
+            query.whereEqualTo("turno", turno.lowercase().trim())
+        } else {
+            query
+        }
+
+        val subscription = finalQuery.addSnapshotListener { snapshot, _ ->
+            if (snapshot != null) {
+                trySend(snapshot.toObjects(Asignatura::class.java))
             }
+        }
         awaitClose { subscription.remove() }
     }
 
@@ -106,45 +121,51 @@ class AdminRepositoryImpl @Inject constructor(
         val userDoc = db.collection("usuarios").document(profesorId).get().await()
         val nombreProfesor = userDoc.getString("nombre") ?: "Profesor desconocido"
 
+        // 1. Actualizar la asignatura
         val updates = mapOf(
             "profesorId" to profesorId,
             "profesorNombre" to nombreProfesor
         )
         db.collection("asignaturas").document(asignaturaId).update(updates).await()
         
-        // Actualizar horarios que tengan esta asignatura
+        // 2. Actualizar todos los slots de horario que referencian esta asignatura
         val horariosSnapshot = db.collection("horarios")
             .whereEqualTo("asignaturaId", asignaturaId)
             .get().await()
             
+        val batch = db.batch()
         for (doc in horariosSnapshot.documents) {
-            doc.reference.update(mapOf(
+            batch.update(doc.reference, mapOf(
                 "profesorId" to profesorId,
                 "profesorNombre" to nombreProfesor
-            )).await()
+            ))
         }
+        batch.commit().await()
 
         actualizarAcronimosProfesor(profesorId)
     }
 
     override suspend fun desasignarAsignatura(asignaturaId: String, profesorId: String) {
+        // 1. Limpiar la asignatura
         val updates = mapOf(
             "profesorId" to "",
             "profesorNombre" to ""
         )
         db.collection("asignaturas").document(asignaturaId).update(updates).await()
 
-        // Quitar profesor de los horarios que tengan esta asignatura
+        // 2. Limpiar todos los slots de horario que referencian esta asignatura
         val horariosSnapshot = db.collection("horarios")
             .whereEqualTo("asignaturaId", asignaturaId)
             .get().await()
 
+        val batch = db.batch()
         for (doc in horariosSnapshot.documents) {
-            doc.reference.update(mapOf(
+            batch.update(doc.reference, mapOf(
                 "profesorId" to "",
                 "profesorNombre" to ""
-            )).await()
+            ))
         }
+        batch.commit().await()
 
         actualizarAcronimosProfesor(profesorId)
     }
@@ -156,19 +177,12 @@ class AdminRepositoryImpl @Inject constructor(
 
         val asignaturas = snapshot.toObjects(Asignatura::class.java)
 
-        val nuevoCursoOArea = asignaturas
-            .map { it.acronimo }
-            .distinct()
-            .joinToString(", ")
-
-        // Creamos la lista de IDs deterministas (ej: ["ies_comercio_dam_2_di_vespertino"])
         val listaIdsAsignaturas = asignaturas.map { it.id }
 
         // Actualizamos el perfil del profesor con ambos campos
         db.collection("usuarios").document(profesorId)
             .update(
                 mapOf(
-                    "cursoOArea" to nuevoCursoOArea,
                     "asignaturasImpartidas" to listaIdsAsignaturas
                 )
             ).await()
@@ -206,6 +220,16 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun guardarHorario(horario: Horario) {
         horario.turno = horario.turno.lowercase().trim()
+        
+        // Antes de guardar, aseguramos que el profesor esté sincronizado desde la asignatura
+        if (horario.asignaturaId.isNotEmpty()) {
+            val asigDoc = db.collection("asignaturas").document(horario.asignaturaId).get().await()
+            if (asigDoc.exists()) {
+                horario.profesorId = asigDoc.getString("profesorId") ?: ""
+                horario.profesorNombre = asigDoc.getString("profesorNombre") ?: ""
+            }
+        }
+
         val ref = if (horario.id.isEmpty()) db.collection("horarios").document() else db.collection("horarios").document(horario.id)
         if (horario.id.isEmpty()) horario.id = ref.id
         ref.set(horario, com.google.firebase.firestore.SetOptions.merge()).await()

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
@@ -25,15 +24,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,20 +49,18 @@ import samf.gestorestudiantil.ui.components.ProfileImagePicker
 import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
-import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     usuario: User?,
-    onBack: () -> Unit,
+    onBack: () -> Unit = {},
     onLogout: () -> Unit = {},
     onProfileUpdated: (User) -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -108,7 +101,13 @@ fun ProfileScreen(
                     usuario?.id?.let { uid ->
                         settingsViewModel.updateProfileImage(uid, secureUrl) {
                             Toast.makeText(context, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
-                            onProfileUpdated(usuario.copy(imgUrl = secureUrl, fotoUrl = secureUrl))
+                            val updatedUser = when (usuario) {
+                                is User.Estudiante -> usuario.copy(imgUrl = secureUrl)
+                                is User.Profesor -> usuario.copy(imgUrl = secureUrl)
+                                is User.Admin -> usuario.copy(imgUrl = secureUrl)
+                                is User.Incompleto -> usuario.copy(imgUrl = secureUrl)
+                            }
+                            onProfileUpdated(updatedUser)
                         }
                     }
                 }
@@ -138,7 +137,13 @@ fun ProfileScreen(
                                         onSave = { nuevoNombre ->
                                             settingsViewModel.updateName(usuario.id, nuevoNombre) {
                                                 Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
-                                                onProfileUpdated(usuario.copy(nombre = nuevoNombre))
+                                                val updatedUser = when (usuario) {
+                                                    is User.Estudiante -> usuario.copy(nombre = nuevoNombre)
+                                                    is User.Profesor -> usuario.copy(nombre = nuevoNombre)
+                                                    is User.Admin -> usuario.copy(nombre = nuevoNombre)
+                                                    is User.Incompleto -> usuario.copy(nombre = nuevoNombre)
+                                                }
+                                                onProfileUpdated(updatedUser)
                                             }
                                         }
                                     )
@@ -154,7 +159,21 @@ fun ProfileScreen(
                     Text("Nombre: ${usuario?.nombre ?: ""}", color = textColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text("Email: ${usuario?.email ?: ""}", color = surfaceDimColor, fontSize = 14.sp)
                     Text("Rol: ${usuario?.rol ?: ""}", color = surfaceDimColor, fontSize = 14.sp)
-                    Text("Curso/Área: ${usuario?.cursoOArea ?: ""}", color = surfaceDimColor, fontSize = 14.sp)
+
+                    when (usuario) {
+                        is User.Estudiante -> {
+                            Text("Curso: ${usuario.curso}", color = surfaceDimColor, fontSize = 14.sp)
+                            Text("Turno: ${usuario.turno}", color = surfaceDimColor, fontSize = 14.sp)
+                        }
+                        is User.Profesor -> {
+                            Text("Departamento: ${usuario.departamento}", color = surfaceDimColor, fontSize = 14.sp)
+                            Text("Asignaturas impartidas: ${usuario.asignaturasImpartidas.size}", color = surfaceDimColor, fontSize = 14.sp)
+                        }
+                        is User.Admin -> {
+                            Text("Administrador del centro", color = surfaceDimColor, fontSize = 14.sp)
+                        }
+                        else -> {}
+                    }
                 }
             }
 

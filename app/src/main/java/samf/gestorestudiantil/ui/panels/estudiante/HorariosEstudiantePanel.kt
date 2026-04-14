@@ -188,16 +188,19 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
             
             if (horario != null && !isReceso) {
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = horario.profesorNombre,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = surfaceDimColor
-                    )
+                    if (horario.profesorNombre.isNotEmpty()) {
+                        Text(
+                            text = horario.profesorNombre,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black // El nombre del profesor debe ser legible (Negro)
+                        )
+                    }
                     if (horario.aula.isNotEmpty()) {
                         Text(
                             text = "Aula: ${horario.aula}",
                             fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
                             color = surfaceDimColor
                         )
                     }

@@ -129,7 +129,7 @@ class AuthViewModel @Inject constructor(
                     _authState.value = AuthState(isSuccess = true, user = user)
                 } else {
                     // Pre-poblamos con datos de Google para el proceso de configuración
-                    val googleUser = User(
+                    val googleUser = User.Incompleto(
                         id = uid,
                         nombre = authRepository.getCurrentUserName() ?: "",
                         email = authRepository.getCurrentUserEmail() ?: "",
@@ -154,13 +154,14 @@ class AuthViewModel @Inject constructor(
         ciclo: Int,
         name: String,
         email: String,
-        imgUrl: String
+        imgUrl: String,
+        departamento: String = "Sin asignar"
     ) {
         _authState.value = AuthState(isLoading = true)
         viewModelScope.launch {
             try {
                 val newUser = completeGoogleSetupUseCase(
-                    password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, name, email, imgUrl
+                    password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, name, email, imgUrl, departamento
                 )
                 _authState.value = AuthState(isSuccess = true, user = newUser)
             } catch (e: Exception) {

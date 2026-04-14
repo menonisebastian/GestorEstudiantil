@@ -65,11 +65,17 @@ fun AppNavigation(
                 needsGoogleSetup = false
                 isCheckingSession = false
             } else {
-                userListener = db.collection("usuarios")
+                    userListener = db.collection("usuarios")
                     .document(firebaseUser.uid)
                     .addSnapshotListener { snapshot, _ ->
                         if (snapshot != null && snapshot.exists()) {
-                            val user = snapshot.toObject(User::class.java)
+                            val rol = snapshot.getString("rol")
+                            val user = when (rol) {
+                                "ESTUDIANTE" -> snapshot.toObject(User.Estudiante::class.java)
+                                "PROFESOR" -> snapshot.toObject(User.Profesor::class.java)
+                                "ADMIN" -> snapshot.toObject(User.Admin::class.java)
+                                else -> snapshot.toObject(User.Incompleto::class.java)
+                            }
                             if (user != null && user.rol.isNotBlank()) {
                                 currentUser = user
                                 needsGoogleSetup = false
@@ -171,8 +177,8 @@ fun AppNavigation(
                     darkTheme = darkTheme,
                     onAuthSuccess = { /* El listener maneja esto */ },
                     onRequireGoogleSetup = { needsGoogleSetup = true },
-                    onNavigateToRegisterStep2 = { name, email, pass, fotoUrl ->
-                        backStack.add(Routes.RegisterStep2(name, email, pass, fotoUrl))
+                    onNavigateToRegisterStep2 = { name, email, pass, imgUrl ->
+                        backStack.add(Routes.RegisterStep2(name, email, pass, imgUrl))
                     },
                 )
             }

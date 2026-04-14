@@ -114,11 +114,25 @@ fun UsuariosAdminPanel(
             val coincideTexto = it.nombre.contains(textoBusqueda, ignoreCase = true) || 
                                 it.email.contains(textoBusqueda, ignoreCase = true)
             val coincideRol = if (rolesSeleccionados.isEmpty()) true else rolesSeleccionados.any { rol -> it.rol.equals(rol, ignoreCase = true) }
-            val coincideCurso = if (cursosSeleccionados.isEmpty()) true else cursosSeleccionados.any { curso -> it.cursoOArea.equals(curso, ignoreCase = true) }
-            val coincideCiclo = if (ciclosSeleccionados.isEmpty()) true else {
-                ciclosSeleccionados.any { ciclo -> it.cursoOArea.contains(ciclo) }
+            val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
+                when (it) {
+                    is User.Estudiante -> cursosSeleccionados.any { curso -> it.curso.contains(curso, ignoreCase = true) }
+                    is User.Profesor -> cursosSeleccionados.any { curso -> it.departamento.contains(curso, ignoreCase = true) }
+                    else -> true
+                }
             }
-            val coincideTurno = if (turnosSeleccionados.isEmpty()) true else turnosSeleccionados.any { turno -> it.turno.equals(turno, ignoreCase = true) }
+            val coincideCiclo = if (ciclosSeleccionados.isEmpty()) true else {
+                when (it) {
+                    is User.Estudiante -> ciclosSeleccionados.any { ciclo -> it.cicloNum.toString() == ciclo }
+                    else -> true
+                }
+            }
+            val coincideTurno = if (turnosSeleccionados.isEmpty()) true else {
+                when (it) {
+                    is User.Estudiante -> turnosSeleccionados.any { turno -> it.turno.equals(turno, ignoreCase = true) }
+                    else -> true
+                }
+            }
             
             coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo && coincideTurno
         }
@@ -309,7 +323,14 @@ fun UsuarioCardAdmin(
                     // Chips de Rol y Curso
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         RoleChip(rol = usuario.rol)
-                        Text(text = "• ${usuario.cursoOArea}", fontSize = 11.sp, color = surfaceDimColor, modifier = Modifier.align(Alignment.CenterVertically))
+                        val infoExtra = when (usuario) {
+                            is User.Estudiante -> usuario.curso
+                            is User.Profesor -> usuario.departamento
+                            else -> ""
+                        }
+                        if (infoExtra.isNotEmpty()) {
+                            Text(text = "• $infoExtra", fontSize = 11.sp, color = surfaceDimColor, modifier = Modifier.align(Alignment.CenterVertically))
+                        }
                     }
                 }
 

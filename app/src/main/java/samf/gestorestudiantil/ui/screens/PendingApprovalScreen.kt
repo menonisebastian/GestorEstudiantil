@@ -56,8 +56,13 @@ fun PendingApprovalScreen(usuario: User, onLogout: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val infoCursoArea = when (usuario) {
+                is User.Estudiante -> usuario.curso
+                is User.Profesor -> usuario.departamento
+                else -> ""
+            }
             Text(
-                "Tu solicitud de matrícula para ${usuario.cursoOArea} ha sido recibida y está en proceso de revisión por parte de la administración de tu instituto.",
+                "Tu solicitud de matrícula para $infoCursoArea ha sido recibida y está en proceso de revisión por parte de la administración de tu instituto.",
                 fontSize = 16.sp,
                 color = surfaceDimColor,
                 textAlign = TextAlign.Center

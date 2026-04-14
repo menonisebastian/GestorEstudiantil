@@ -26,7 +26,7 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
     "EditCentro"      -> Routes.HomeRoutes.EditCentro()
     "EditCurso"       -> Routes.HomeRoutes.EditCurso(null, "")
     "EditAsignatura"  -> Routes.HomeRoutes.EditAsignatura(null, "", "")
-    "EditUser"        -> Routes.HomeRoutes.EditUser(samf.gestorestudiantil.data.models.User())
+    "EditUser"        -> Routes.HomeRoutes.EditUser(samf.gestorestudiantil.data.models.User.Incompleto())
     "Perfil"          -> Routes.HomeRoutes.Perfil
     else              -> Routes.HomeRoutes.Materias
 }

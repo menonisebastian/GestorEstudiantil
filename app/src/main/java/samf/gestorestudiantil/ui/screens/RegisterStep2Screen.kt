@@ -257,7 +257,7 @@ fun RegisterStep2Screen(
                                         cursoNombre = cursoAcronimo,
                                         turno = turno,
                                         ciclo = cicloNum,
-                                        imgUrl = route.fotoUrl
+                                        imgUrl = route.imgUrl
                                     )
                                 }
                             } else if (rolSeleccionado == "PROFESOR") {
@@ -274,7 +274,7 @@ fun RegisterStep2Screen(
                                         cursoNombre = "Docente",
                                         turno = turno,
                                         ciclo = 1,
-                                        imgUrl = route.fotoUrl
+                                        imgUrl = route.imgUrl
                                     )
                                 }
                             }

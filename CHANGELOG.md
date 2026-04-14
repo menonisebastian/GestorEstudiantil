@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.5.3] - 2026-05-02
+- **Refactorización de Arquitectura**: Migración completa del modelo `User` a una `sealed class` con jerarquía de tipos (`Estudiante`, `Profesor`, `Admin`, `Incompleto`). Esta estructura permite el uso de *smart casting* y *exhaustive when* en toda la aplicación, eliminando errores de casting manual y simplificando la lógica basada en roles.
+- **Modelo de Datos**: Evolución del perfil `User.Profesor` con la incorporación del campo `turno` (matutino/vespertino) y sustitución del campo genérico `cursoOArea` por `departamento` para una clasificación docente más precisa.
+- **Sincronización en Cascada**: Implementada actualización atómica mediante `WriteBatch` en `AdminRepository`. Ahora, al asignar o desasignar un profesor a una asignatura, el cambio se propaga instantáneamente a todos los slots de horario relacionados, asegurando que los alumnos vean la información actualizada en tiempo real.
+- **Robustez de Horarios**: Mejorada la función `guardarHorario` para heredar automáticamente los datos del docente desde la asignatura, evitando discrepancias de datos en la creación de nuevos horarios.
+- **UI/UX**: Actualizado el panel de horarios del estudiante para resaltar el nombre del profesor con negrita y color negro, mejorando la legibilidad sobre fondos de color.
+- **Administración**: Adaptadas `EditUserScreen` y `EditUserDialog` para permitir la edición del turno y departamento en perfiles de profesor.
+- **Perfil**: Añadida la visualización del turno asignado en `ProfileScreen` para el rol de profesor.
+
 ## [v0.5.2] - 2026-05-01
 - **Branding**: Actualización completa de la identidad visual de la aplicación, incluyendo nuevos logotipos y recursos gráficos.
 - **Autenticación**: Preparación de la infraestructura para el inicio de sesión con GitHub; implementado el botón de acceso en la pantalla de autenticación (funcionalidad en desarrollo).

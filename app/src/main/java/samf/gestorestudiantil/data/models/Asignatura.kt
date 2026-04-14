@@ -10,6 +10,7 @@ data class Asignatura(
     var id: String = "",                // Campo "id" en el documento Firestore
     var acronimo: String = "",          // "PMM", "PSP", "AD", "DWEC" ...
     var nombre: String = "",            // Nombre completo de la asignatura
+    var departamento: String = "",      // Departamento al que pertenece (ej: Informática)
     var descripcion: String = "",
     var profesorId: String = "",
     var profesorNombre: String = "",

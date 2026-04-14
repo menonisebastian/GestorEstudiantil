@@ -115,7 +115,7 @@ class ProfesorRepositoryImpl @Inject constructor(
             .whereEqualTo("turno", asignatura.turno)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(User::class.java))
+                    trySend(snapshot.toObjects(User.Estudiante::class.java))
                 }
             }
         awaitClose { subscription.remove() }
@@ -128,7 +128,7 @@ class ProfesorRepositoryImpl @Inject constructor(
             .whereEqualTo("cicloNum", cicloNum)
             .whereEqualTo("turno", turno)
             .get().await()
-        return snapshot.toObjects(User::class.java)
+        return snapshot.toObjects(User.Estudiante::class.java)
     }
 
     override fun getEvaluacionesEstudiante(estudianteId: String, asignaturaId: String): Flow<List<Evaluacion>> = callbackFlow {
@@ -167,7 +167,7 @@ class ProfesorRepositoryImpl @Inject constructor(
     override suspend fun getProfesor(profesorId: String): User? {
         return try {
             val doc = db.collection("usuarios").document(profesorId).get().await()
-            doc.toObject(User::class.java)
+            doc.toObject(User.Profesor::class.java)
         } catch (e: Exception) {
             null
         }
@@ -176,7 +176,7 @@ class ProfesorRepositoryImpl @Inject constructor(
     override suspend fun getEstudiante(estudianteId: String): User? {
         return try {
             val doc = db.collection("usuarios").document(estudianteId).get().await()
-            doc.toObject(User::class.java)
+            doc.toObject(User.Estudiante::class.java)
         } catch (e: Exception) {
             null
         }

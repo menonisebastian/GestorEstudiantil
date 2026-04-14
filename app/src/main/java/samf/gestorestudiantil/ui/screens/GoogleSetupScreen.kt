@@ -161,6 +161,7 @@ fun GoogleAcademicSetupScreen(
     var cursoAcronimo by remember { mutableStateOf("") }
 
     var turno by remember { mutableStateOf("Seleccionar Turno...") }
+    var departamento by remember { mutableStateOf("") }
     var cicloSeleccionado by remember { mutableStateOf("Primer Año") }
     val ciclos = listOf("Primer Año", "Segundo Año")
 
@@ -294,6 +295,14 @@ fun GoogleAcademicSetupScreen(
                         }
                     } else if (rolSeleccionado == "PROFESOR") {
                         CustomOptionsTextField(
+                            texto = departamento,
+                            onValueChange = { departamento = it },
+                            opciones = listOf("Informática", "Administración", "Comercio", "Sanidad", "Hostelería"),
+                            icon = Icons.Default.Business,
+                            label = "Departamento"
+                        )
+
+                        CustomOptionsTextField(
                             texto = turno,
                             onValueChange = { turno = it },
                             opciones = listOf("matutino", "vespertino"),
@@ -330,12 +339,15 @@ fun GoogleAcademicSetupScreen(
                                     ciclo = cicloNum,
                                     name = authState.user?.nombre ?: "",
                                     email = authState.user?.email ?: "",
-                                    imgUrl = authState.user?.imgUrl ?: ""
+                                    imgUrl = authState.user?.imgUrl ?: "",
+                                    departamento = ""
                                 )
                             }
                         } else if (rolSeleccionado == "PROFESOR") {
                             if (turno == "Seleccionar Turno...") {
                                 Toast.makeText(context, "Debes seleccionar un turno de trabajo", Toast.LENGTH_SHORT).show()
+                            } else if (departamento.isEmpty()) {
+                                Toast.makeText(context, "Debes seleccionar un departamento", Toast.LENGTH_SHORT).show()
                             } else {
                                 authViewModel.completeGoogleSetup(
                                     password = passwordValue,
@@ -347,7 +359,8 @@ fun GoogleAcademicSetupScreen(
                                     ciclo = 1,
                                     name = authState.user?.nombre ?: "",
                                     email = authState.user?.email ?: "",
-                                    imgUrl = authState.user?.imgUrl ?: ""
+                                    imgUrl = authState.user?.imgUrl ?: "",
+                                    departamento = departamento
                                 )
                             }
                         }

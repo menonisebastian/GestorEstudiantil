@@ -93,7 +93,7 @@ fun AuthScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     onAuthSuccess: (User) -> Unit,
     onRequireGoogleSetup: () -> Unit,
-    onNavigateToRegisterStep2: (name: String, email: String, pass: String, fotoUrl: String) -> Unit,
+    onNavigateToRegisterStep2: (name: String, email: String, pass: String, imgUrl: String) -> Unit,
     darkTheme: Boolean
 ) {
     val tabs = remember { itemsAuth.keys.toList() }
@@ -583,13 +583,13 @@ fun LoginPanel(
 fun RegistroPanelStep1(
     paddingValues: PaddingValues,
     isLoading: Boolean,
-    onNextClick: (name: String, email: String, pass: String, fotoUrl: String) -> Unit
+    onNextClick: (name: String, email: String, pass: String, imgUrl: String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     val passwordState = rememberTextFieldState()
     val confirmPasswordState = rememberTextFieldState()
-    var fotoUrl by remember { mutableStateOf("") }
+    var imgUrl by remember { mutableStateOf("") }
     
     val context = LocalContext.current
 
@@ -635,8 +635,8 @@ fun RegistroPanelStep1(
 
                 ProfileImagePicker(
                     userName = name,
-                    currentPhotoUrl = fotoUrl,
-                    onPhotoUploaded = { urlSegura -> fotoUrl = urlSegura }
+                    currentPhotoUrl = imgUrl,
+                    onPhotoUploaded = { urlSegura -> imgUrl = urlSegura }
                 )
             }
 
@@ -660,7 +660,7 @@ fun RegistroPanelStep1(
                         } else if (password.length < 6) {
                             Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
                         } else {
-                            onNextClick(name, email, password, fotoUrl)
+                            onNextClick(name, email, password, imgUrl)
                         }
                     },
                     modifier = Modifier
