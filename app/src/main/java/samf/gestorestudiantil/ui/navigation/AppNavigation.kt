@@ -86,22 +86,22 @@ fun AppNavigation(
         transitionSpec = {
             (slideInHorizontally(
                 initialOffsetX = { it },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))) togetherWith
+                animationSpec = tween(150)
+            ) + fadeIn(animationSpec = tween(150))) togetherWith
                     (slideOutHorizontally(
                         targetOffsetX = { -it },
-                        animationSpec = tween(300)
-                    ) + fadeOut(animationSpec = tween(300)))
+                        animationSpec = tween(150)
+                    ) + fadeOut(animationSpec = tween(150)))
         },
         popTransitionSpec = {
             (slideInHorizontally(
                 initialOffsetX = { -it },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))) togetherWith
+                animationSpec = tween(150)
+            ) + fadeIn(animationSpec = tween(150))) togetherWith
                     (slideOutHorizontally(
                         targetOffsetX = { it },
-                        animationSpec = tween(300)
-                    ) + fadeOut(animationSpec = tween(300)))
+                        animationSpec = tween(150)
+                    ) + fadeOut(animationSpec = tween(150)))
         },
         entryProvider = entryProvider {
             entry<Routes.Auth> {
