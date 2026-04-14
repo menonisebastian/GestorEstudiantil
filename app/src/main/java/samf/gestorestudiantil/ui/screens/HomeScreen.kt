@@ -126,8 +126,7 @@ fun HomeScreen(
     usuario: User,
     targetAsignaturaId: String? = null,
     onNotificationHandled: () -> Unit = {},
-    onLogout: () -> Unit,
-    onNavigateProfile: () -> Unit = {}
+    onLogout: () -> Unit
 ) {
     val currentNavItems = remember(usuario.rol) {
         when (usuario.rol) {

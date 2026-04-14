@@ -184,8 +184,7 @@ fun AppNavigation(
                         onNotificationHandled = onNotificationHandled,
                         onLogout = {
                             authViewModel.signOut()
-                        },
-                        onNavigateProfile = { backStack.add(Routes.Profile) }
+                        }
                     )
                 } ?: run {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
