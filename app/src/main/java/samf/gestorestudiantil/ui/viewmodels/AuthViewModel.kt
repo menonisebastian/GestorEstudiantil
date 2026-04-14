@@ -234,8 +234,18 @@ class AuthViewModel @Inject constructor(
         _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
-                completeGoogleSetupUseCase(
+                // Guardamos el resultado del UseCase (el nuevo usuario)
+                val newUser = completeGoogleSetupUseCase(
                     password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, name, email, imgUrl, departamento
+                )
+
+                // SOLUCIÓN: Actualizar explícitamente el estado para detener el círculo de carga
+                // y disparar la navegación en el LaunchedEffect de la UI
+                _authState.value = _authState.value.copy(
+                    isLoading = false,
+                    isSuccess = true,
+                    requireGooglePasswordSetup = false,
+                    user = newUser
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
