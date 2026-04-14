@@ -223,8 +223,28 @@ class AdminViewModel @Inject constructor(
 
     fun guardarUsuario(user: User) {
         viewModelScope.launch {
-            try { adminRepository.actualizarDatosUsuario(user.id, mapOf("nombre" to user.nombre, "rol" to user.rol)) }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            try {
+                val updates = mutableMapOf<String, Any?>(
+                    "nombre" to user.nombre,
+                    "rol" to user.rol
+                )
+                when (user) {
+                    is User.Estudiante -> {
+                        updates["cursoId"] = user.cursoId
+                        updates["curso"] = user.curso
+                        updates["turno"] = user.turno
+                        updates["cicloNum"] = user.cicloNum
+                    }
+                    is User.Profesor -> {
+                        updates["departamento"] = user.departamento
+                        updates["turno"] = user.turno
+                    }
+                    else -> {}
+                }
+                adminRepository.actualizarDatosUsuario(user.id, updates)
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+            }
         }
     }
 

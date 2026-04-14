@@ -52,8 +52,14 @@ fun EditUserDialog(
     var rol by remember { mutableStateOf(state.user.rol) }
 
     // Campos de Estudiante
-    var turno by remember { 
-        mutableStateOf(if (state.user is User.Estudiante) state.user.turno else "matutino") 
+    var turno by remember {
+        mutableStateOf(
+            when(state.user) {
+                is User.Estudiante -> state.user.turno
+                is User.Profesor -> state.user.turno
+                else -> "matutino"
+            }
+        )
     }
     var ciclo by remember { 
         mutableIntStateOf(if (state.user is User.Estudiante) state.user.cicloNum else 1) 
@@ -151,13 +157,6 @@ fun EditUserDialog(
                 )
 
                 if (rol == "ESTUDIANTE") {
-                    CustomOptionsTextField(
-                        texto = turno,
-                        onValueChange = { turno = it },
-                        opciones = turnos,
-                        label = "Turno",
-                        icon = Icons.Outlined.Schedule
-                    )
 
                     val acronimosCursos = state.cursos.map { it.acronimo }
                     CustomOptionsTextField(
@@ -184,6 +183,16 @@ fun EditUserDialog(
                         label = "Acrónimo Final (Curso)",
                         icon = Icons.Outlined.School,
                         readOnly = true // Se autogenera
+                    )
+                }
+
+                if (rol == "ESTUDIANTE" || rol == "PROFESOR") {
+                    CustomOptionsTextField(
+                        texto = turno,
+                        onValueChange = { turno = it },
+                        opciones = turnos,
+                        label = "Turno",
+                        icon = Icons.Outlined.Schedule
                     )
                 }
 
@@ -229,6 +238,7 @@ fun EditUserDialog(
                                 fcmToken = state.user.fcmToken,
                                 rol = "PROFESOR",
                                 departamento = departamento,
+                                turno = turno,
                                 asignaturasImpartidas = if (state.user is User.Profesor) state.user.asignaturasImpartidas else emptyList(),
                                 ultimaVezAsignaturas = if (state.user is User.Profesor) state.user.ultimaVezAsignaturas else emptyMap()
                             )

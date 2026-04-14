@@ -6,7 +6,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 - **Autenticación con GitHub**: Se ha implementado la logica de login con GitHub.
 - **UI/UX**: Realizados varios cambios visuales en la interfaz de usuario.
 - **Refactorización de Arquitectura**: Se ha movido la lógica del Listener de eventos en `AppNavigation` a la capa de domain + ViewModel.
-- **Bug por Corregir**: Los departamentos no se asignan correctamente a los usuarios.
+- **Corrección**: Los departamentos no se asignan correctamente a los usuarios.
 
 ## [v0.5.3] - 2026-05-02
 - **Refactorización de Arquitectura**: Migración completa del modelo `User` a una `sealed class` con jerarquía de tipos (`Estudiante`, `Profesor`, `Admin`, `Incompleto`). Esta estructura permite el uso de *smart casting* y *exhaustive when* en toda la aplicación, eliminando errores de casting manual y simplificando la lógica basada en roles.
