@@ -317,8 +317,4 @@ class EstudianteViewModel @Inject constructor(
             }
         }
     }
-
-    suspend fun getUrlFirmada(path: String): String {
-        return tareaRepository.getUrlFirmada(path)
-    }
 }

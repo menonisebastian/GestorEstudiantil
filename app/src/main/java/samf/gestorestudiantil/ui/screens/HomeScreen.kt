@@ -334,7 +334,7 @@ fun HomeScreen(
                                             hora = hora,
                                             tipo = tipo
                                         )
-                                        appViewModel.añadirRecordatorio(nuevo)
+                                        appViewModel.agregarRecordatorio(nuevo)
                                     }
                                 )
                             )

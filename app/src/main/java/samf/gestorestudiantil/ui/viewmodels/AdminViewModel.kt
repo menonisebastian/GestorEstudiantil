@@ -24,8 +24,8 @@ data class AdminState(
     val usuarios: List<User> = emptyList(),
     val centros: List<Centro> = emptyList(),
     val cursos: List<Curso> = emptyList(),
-    val asignaturas: List<Asignatura> = emptyList(), // Asignaturas del curso actual
-    val asignaturasDisponibles: List<Asignatura> = emptyList(), // Para diálogos de asignación
+    val asignaturas: List<Asignatura> = emptyList(),
+    val asignaturasDisponibles: List<Asignatura> = emptyList(),
     val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
 )
@@ -77,21 +77,6 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 adminRepository.eliminarUsuario(usuarioId)
-            } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
-            }
-        }
-    }
-
-    fun actualizarDatosUsuario(usuarioId: String, nuevoRol: String, nuevoCurso: String) {
-        viewModelScope.launch {
-            try {
-                val updates = mutableMapOf<String, Any?>("rol" to nuevoRol)
-                when (nuevoRol) {
-                    "ESTUDIANTE" -> updates["curso"] = nuevoCurso
-                    "PROFESOR" -> updates["departamento"] = nuevoCurso
-                }
-                adminRepository.actualizarDatosUsuario(usuarioId, updates)
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
             }

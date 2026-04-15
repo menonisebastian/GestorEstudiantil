@@ -8,7 +8,6 @@ import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.Tarea
-import java.util.UUID
 
 sealed class DialogState {
     data object None : DialogState()
@@ -147,5 +146,10 @@ sealed class DialogState {
 
     data class VerDetalleEvaluacion(
         val evaluacion: Evaluacion
+    ) : DialogState()
+
+    // 9. Permisos
+    data class NotificationPermissionRationale(
+        val onConfirm: () -> Unit
     ) : DialogState()
 }

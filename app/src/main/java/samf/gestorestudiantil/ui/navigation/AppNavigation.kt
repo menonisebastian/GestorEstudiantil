@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import com.google.firebase.auth.FirebaseAuth
 import samf.gestorestudiantil.ui.screens.AuthScreen
 import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
 import samf.gestorestudiantil.ui.screens.GooglePasswordSetupScreen
@@ -140,9 +139,7 @@ fun AppNavigation(
                 GooglePasswordSetupScreen(
                     authViewModel = authViewModel,
                     onBack = {
-                        FirebaseAuth.getInstance().signOut()
-                        backStack.clear()
-                        backStack.add(Routes.Auth)
+                        authViewModel.signOut()
                     },
                     onNext = { password: String ->
                         backStack.add(Routes.GoogleAcademicSetup(password))

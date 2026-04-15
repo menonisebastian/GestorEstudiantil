@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.5.7] - 2026-04-16
+- **Arquitectura**: Refactorización de `MainActivity` para delegar la lógica de negocio y configuración de SDKs a componentes especializados.
+- **Refactorización**: Movida la inicialización del SDK de Cloudinary a `GestorEstudiantilApp` para asegurar una instancia única global.
+- **Notificaciones**: Creado `NotificationHandlers.kt` con componentes `FcmTokenManager` y `NotificationPermissionGate` para desacoplar la gestión de tokens y permisos de la Activity principal.
+- **Notificaciones**: Mejorada la lógica de permisos de notificación con soporte para "Rationale" y feedback visual mediante Toasts.
+- **Limpieza**: Eliminación de dependencias técnicas de Firebase y Manifest en `MainActivity`, transformándola en un contenedor puramente declarativo de UI y navegación.
+
 ## [v0.5.6] - 2026-04-15
 - **Navegación**: Refactorización mayor del sistema de navegación hacia un modelo de **Estado Hoisteado** (`HomeState`).
 - **Navegación**: Implementación de backstacks independientes por pestaña en `HomeScreen`, preservando el estado al cambiar entre secciones.

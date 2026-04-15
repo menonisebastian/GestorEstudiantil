@@ -120,6 +120,7 @@ fun DialogOrchestrator(
             is DialogState.AddTarea -> {
                 AddTareaDialog(
                     state = state,
+                    onShowDialog = onShowDialog,
                     onDismissRequest = dismissAction
                 )
             }
@@ -135,7 +136,7 @@ fun DialogOrchestrator(
 
             is DialogState.VerEntregasProfesor -> {
                 VerEntregasProfesorDialog(
-                    state = state as DialogState.VerEntregasProfesor,
+                    state = state,
                     onDismissRequest = dismissAction
                 )
             }
@@ -144,6 +145,13 @@ fun DialogOrchestrator(
                 VerDetalleEvaluacionDialog(
                     evaluacion = state.evaluacion,
                     onDismiss = dismissAction
+                )
+            }
+
+            is DialogState.NotificationPermissionRationale -> {
+                NotificationPermissionDialog(
+                    state = state,
+                    onDismissRequest = dismissAction
                 )
             }
         }

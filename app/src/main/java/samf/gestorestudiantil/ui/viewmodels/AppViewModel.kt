@@ -52,19 +52,10 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun undoDelete(onUndo: () -> Unit) {
-        onUndo()
-    }
-
     // Función para cargar al usuario al iniciar sesión
     fun setCurrentUser(user: CurrentUserUiState) {
         _state.update { it.copy(currentUser = user) }
         cargarRecordatorios(user.id)
-    }
-
-    // ESTA ES LA FUNCIÓN CLAVE: Actualiza solo la foto en el estado global
-    fun updatePhotoUrl(newUrl: String) {
-        _state.update { it.copy(currentUser = it.currentUser?.copy(photoUrl = newUrl)) }
     }
 
     // ====================================================================
@@ -78,7 +69,7 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun añadirRecordatorio(recordatorio: Recordatorio) {
+    fun agregarRecordatorio(recordatorio: Recordatorio) {
         viewModelScope.launch {
             try {
                 recordatorioRepository.guardarRecordatorio(recordatorio)
@@ -96,7 +87,7 @@ class AppViewModel @Inject constructor(
                     message = "Recordatorio eliminado",
                     actionLabel = "Deshacer",
                     onAction = {
-                        añadirRecordatorio(recordatorio)
+                        agregarRecordatorio(recordatorio)
                     }
                 )
             } catch (e: Exception) {

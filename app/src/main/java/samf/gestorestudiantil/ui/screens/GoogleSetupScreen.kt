@@ -1,6 +1,8 @@
 package samf.gestorestudiantil.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
@@ -82,58 +83,67 @@ fun GooglePasswordSetupScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = primaryColor
-            )
-            Text(
-                text = "Crea una contraseña",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            Text(
-                text = "Para poder iniciar sesión con tu email en el futuro.",
-                color = surfaceDimColor,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
-            CustomPasswordTextField(state = passwordState)
-            Spacer(Modifier.height(16.dp))
-            CustomPasswordTextField(state = confirmPasswordState)
-
-            Button(
-                onClick = {
-                    val password = passwordState.text.toString()
-                    val confirm = confirmPasswordState.text.toString()
-                    if (password.length < 6) {
-                        Toast.makeText(context, "Mínimo 6 caracteres", Toast.LENGTH_SHORT).show()
-                    } else if (password != confirm) {
-                        Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
-                    } else {
-                        onNext(password)
-                    }
-                },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 32.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text("Siguiente")
+                Icon(
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = primaryColor
+                )
+                Text(
+                    text = "Crea una contraseña",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+                Text(
+                    text = "Para poder iniciar sesión con tu email en el futuro.",
+                    color = surfaceDimColor,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+
+                CustomPasswordTextField(state = passwordState)
+                Spacer(Modifier.height(16.dp))
+                CustomPasswordTextField(state = confirmPasswordState)
+
+                Button(
+                    onClick = {
+                        val password = passwordState.text.toString()
+                        val confirm = confirmPasswordState.text.toString()
+                        if (password.length < 6) {
+                            Toast.makeText(context, "Mínimo 6 caracteres", Toast.LENGTH_SHORT).show()
+                        } else if (password != confirm) {
+                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                        } else {
+                            onNext(password)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Siguiente")
+                }
+                Spacer(Modifier.height(100.dp))
             }
         }
     }
@@ -200,190 +210,192 @@ fun GoogleAcademicSetupScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.padding(bottom = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = primaryColor
-                )
-                Text(
-                    text = "Casi terminamos",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
-                )
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                CustomOptionsTextField(
-                    texto = rolSeleccionado,
-                    onValueChange = { rolSeleccionado = it },
-                    opciones = roles,
-                    icon = Icons.Outlined.Person,
-                    label = "¿Eres Estudiante o Profesor?"
-                )
-
-                CustomOptionsTextField(
-                    texto = centroNombre,
-                    onValueChange = { nombreSeleccionado ->
-                        centroNombre = nombreSeleccionado
-                        val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
-                        if (centroSel != null) {
-                            centroId = centroSel.id
-                            authViewModel.loadCursosPorCentro(centroSel.id)
-                            cursoNombre = "Seleccionar Curso..."
-                            cursoId = ""
-                            cursoAcronimo = ""
-                            turno = "Seleccionar Turno..."
-                        }
-                    },
-                    opciones = centrosList.map { it.nombre },
-                    icon = Icons.Default.Business,
-                    label = "Instituto"
-                )
-
-                if (centroId.isNotEmpty()) {
-                    if (rolSeleccionado == "ESTUDIANTE") {
-                        CustomOptionsTextField(
-                            texto = cursoNombre,
-                            onValueChange = { nombreSeleccionado ->
-                                cursoNombre = nombreSeleccionado
-                                val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
-                                if (cursoSel != null) {
-                                    cursoId = cursoSel.id
-                                    cursoAcronimo = cursoSel.acronimo
-                                    turno = "Seleccionar Turno..."
-                                }
-                            },
-                            opciones = cursosList.map { it.nombre },
-                            icon = Icons.Default.Class,
-                            label = "Curso a matricular"
-                        )
-
-                        if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
-                            CustomOptionsTextField(
-                                texto = turno,
-                                onValueChange = { turno = it },
-                                opciones = turnosDisponibles,
-                                icon = Icons.Default.Schedule,
-                                label = "Turno"
-                            )
-
-                            CustomOptionsTextField(
-                                texto = cicloSeleccionado,
-                                onValueChange = { cicloSeleccionado = it },
-                                opciones = ciclos,
-                                label = "Año / Ciclo",
-                                icon = Icons.Default.Class
-                            )
-                        }
-                    } else if (rolSeleccionado == "PROFESOR") {
-                        CustomOptionsTextField(
-                            texto = departamento,
-                            onValueChange = { departamento = it },
-                            opciones = listOf("Informática", "Administración", "Comercio", "Sanidad", "Hostelería"),
-                            icon = Icons.Default.Business,
-                            label = "Departamento"
-                        )
-
-                        CustomOptionsTextField(
-                            texto = turno,
-                            onValueChange = { turno = it },
-                            opciones = listOf("matutino", "vespertino"),
-                            icon = Icons.Default.Schedule,
-                            label = "Turno de trabajo"
-                        )
-                    }
-                }
-            }
-
-            Column(
                 modifier = Modifier
-                    .padding(top = 32.dp, bottom = 16.dp)
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Button(
-                    onClick = {
-                        if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
-                            Toast.makeText(context, "Por favor selecciona rol e instituto", Toast.LENGTH_SHORT).show()
-                        } else if (rolSeleccionado == "ESTUDIANTE") {
-                            if (cursoId.isEmpty()) {
-                                Toast.makeText(context, "Debes seleccionar un curso", Toast.LENGTH_SHORT).show()
-                            } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
-                                Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
-                            } else {
-                                val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
-                                authViewModel.completeGoogleSetup(
-                                    password = passwordValue,
-                                    rolSeleccionado = rolSeleccionado,
-                                    centroId = centroId,
-                                    cursoId = cursoId,
-                                    cursoNombre = cursoAcronimo,
-                                    turno = turno,
-                                    ciclo = cicloNum,
-                                    name = authState.user?.nombre ?: "",
-                                    email = authState.user?.email ?: "",
-                                    imgUrl = authState.user?.imgUrl ?: "",
-                                    departamento = ""
+                Column(
+                    modifier = Modifier.padding(bottom = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = primaryColor
+                    )
+                    Text(
+                        text = "Casi terminamos",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CustomOptionsTextField(
+                        texto = rolSeleccionado,
+                        onValueChange = { rolSeleccionado = it },
+                        opciones = roles,
+                        icon = Icons.Outlined.Person,
+                        label = "¿Eres Estudiante o Profesor?"
+                    )
+
+                    CustomOptionsTextField(
+                        texto = centroNombre,
+                        onValueChange = { nombreSeleccionado ->
+                            centroNombre = nombreSeleccionado
+                            val centroSel = centrosList.find { it.nombre == nombreSeleccionado }
+                            if (centroSel != null) {
+                                centroId = centroSel.id
+                                authViewModel.loadCursosPorCentro(centroSel.id)
+                                cursoNombre = "Seleccionar Curso..."
+                                cursoId = ""
+                                cursoAcronimo = ""
+                                turno = "Seleccionar Turno..."
+                            }
+                        },
+                        opciones = centrosList.map { it.nombre },
+                        icon = Icons.Default.Business,
+                        label = "Instituto"
+                    )
+
+                    if (centroId.isNotEmpty()) {
+                        if (rolSeleccionado == "ESTUDIANTE") {
+                            CustomOptionsTextField(
+                                texto = cursoNombre,
+                                onValueChange = { nombreSeleccionado ->
+                                    cursoNombre = nombreSeleccionado
+                                    val cursoSel = cursosList.find { it.nombre == nombreSeleccionado }
+                                    if (cursoSel != null) {
+                                        cursoId = cursoSel.id
+                                        cursoAcronimo = cursoSel.acronimo
+                                        turno = "Seleccionar Turno..."
+                                    }
+                                },
+                                opciones = cursosList.map { it.nombre },
+                                icon = Icons.Default.Class,
+                                label = "Curso a matricular"
+                            )
+
+                            if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
+                                CustomOptionsTextField(
+                                    texto = turno,
+                                    onValueChange = { turno = it },
+                                    opciones = turnosDisponibles,
+                                    icon = Icons.Default.Schedule,
+                                    label = "Turno"
+                                )
+
+                                CustomOptionsTextField(
+                                    texto = cicloSeleccionado,
+                                    onValueChange = { cicloSeleccionado = it },
+                                    opciones = ciclos,
+                                    label = "Año / Ciclo",
+                                    icon = Icons.Default.Class
                                 )
                             }
                         } else if (rolSeleccionado == "PROFESOR") {
-                            if (turno == "Seleccionar Turno...") {
-                                Toast.makeText(context, "Debes seleccionar un turno de trabajo", Toast.LENGTH_SHORT).show()
-                            } else if (departamento.isEmpty()) {
-                                Toast.makeText(context, "Debes seleccionar un departamento", Toast.LENGTH_SHORT).show()
-                            } else {
-                                authViewModel.completeGoogleSetup(
-                                    password = passwordValue,
-                                    rolSeleccionado = rolSeleccionado,
-                                    centroId = centroId,
-                                    cursoId = "",
-                                    cursoNombre = "Docente",
-                                    turno = turno,
-                                    ciclo = 1,
-                                    name = authState.user?.nombre ?: "",
-                                    email = authState.user?.email ?: "",
-                                    imgUrl = authState.user?.imgUrl ?: "",
-                                    departamento = departamento
-                                )
-                            }
+                            CustomOptionsTextField(
+                                texto = departamento,
+                                onValueChange = { departamento = it },
+                                opciones = listOf("Informática", "Administración", "Comercio", "Sanidad", "Hostelería"),
+                                icon = Icons.Default.Business,
+                                label = "Departamento"
+                            )
+
+                            CustomOptionsTextField(
+                                texto = turno,
+                                onValueChange = { turno = it },
+                                opciones = listOf("matutino", "vespertino"),
+                                icon = Icons.Default.Schedule,
+                                label = "Turno de trabajo"
+                            )
                         }
-                    },
-                    enabled = !authState.isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    if (authState.isLoading) {
-                        CircularProgressIndicator(color = textColor, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Finalizar Registro")
                     }
                 }
+
+                Column(
+                    modifier = Modifier
+                        .padding(top = 32.dp, bottom = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
+                                Toast.makeText(context, "Por favor selecciona rol e instituto", Toast.LENGTH_SHORT).show()
+                            } else if (rolSeleccionado == "ESTUDIANTE") {
+                                if (cursoId.isEmpty()) {
+                                    Toast.makeText(context, "Debes seleccionar un curso", Toast.LENGTH_SHORT).show()
+                                } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
+                                    Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
+                                    authViewModel.completeGoogleSetup(
+                                        password = passwordValue,
+                                        rolSeleccionado = rolSeleccionado,
+                                        centroId = centroId,
+                                        cursoId = cursoId,
+                                        cursoNombre = cursoAcronimo,
+                                        turno = turno,
+                                        ciclo = cicloNum,
+                                        name = authState.user?.nombre ?: "",
+                                        email = authState.user?.email ?: "",
+                                        imgUrl = authState.user?.imgUrl ?: "",
+                                        departamento = ""
+                                    )
+                                }
+                            } else if (rolSeleccionado == "PROFESOR") {
+                                if (turno == "Seleccionar Turno...") {
+                                    Toast.makeText(context, "Debes seleccionar un turno de trabajo", Toast.LENGTH_SHORT).show()
+                                } else if (departamento.isEmpty()) {
+                                    Toast.makeText(context, "Debes seleccionar un departamento", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    authViewModel.completeGoogleSetup(
+                                        password = passwordValue,
+                                        rolSeleccionado = rolSeleccionado,
+                                        centroId = centroId,
+                                        cursoId = "",
+                                        cursoNombre = "Docente",
+                                        turno = turno,
+                                        ciclo = 1,
+                                        name = authState.user?.nombre ?: "",
+                                        email = authState.user?.email ?: "",
+                                        imgUrl = authState.user?.imgUrl ?: "",
+                                        departamento = departamento
+                                    )
+                                }
+                            }
+                        },
+                        enabled = !authState.isLoading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (authState.isLoading) {
+                            CircularProgressIndicator(color = textColor, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Finalizar Registro")
+                        }
+                    }
+                }
+                Spacer(Modifier.height(100.dp))
             }
         }
     }
-}
-
-// Composable auxiliar para el espacio
-@Composable
-private fun Spacer(modifier: Modifier) {
-    androidx.compose.foundation.layout.Spacer(modifier = modifier)
 }
