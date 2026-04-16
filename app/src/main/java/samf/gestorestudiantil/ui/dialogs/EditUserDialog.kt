@@ -79,28 +79,7 @@ fun EditUserDialog(
     val roles = listOf("ESTUDIANTE", "PROFESOR", "ADMIN")
     val turnos = listOf("matutino", "vespertino")
     val ciclos = listOf("1", "2")
-    val departamentos = listOf(
-        "Actividades complementarias y extraescolares",
-        "Administración y Gestión",
-        "Artes plásticas",
-        "Biología y geología",
-        "Clásicas",
-        "Comercio y marketing",
-        "Economía",
-        "Educación física",
-        "Filosofía",
-        "Física y química",
-        "Formación y orientación laboral",
-        "Francés",
-        "Geografía e historia",
-        "Informática",
-        "Inglés",
-        "Lengua y literatura",
-        "Matemáticas",
-        "Música",
-        "Orientación",
-        "Tecnología"
-    )
+    val departamentos = User.Profesor.DEPARTAMENTOS
 
     // Lógica para autogenerar el acrónimo del curso
     LaunchedEffect(cursoId, turno, ciclo, rol) {

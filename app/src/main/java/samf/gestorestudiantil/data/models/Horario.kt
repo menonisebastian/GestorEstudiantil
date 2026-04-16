@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class Horario(
     var id: String = "",
     var cursoId: String = "",
+    var claseId: String = "",
     var cicloNum: Int = 1,
     var turno: String = "",          // "matutino", "vespertino"
     var dia: String = "",            // "Lunes", "Martes", "Miércoles", "Jueves", "Viernes"

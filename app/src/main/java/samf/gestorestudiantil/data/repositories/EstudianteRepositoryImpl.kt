@@ -1,11 +1,14 @@
 package samf.gestorestudiantil.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
@@ -14,6 +17,17 @@ import javax.inject.Inject
 class EstudianteRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore
 ) : EstudianteRepository {
+
+    // Importante: Importar FieldPath y Filter si usas Firestore
+    fun getMiClase(estudianteId: String): Flow<Clase?> {
+        return db.collection("clases")
+            // Buscamos la clase cuyo array contiene el ID de este estudiante
+            .whereArrayContains("estudiantesIds", estudianteId)
+            .snapshots()
+            .map { snapshot ->
+                snapshot.toObjects(Clase::class.java).firstOrNull()
+            }
+    }
 
     override fun getAsignaturas(cursoId: String, turno: String, cicloNum: Int): Flow<List<Asignatura>> = callbackFlow {
         val subscription = db.collection("asignaturas")

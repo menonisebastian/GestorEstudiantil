@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Class
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -175,6 +176,8 @@ fun GoogleAcademicSetupScreen(
     var cicloSeleccionado by remember { mutableStateOf("Primer Año") }
     val ciclos = listOf("Primer Año", "Segundo Año")
 
+    val departamentos = User.Profesor.DEPARTAMENTOS
+
     val centrosList by authViewModel.centros.collectAsState()
     val cursosList by authViewModel.cursos.collectAsState()
     
@@ -311,19 +314,19 @@ fun GoogleAcademicSetupScreen(
                             }
                         } else if (rolSeleccionado == "PROFESOR") {
                             CustomOptionsTextField(
-                                texto = departamento,
-                                onValueChange = { departamento = it },
-                                opciones = listOf("Informática", "Administración", "Comercio", "Sanidad", "Hostelería"),
-                                icon = Icons.Default.Business,
-                                label = "Departamento"
-                            )
-
-                            CustomOptionsTextField(
                                 texto = turno,
                                 onValueChange = { turno = it },
                                 opciones = listOf("matutino", "vespertino"),
                                 icon = Icons.Default.Schedule,
                                 label = "Turno de trabajo"
+                            )
+
+                            CustomOptionsTextField(
+                                texto = departamento,
+                                onValueChange = { departamento = it },
+                                opciones = departamentos,
+                                icon = Icons.Outlined.WorkOutline,
+                                label = "Departamento"
                             )
                         }
                     }

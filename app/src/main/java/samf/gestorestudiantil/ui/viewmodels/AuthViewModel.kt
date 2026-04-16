@@ -141,7 +141,7 @@ class AuthViewModel @Inject constructor(
     fun registerWithEmail(
         email: String, pass: String, name: String,
         rolSeleccionado: String, centroId: String, cursoId: String, cursoNombre: String, turno: String,
-        ciclo: Int, imgUrl: String
+        ciclo: Int, imgUrl: String, departamento: String = ""
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
             _authState.value = _authState.value.copy(errorMessage = "Faltan datos obligatorios")
@@ -152,7 +152,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 registerUserUseCase(
-                    email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, imgUrl
+                    email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, imgUrl, departamento
                 )
             } catch (e: FirebaseAuthUserCollisionException) {
                 _authState.value = _authState.value.copy(isLoading = false, errorMessage = "El correo ya está registrado.")

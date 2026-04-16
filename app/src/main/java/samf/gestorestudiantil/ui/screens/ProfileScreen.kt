@@ -154,10 +154,11 @@ fun ProfileScreen(
                     when (usuario) {
                         is User.Estudiante -> {
                             Text("Curso: ${usuario.curso}", color = surfaceDimColor, fontSize = 14.sp)
-                            Text("Turno: ${usuario.turno}", color = surfaceDimColor, fontSize = 14.sp)
+                            Text("Turno: ${usuario.turno.capitalize()}", color = surfaceDimColor, fontSize = 14.sp)
                         }
                         is User.Profesor -> {
                             Text("Departamento: ${usuario.departamento}", color = surfaceDimColor, fontSize = 14.sp)
+                            Text("Turno: ${usuario.turno.capitalize()}", color = surfaceDimColor, fontSize = 14.sp)
                             Text("Asignaturas impartidas: ${usuario.asignaturasImpartidas.size}", color = surfaceDimColor, fontSize = 14.sp)
                         }
                         is User.Admin -> {

@@ -11,6 +11,7 @@ data class Tarea(
     var id: String = "",
     var titulo: String = "",
     var descripcion: String = "",
+    var claseId: String = "",
     var profesorId: String = "",
     var asignaturaId: String = "",
     var centroId: String = "",

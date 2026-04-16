@@ -18,12 +18,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.secondaryColor
-import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
+import samf.gestorestudiantil.ui.components.CustomOptionsTextField
+import samf.gestorestudiantil.domain.capitalize
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 
 @Composable
 fun AsignarAsignaturasDialog(
@@ -32,17 +32,27 @@ fun AsignarAsignaturasDialog(
     adminViewModel: AdminViewModel = viewModel()
 ) {
     val adminState by adminViewModel.adminState.collectAsState()
-    
+
+    // Filtros
+    var cursoFiltro by remember { mutableStateOf("Todos los cursos") }
+    var turnoFiltro by remember { mutableStateOf("Todos los turnos") }
+    var cicloFiltro by remember { mutableStateOf("Todos los ciclos") }
+
+    val cursosDisponibles = remember(adminState.cursos) {
+        listOf("Todos los cursos") + adminState.cursos.map { it.nombre }
+    }
+    val turnosOpciones = listOf("Todos los turnos") + listOf("matutino", "vespertino").map { it.capitalize() }
+    val ciclosDisponibles = listOf("Todos los ciclos", "Ciclo 1", "Ciclo 2")
+
     // Al abrir, cargamos las asignaturas del profesor y las que no tienen profesor
     LaunchedEffect(state.profesor.id) {
-        // Como el profesor ya no tiene "turno" fijo en el nuevo modelo, 
-        // cargamos todas las asignaturas disponibles o manejamos el filtro de otra forma.
-        // Por ahora pasamos "" para que el ViewModel decida qué cargar.
         adminViewModel.cargarAsignaturasSinProfesor("")
+        // Aseguramos que tenemos cursos cargados para el filtro
+        adminViewModel.cargarCursosPorCentro(state.profesor.centroId)
     }
 
     var asignaturasProfesor by remember { mutableStateOf<List<samf.gestorestudiantil.data.models.Asignatura>>(emptyList()) }
-    
+
     // Obtenemos las asignaturas que ya tiene el profesor
     LaunchedEffect(adminState.usuarios) {
         val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
@@ -52,6 +62,21 @@ fun AsignarAsignaturasDialog(
             .addOnSuccessListener { snapshot ->
                 asignaturasProfesor = snapshot.toObjects(samf.gestorestudiantil.data.models.Asignatura::class.java)
             }
+    }
+
+    val asignaturasDisponiblesFiltradas = remember(adminState.asignaturasDisponibles, cursoFiltro, turnoFiltro, cicloFiltro) {
+        adminState.asignaturasDisponibles.filter { asig ->
+            val matchCurso = if (cursoFiltro == "Todos los cursos") true else {
+                val cursoObj = adminState.cursos.find { it.nombre == cursoFiltro }
+                asig.cursoId == cursoObj?.id
+            }
+            val matchTurno = if (turnoFiltro == "Todos los turnos") true else asig.turno.lowercase() == turnoFiltro.lowercase()
+            val matchCiclo = if (cicloFiltro == "Todos los ciclos") true else {
+                val cicloNum = if (cicloFiltro == "Ciclo 1") 1 else 2
+                asig.cicloNum == cicloNum
+            }
+            matchCurso && matchTurno && matchCiclo
+        }
     }
 
     AlertDialog(
@@ -64,7 +89,47 @@ fun AsignarAsignaturasDialog(
             Text(text = "Asignaturas de ${state.profesor.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         },
         text = {
-            Column(modifier = Modifier.height(450.dp)) {
+            Column(modifier = Modifier.height(550.dp)) {
+                // Sección de Filtros
+                Text(
+                    "Filtrar disponibles",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = surfaceDimColor,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        CustomOptionsTextField(
+                            texto = cursoFiltro,
+                            onValueChange = { cursoFiltro = it },
+                            opciones = cursosDisponibles,
+                            label = "Curso"
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        CustomOptionsTextField(
+                            texto = turnoFiltro,
+                            onValueChange = { turnoFiltro = it },
+                            opciones = turnosOpciones,
+                            label = "Turno"
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        CustomOptionsTextField(
+                            texto = cicloFiltro,
+                            onValueChange = { cicloFiltro = it },
+                            opciones = ciclosDisponibles,
+                            label = "Ciclo"
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 if (asignaturasProfesor.isNotEmpty()) {
                     Text("Asignadas", fontWeight = FontWeight.Bold, color = primaryColor, modifier = Modifier.padding(vertical = 8.dp))
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
@@ -98,13 +163,13 @@ fun AsignarAsignaturasDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                Text("Disponibles (Sin Profesor)", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
+                Text("Disponibles (${asignaturasDisponiblesFiltradas.size})", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
                 
                 if (adminState.isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = primaryColor)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                        items(adminState.asignaturasDisponibles) { asig ->
+                        items(asignaturasDisponiblesFiltradas) { asig ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = tertiaryColor.copy(alpha = 0.1f)),

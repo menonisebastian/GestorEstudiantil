@@ -3,6 +3,7 @@ package samf.gestorestudiantil.domain.repositories
 import kotlinx.coroutines.flow.Flow
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
+import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
@@ -14,6 +15,7 @@ interface AdminRepository {
     suspend fun actualizarDatosUsuario(usuarioId: String, updates: Map<String, Any?>)
     
     fun getCentros(): Flow<List<Centro>>
+    fun getClasesPorCentro(centroId: String): Flow<List<Clase>>
     fun getCursosPorCentro(centroId: String): Flow<List<Curso>>
     fun getAsignaturasSinProfesor(turno: String): Flow<List<Asignatura>>
     fun getAsignaturasPorCurso(cursoId: String, turno: String): Flow<List<Asignatura>>

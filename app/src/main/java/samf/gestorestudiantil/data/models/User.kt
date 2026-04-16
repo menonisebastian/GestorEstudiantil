@@ -43,7 +43,32 @@ sealed class User {
         val turno: String = "",
         val asignaturasImpartidas: List<String> = emptyList(),
         val ultimaVezAsignaturas: Map<String, Long> = emptyMap()
-    ) : User()
+    ) : User() {
+        companion object {
+            val DEPARTAMENTOS = listOf(
+                "Actividades complementarias y extraescolares",
+                "Administración y Gestión",
+                "Artes plásticas",
+                "Biología y geología",
+                "Clásicas",
+                "Comercio y marketing",
+                "Economía",
+                "Educación física",
+                "Filosofía",
+                "Física y química",
+                "Formación y orientación laboral",
+                "Francés",
+                "Geografía e historia",
+                "Informática",
+                "Inglés",
+                "Lengua y literatura",
+                "Matemáticas",
+                "Música",
+                "Orientación",
+                "Tecnología"
+            )
+        }
+    }
 
     @Serializable
     data class Admin(

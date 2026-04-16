@@ -11,6 +11,7 @@ data class Entrega(
     @DocumentId
     var id: String = "",
     var tareaId: String = "",
+    var claseId: String = "",
     var estudianteId: String = "",
     var estudianteNombre: String = "",
     var estudianteImgUrl: String? = null,

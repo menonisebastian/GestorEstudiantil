@@ -2,6 +2,21 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.1] - 2026-04-16
+- **UI/UX**: Estandarización de la capitalización de turnos en toda la aplicación (Perfil, Registro, Filtros, Diálogos) para mejorar la legibilidad.
+- **Admin**: Mejora en `HorariosAdminScreen` para mostrar el identificador único de la clase (`claseId`) en el encabezado basándose en el modelo `Clase.kt`.
+- **Admin**: Implementación de filtros avanzados por Curso, Turno y Ciclo en el diálogo de asignación de asignaturas para profesores.
+- **Admin**: Optimización de la gestión de usuarios: la actualización de contadores y miembros de grupos (`Clase`) ahora está centralizada en el repositorio.
+- **UI/UX**: Incrementada la elevación tonal y de sombra en la `BottomNavBar` para un efecto de profundidad más pronunciado y estético.
+
+## [v0.6.0] - 2026-04-16
+- **Notificaciones**: Implementado sistema de alertas administrativas mediante FCM (HTTP v1). Los administradores ahora reciben notificaciones en tiempo real cuando un nuevo usuario se registra en su centro.
+- **Modelo de Datos**: Centralización de la lista de departamentos en `User.Profesor.DEPARTAMENTOS` para asegurar la integridad de datos en todos los flujos de la aplicación.
+- **Registro**: Integrada la selección de departamento obligatoria para profesores en los flujos de registro estándar y Google Sign-In.
+- **UI/UX**: Refactorización mayor de `HomeScreen` utilizando `HorizontalPager` para la navegación entre pestañas, mejorando la fluidez y permitiendo transiciones gestuales.
+- **UI/UX**: Implementación de lógica de FAB (Floating Action Button) contextual en la Home, adaptando su comportamiento y visibilidad según la pestaña activa y el estado de navegación.
+- **Seguridad**: Configurada la autenticación OAuth2 para FCM utilizando `service-account.json` desde los assets, garantizando el envío seguro de mensajes a través de la API v1.
+
 ## [v0.5.9] - 2026-04-16
 - **Modelo de Datos**: Introducción de la entidad `Clase.kt` para representar grupos específicos de alumnos. Incluye campos para `tutorId`, `estudiantesIds` y `asignaturasIds`, permitiendo una gestión granular de la relación entre cursos globales y grupos reales.
 - **Admin**: Implementación de la generación masiva de clases mediante `WriteBatch` de Firestore, automatizando la creación de documentos en la colección `clases` según la configuración de cursos y turnos.

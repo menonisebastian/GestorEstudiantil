@@ -214,3 +214,10 @@ fun obtenerInicialesDeNombre(nombre: String?): String {
         "${partes.first().first()}".uppercase()
     }
 }
+
+/**
+ * Capitaliza la primera letra de un texto (ej: "matutino" -> "Matutino").
+ */
+fun String.capitalize(): String {
+    return this.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+}

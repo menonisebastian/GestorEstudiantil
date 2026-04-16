@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
+import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
@@ -24,6 +25,7 @@ data class AdminState(
     val isLoading: Boolean = false,
     val usuarios: List<User> = emptyList(),
     val centros: List<Centro> = emptyList(),
+    val clases: List<Clase> = emptyList(),
     val cursos: List<Curso> = emptyList(),
     val asignaturas: List<Asignatura> = emptyList(),
     val asignaturasDisponibles: List<Asignatura> = emptyList(),
@@ -69,9 +71,6 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 adminRepository.aprobarUsuario(usuario.id)
-                if (usuario is User.Estudiante) {
-                    courseRepository.incrementStudentCount(usuario.cursoId, usuario.turno, usuario.cicloNum)
-                }
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
             }
@@ -81,9 +80,6 @@ class AdminViewModel @Inject constructor(
     fun rechazarOEliminarUsuario(usuario: User) {
         viewModelScope.launch {
             try {
-                if (usuario is User.Estudiante && usuario.estado == "ACTIVO") {
-                    courseRepository.decrementStudentCount(usuario.cursoId, usuario.turno, usuario.cicloNum)
-                }
                 adminRepository.eliminarUsuario(usuario.id)
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
@@ -95,6 +91,14 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             adminRepository.getCentros().collect { lista ->
                 _adminState.value = _adminState.value.copy(centros = lista)
+            }
+        }
+    }
+
+    fun cargarClasesPorCentro(centroId: String) {
+        viewModelScope.launch {
+            adminRepository.getClasesPorCentro(centroId).collect { lista ->
+                _adminState.value = _adminState.value.copy(clases = lista)
             }
         }
     }
@@ -251,12 +255,6 @@ class AdminViewModel @Inject constructor(
     fun guardarUsuario(user: User) {
         viewModelScope.launch {
             try {
-                // Si el usuario es un estudiante y se está re-guardando (por ejemplo, al deshacer una eliminación)
-                // incrementamos el contador para restaurar el valor correcto si estaba ACTIVO.
-                if (user is User.Estudiante && user.estado == "ACTIVO") {
-                    courseRepository.incrementStudentCount(user.cursoId, user.turno, user.cicloNum)
-                }
-
                 val updates = mutableMapOf<String, Any?>(
                     "nombre" to user.nombre,
                     "rol" to user.rol

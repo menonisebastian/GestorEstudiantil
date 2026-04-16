@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.data.repositories
 
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import kotlinx.coroutines.channels.awaitClose
@@ -43,11 +44,55 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override suspend fun aprobarUsuario(usuarioId: String) {
-        db.collection("usuarios").document(usuarioId).update("estado", "ACTIVO").await()
+        val userRef = db.collection("usuarios").document(usuarioId)
+        val userSnap = userRef.get().await()
+
+        // Actualizamos el estado a ACTIVO
+        userRef.update("estado", "ACTIVO").await()
+
+        // Si es estudiante, lo añadimos a su clase correspondiente
+        if (userSnap.getString("rol") == "ESTUDIANTE") {
+            val cursoId = userSnap.getString("cursoId") ?: ""
+            val turno = userSnap.getString("turno") ?: ""
+            val cicloNum = userSnap.getLong("cicloNum")?.toInt() ?: 1
+
+            val clasesQuery = db.collection("clases")
+                .whereEqualTo("cursoGlobalId", cursoId)
+                .whereEqualTo("turno", turno.lowercase().trim())
+                .whereEqualTo("cicloNum", cicloNum)
+                .get().await()
+
+            // arrayUnion evita duplicados automáticamente
+            for (doc in clasesQuery.documents) {
+                doc.reference.update("estudiantesIds", FieldValue.arrayUnion(usuarioId))
+            }
+        }
     }
 
     override suspend fun eliminarUsuario(usuarioId: String) {
-        db.collection("usuarios").document(usuarioId).delete().await()
+        val userRef = db.collection("usuarios").document(usuarioId)
+        val userSnap = userRef.get().await()
+
+        // Si era un estudiante, lo sacamos de la clase antes de eliminarlo
+        if (userSnap.getString("rol") == "ESTUDIANTE") {
+            val cursoId = userSnap.getString("cursoId") ?: ""
+            val turno = userSnap.getString("turno") ?: ""
+            val cicloNum = userSnap.getLong("cicloNum")?.toInt() ?: 1
+
+            val clasesQuery = db.collection("clases")
+                .whereEqualTo("cursoGlobalId", cursoId)
+                .whereEqualTo("turno", turno.lowercase().trim())
+                .whereEqualTo("cicloNum", cicloNum)
+                .get().await()
+
+            // arrayRemove saca ese ID específico de la lista
+            for (doc in clasesQuery.documents) {
+                doc.reference.update("estudiantesIds", FieldValue.arrayRemove(usuarioId))
+            }
+        }
+
+        // Finalmente eliminamos el usuario
+        userRef.delete().await()
     }
 
     override suspend fun actualizarDatosUsuario(usuarioId: String, updates: Map<String, Any?>) {
@@ -60,6 +105,17 @@ class AdminRepositoryImpl @Inject constructor(
                 trySend(snapshot.toObjects(Centro::class.java))
             }
         }
+        awaitClose { subscription.remove() }
+    }
+
+    override fun getClasesPorCentro(centroId: String): Flow<List<Clase>> = callbackFlow {
+        val subscription = db.collection("clases")
+            .whereEqualTo("centroId", centroId)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null) {
+                    trySend(snapshot.toObjects(Clase::class.java))
+                }
+            }
         awaitClose { subscription.remove() }
     }
 
@@ -330,39 +386,41 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override suspend fun recalcularTodosLosContadores() {
-        // 1. Obtener todos los estudiantes activos
-        val usuariosSnapshot = db.collection("usuarios")
-            .whereEqualTo("rol", "ESTUDIANTE")
-            .whereEqualTo("estado", "ACTIVO")
-            .get().await()
-
-        val estudiantes = usuariosSnapshot.documents
-
-        // 2. Obtener todos los cursos y asignaturas
+        val clasesSnapshot = db.collection("clases").get().await()
         val cursosSnapshot = db.collection("cursos").get().await()
         val asignaturasSnapshot = db.collection("asignaturas").get().await()
 
         val batch = db.batch()
 
-        // 3. Limpiar y actualizar Cursos
+        // 1. Actualizar cursos sumando el tamaño de los arrays 'estudiantesIds'
+        // de todas las clases que pertenecen a ese curso
         cursosSnapshot.documents.forEach { cursoDoc ->
             val cursoId = cursoDoc.id
-            val conteoReal = estudiantes.count { it.getString("cursoId") == cursoId }
-            batch.update(cursoDoc.reference, "numEstudiantes", conteoReal)
+            var numEstudiantes = 0
+
+            clasesSnapshot.documents.forEach { claseDoc ->
+                if (claseDoc.getString("cursoGlobalId") == cursoId) {
+                    val listaIds = claseDoc.get("estudiantesIds") as? List<*>
+                    numEstudiantes += listaIds?.size ?: 0
+                }
+            }
+            batch.update(cursoDoc.reference, "numEstudiantes", numEstudiantes)
         }
 
-        // 4. Limpiar y actualizar Asignaturas
+        // 2. Actualizar asignaturas buscando la clase correspondiente
         asignaturasSnapshot.documents.forEach { asigDoc ->
             val cursoId = asigDoc.getString("cursoId") ?: ""
             val turno = asigDoc.getString("turno") ?: ""
             val cicloNum = asigDoc.getLong("cicloNum")?.toInt() ?: 1
 
-            val conteoReal = estudiantes.count {
-                it.getString("cursoId") == cursoId &&
-                it.getString("turno") == turno &&
-                it.getLong("cicloNum")?.toInt() == cicloNum
+            val claseCorrespondiente = clasesSnapshot.documents.find {
+                it.getString("cursoGlobalId") == cursoId &&
+                        it.getString("turno")?.lowercase()?.trim() == turno.lowercase().trim() &&
+                        it.getLong("cicloNum")?.toInt() == cicloNum
             }
-            batch.update(asigDoc.reference, "numEstudiantesCurso", conteoReal)
+
+            val numEstudiantes = (claseCorrespondiente?.get("estudiantesIds") as? List<*>)?.size ?: 0
+            batch.update(asigDoc.reference, "numEstudiantesCurso", numEstudiantes)
         }
 
         batch.commit().await()

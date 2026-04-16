@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Grading
 import androidx.compose.material.icons.filled.Add
@@ -44,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -55,6 +58,7 @@ import androidx.navigation3.ui.NavDisplay
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
@@ -134,6 +138,17 @@ fun HomeScreen(
 
     val tabs = remember(currentNavItems) { currentNavItems.keys.toList() }
     val homeState = rememberHomeState(tabs = tabs, rol = usuario.rol)
+
+    // 1. Agregamos el estado del Pager
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
+
+    // 2. Calculamos la pestaña actual basándonos en el Pager
+    val currentTab = tabs.getOrNull(pagerState.currentPage) ?: tabs.firstOrNull() ?: ""
+    val currentStack = homeState.getStack(currentTab)
+
+    // 3. LA MAGIA: Solo permitimos swipe si estamos en la raíz de la pestaña
+    val canScrollPager = currentStack?.size == 1
 
     val appViewModel: AppViewModel = hiltViewModel()
     val appState by appViewModel.state.collectAsState()
@@ -221,25 +236,32 @@ fun HomeScreen(
         dialogStack.add(newState)
     }
 
-    // ✅ Manejo de Redirección por Notificación
+    // ✅ Manejo de Redirección por Notificación Actualizado
     LaunchedEffect(targetAsignaturaId, estudianteState.asignaturas, profesorState.asignaturas) {
         if (targetAsignaturaId != null) {
             val asignaturas = if (usuario.rol == "PROFESOR") profesorState.asignaturas else estudianteState.asignaturas
             val asignatura = asignaturas.find { it.id == targetAsignaturaId }
-            
+
             if (asignatura != null) {
-                homeState.switchTab("Asignaturas")
-                homeState.navigate(Routes.HomeRoutes.MateriaDetalle(asignatura))
-                onNotificationHandled()
+                val tabIndex = tabs.indexOf("Asignaturas")
+                if (tabIndex != -1) {
+                    // Nos movemos al tab y agregamos la ruta
+                    pagerState.animateScrollToPage(tabIndex)
+                    homeState.navigate("Asignaturas", Routes.HomeRoutes.MateriaDetalle(asignatura))
+                    onNotificationHandled()
+                }
             }
         }
     }
 
     val context = LocalContext.current
-    // ✅ Manejo del botón Atrás global
+    // ✅ Manejo del botón Atrás global Actualizado
     BackHandler {
-        val handled = homeState.popBackStack()
-        if (!handled) {
+        if (currentStack != null && currentStack.size > 1) {
+            homeState.pop(currentTab)
+        } else if (pagerState.currentPage != 0) {
+            scope.launch { pagerState.animateScrollToPage(0) }
+        } else {
             (context as? ComponentActivity)?.moveTaskToBack(true)
         }
     }
@@ -260,7 +282,7 @@ fun HomeScreen(
         },
         topBar = {
             AnimatedContent(
-                targetState = homeState.currentTab,
+                targetState = currentTab, // <-- Usamos currentTab derivado del pager
                 transitionSpec = {
                     fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
                 },
@@ -281,9 +303,9 @@ fun HomeScreen(
                             IconLogo(width = 125.dp)
                         },
                         navigationIcon = {
-                            if (homeState.currentBackStack.size > 1) {
+                            if (currentStack != null && currentStack.size > 1) {
                                 IconButton(
-                                    onClick = { homeState.popBackStack() },
+                                    onClick = { homeState.pop(currentTab) },
                                     colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
                                     shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.padding(8.dp)
@@ -306,9 +328,20 @@ fun HomeScreen(
         bottomBar = {
             BottomNavBar(
                 items = currentNavItems,
-                selectedItem = homeState.currentTab,
+                selectedItem = currentTab, // <-- Usamos currentTab derivado del pager
                 onItemSelected = { selectedKey ->
-                    homeState.switchTab(selectedKey)
+                    val index = tabs.indexOf(selectedKey)
+                    if (index != -1) {
+                        scope.launch {
+                            if (pagerState.currentPage == index) {
+                                // Si ya estamos en esta pestaña, volvemos a su raíz
+                                homeState.popToRoot(selectedKey)
+                            } else {
+                                // Si es una pestaña nueva, deslizamos hacia ella
+                                pagerState.animateScrollToPage(index)
+                            }
+                        }
+                    }
                 },
                 hazeState = hazeState,
                 userImgUrl = usuario.imgUrl,
@@ -317,9 +350,9 @@ fun HomeScreen(
         },
         floatingActionButton = {
             // ✅ FAB Centralizado y Contextual
-            val currentRoute = homeState.currentBackStack.lastOrNull()
+            val currentRoute = currentStack?.lastOrNull()
             when {
-                homeState.currentTab == "Recordatorios" || homeState.currentTab == "Notificaciones" -> {
+                currentTab == "Recordatorios" || currentTab == "Notificaciones" -> {
                     FloatingActionButton(
                         onClick = {
                             onOpenDialog(
@@ -344,7 +377,7 @@ fun HomeScreen(
                         Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
                     }
                 }
-                usuario.rol == "ADMIN" && homeState.currentTab == "Centros" -> {
+                usuario.rol == "ADMIN" && currentTab == "Centros" -> {
                     val canAdd = when (currentRoute) {
                         is Routes.HomeRoutes.Centros -> true
                         is Routes.HomeRoutes.AdminCursos -> true
@@ -355,9 +388,9 @@ fun HomeScreen(
                         FloatingActionButton(
                             onClick = {
                                 when (currentRoute) {
-                                    is Routes.HomeRoutes.Centros -> homeState.navigate(Routes.HomeRoutes.EditCentro())
-                                    is Routes.HomeRoutes.AdminCursos -> homeState.navigate(Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
-                                    is Routes.HomeRoutes.AdminAsignaturas -> homeState.navigate(Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.Centros -> homeState.navigate(currentTab, Routes.HomeRoutes.EditCentro())
+                                    is Routes.HomeRoutes.AdminCursos -> homeState.navigate(currentTab, Routes.HomeRoutes.EditCurso(centroId = currentRoute.centroId))
+                                    is Routes.HomeRoutes.AdminAsignaturas -> homeState.navigate(currentTab, Routes.HomeRoutes.EditAsignatura(cursoId = currentRoute.curso.id, centroId = currentRoute.centroId))
                                     else -> {}
                                 }
                             },
@@ -370,21 +403,22 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        val bottomPadding = paddingValues.calculateBottomPadding()
 
-        Crossfade(
-            targetState = homeState.currentTab,
+        // REEMPLAZAMOS CROSSFADE POR HORIZONTAL PAGER
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
                 .consumeWindowInsets(paddingValues),
-            label = "TabTransition"
-        ) { targetTab ->
-            val pageBackStack = homeState.tabBackStacks[targetTab] ?: return@Crossfade
+            userScrollEnabled = canScrollPager // <-- Se desactiva si hay una pantalla hija abierta
+        ) { page ->
+            val pageTab = tabs.getOrNull(page) ?: return@HorizontalPager
+            val pageBackStack = homeState.getStack(pageTab) ?: return@HorizontalPager
 
             NavDisplay(
                 backStack = pageBackStack,
-                onBack = { homeState.popBackStack() },
+                onBack = { homeState.pop(pageTab) },
                 transitionSpec = {
                     slideInHorizontally(
                         initialOffsetX = { it },
@@ -412,7 +446,7 @@ fun HomeScreen(
                                     profesor = usuario,
                                     paddingValues = PaddingValues(0.dp),
                                     onAsignaturaClick = { asignatura ->
-                                        homeState.navigate(Routes.HomeRoutes.MateriaDetalle(asignatura))
+                                        homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
                                     }
                                 )
                             }
@@ -422,7 +456,7 @@ fun HomeScreen(
                                     paddingValues = PaddingValues(0.dp),
                                     onAsignaturaClick = { asignatura ->
                                         estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
-                                        homeState.navigate(Routes.HomeRoutes.MateriaDetalle(asignatura))
+                                        homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
                                     }
                                 )
                             }
@@ -438,7 +472,7 @@ fun HomeScreen(
                                 MateriaDetalleProfesorPanel(
                                     asignatura = route.asignatura,
                                     profesor = usuario,
-                                    onBackClick = { homeState.popBackStack() },
+                                    onBackClick = { homeState.pop(pageTab) },
                                     onOpenDialog = onOpenDialog
                                 )
                             }
@@ -446,11 +480,11 @@ fun HomeScreen(
                                 MateriaDetalleEstudiantePanel(
                                     asignatura = route.asignatura,
                                     estudiante = usuario,
-                                    onBackClick = { homeState.popBackStack() },
+                                    onBackClick = { homeState.pop(pageTab) },
                                     onOpenDialog = onOpenDialog
                                 )
                             }
-                            else -> homeState.popBackStack()
+                            else -> homeState.pop(pageTab)
                         }
                     }
                     entry<Routes.HomeRoutes.Horarios> {
@@ -484,10 +518,10 @@ fun HomeScreen(
                                     paddingValues = PaddingValues(0.dp),
                                     onOpenDialog = onOpenDialog,
                                     onAsignaturaClick = { asignatura ->
-                                        homeState.navigate(Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
+                                        homeState.navigate(pageTab, Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
                                     },
                                     onEstudianteClick = { estudiante, asignatura ->
-                                        homeState.navigate(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
+                                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
                                     }
                                 )
                             }
@@ -496,7 +530,7 @@ fun HomeScreen(
                                     asignaturas = estudianteState.asignaturas,
                                     paddingValues = PaddingValues(0.dp),
                                     onAsignaturaClick = { asignatura ->
-                                        homeState.navigate(Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
                                     }
                                 )
                             }
@@ -515,10 +549,10 @@ fun HomeScreen(
                             asignatura = route.asignatura,
                             estudiantes = pState.estudiantes,
                             onEstudianteClick = { estudiante ->
-                                homeState.navigate(Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
                             },
                             onOpenDialog = onOpenDialog,
-                            onBack = { homeState.popBackStack() },
+                            onBack = { homeState.pop(pageTab) },
                             viewModel = profesorViewModel
                         )
                     }
@@ -528,7 +562,7 @@ fun HomeScreen(
                             estudiante = route.estudiante,
                             asignatura = route.asignatura,
                             onOpenDialog = onOpenDialog,
-                            onBack = { homeState.popBackStack() },
+                            onBack = { homeState.pop(pageTab) },
                             viewModel = profesorViewModel
                         )
                     }
@@ -542,7 +576,7 @@ fun HomeScreen(
                             asignatura = route.asignatura,
                             evaluaciones = estudianteState.evaluaciones,
                             paddingValues = PaddingValues(0.dp),
-                            onBackClick = { homeState.popBackStack() },
+                            onBackClick = { homeState.pop(pageTab) },
                             onOpenDialog = onOpenDialog
                         )
                     }
@@ -573,9 +607,9 @@ fun HomeScreen(
                             adminViewModel = adminViewModel,
                             onCentroClick = { centro: Centro ->
                                 adminViewModel.cargarCursosPorCentro(centro.id)
-                                homeState.navigate(Routes.HomeRoutes.AdminTiposCurso(centro))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminTiposCurso(centro))
                             },
-                            onEditCentro = { centro: Centro -> homeState.navigate(Routes.HomeRoutes.EditCentro(centro)) }
+                            onEditCentro = { centro: Centro -> homeState.navigate(pageTab, Routes.HomeRoutes.EditCentro(centro)) }
                         )
                     }
                     entry<Routes.HomeRoutes.AdminTiposCurso> { route ->
@@ -583,7 +617,7 @@ fun HomeScreen(
                             centro = route.centro,
                             adminState = adminState,
                             onTipoClick = { tipo: String ->
-                                homeState.navigate(Routes.HomeRoutes.AdminCursos(route.centro.id, tipo))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminCursos(route.centro.id, tipo))
                             }
                         )
                     }
@@ -592,10 +626,10 @@ fun HomeScreen(
                             tipo = route.tipo,
                             adminState = adminState,
                             onCursoClick = { curso: Curso ->
-                                homeState.navigate(Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
                             },
                             onEditCurso = { curso: Curso ->
-                                homeState.navigate(Routes.HomeRoutes.EditCurso(curso, route.centroId))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.EditCurso(curso, route.centroId))
                             },
                         )
                     }
@@ -604,7 +638,7 @@ fun HomeScreen(
                             curso = route.curso,
                             onTurnoClick = { turno: String ->
                                 adminViewModel.cargarAsignaturasPorCurso(route.curso.id, turno)
-                                homeState.navigate(Routes.HomeRoutes.AdminCiclos(route.centroId, route.curso, turno))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminCiclos(route.centroId, route.curso, turno))
                             },
                         )
                     }
@@ -616,10 +650,10 @@ fun HomeScreen(
                             onVerHorario = { ciclo: String ->
                                 val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
                                 adminViewModel.cargarHorariosPorCursoYCiclo(route.curso.id, cicloNum, route.turno)
-                                homeState.navigate(Routes.HomeRoutes.AdminHorarios(route.centroId, route.curso, route.turno, ciclo))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminHorarios(route.centroId, route.curso, route.turno, ciclo))
                             },
                             onEditAsignatura = { asignatura: Asignatura ->
-                                homeState.navigate(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
                             },
                             onAsignaturaClick = { asignatura: Asignatura ->
                                 onOpenDialog(DialogState.AsignarProfesor(asignatura))
@@ -640,7 +674,7 @@ fun HomeScreen(
                                 onOpenDialog(DialogState.AsignarProfesor(asignatura))
                             },
                             onEditAsignatura = { asignatura: Asignatura ->
-                                homeState.navigate(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                                homeState.navigate(pageTab, Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
                             },
                         )
                     }
@@ -695,7 +729,7 @@ fun HomeScreen(
                                     ))
                                 }
                             ),
-                            onBack = { homeState.popBackStack() }
+                            onBack = { homeState.pop(pageTab) }
                         )
                     }
                     entry<Routes.HomeRoutes.EditCurso> { route ->
@@ -719,7 +753,7 @@ fun HomeScreen(
                                     ))
                                 }
                             ),
-                            onBack = { homeState.popBackStack() }
+                            onBack = { homeState.pop(pageTab) }
                         )
                     }
                     entry<Routes.HomeRoutes.EditAsignatura> { route ->
@@ -744,7 +778,7 @@ fun HomeScreen(
                                     ))
                                 }
                             ),
-                            onBack = { homeState.popBackStack() }
+                            onBack = { homeState.pop(pageTab) }
                         )
                     }
                     entry<Routes.HomeRoutes.EditUser> { route ->
@@ -762,7 +796,7 @@ fun HomeScreen(
                                 cursos = adminState.cursos,
                                 onSave = { adminViewModel.guardarUsuario(it) }
                             ),
-                            onBack = { homeState.popBackStack() }
+                            onBack = { homeState.pop(pageTab) }
                         )
                     }
                     entry<Routes.HomeRoutes.Perfil> {

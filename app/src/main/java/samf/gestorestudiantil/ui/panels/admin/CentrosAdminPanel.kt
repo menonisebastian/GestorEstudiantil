@@ -66,6 +66,7 @@ import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import androidx.core.graphics.toColorInt
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.domain.capitalize
 
 @Composable
 fun AdminHeader(titulo: String) {
@@ -188,7 +189,7 @@ fun TurnosScreen(
             contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(curso.turnosDisponibles) { turno ->
-                TipoCursoCard(turno.replaceFirstChar { it.uppercase() }) { onTurnoClick(turno) }
+                TipoCursoCard(turno.capitalize()) { onTurnoClick(turno) }
             }
         }
     }
@@ -217,8 +218,19 @@ fun CiclosScreen(
 
     val profesorEjemplo = asignaturasDelCiclo.firstOrNull { it.profesorNombre.isNotEmpty() }
 
+    val currentCicloNum = currentCiclo.trim().firstOrNull()?.toString()?.toIntOrNull() ?: 1
+
+    // Buscamos la clase real en el estado para usar su ID como título
+    val claseReal = adminState.clases.find {
+        it.cursoGlobalId == curso.id &&
+                it.turno.lowercase().trim() == turno.lowercase().trim() &&
+                it.cicloNum == currentCicloNum
+    }
+
+    val idClaseTitulo = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim() == "matutino") "M" else "V"}${currentCicloNum}".uppercase()
+
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Ciclos de ${curso.acronimo} ($turno)")
+        AdminHeader("Ciclos de $idClaseTitulo")
 
         if (ciclos.isNotEmpty()) {
             SecondaryTabRow(
@@ -382,13 +394,18 @@ fun HorariosAdminScreen(
 ) {
     val slots = if (turno == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
     val dias = Horario.DIAS_SEMANA
-    val turnoLetra = if (turno.lowercase() == "matutino") "M" else "V"
-    val cicloNumStr = ciclo.trim().firstOrNull()?.toString() ?: "1"
-    val cicloNumInt = cicloNumStr.toIntOrNull() ?: 1
-    val tituloHorario = "${curso.acronimo} $turnoLetra$cicloNumStr"
+    val cicloNumInt = ciclo.trim().firstOrNull()?.toString()?.toIntOrNull() ?: 1
+
+    // Buscamos la clase real en el estado para usar su ID
+    val claseReal = adminState.clases.find {
+        it.cursoGlobalId == curso.id &&
+                it.turno.lowercase().trim() == turno.lowercase().trim() &&
+                it.cicloNum == cicloNumInt
+    }
+    val claseId = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim().contains("matutino")) "M" else "V"}${cicloNumInt}".uppercase()
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Horario - $tituloHorario")
+        AdminHeader("Horario ${turno.capitalize()} - $claseId")
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 160.dp)) {
             items(slots) { slot ->
                 val isReceso = slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")

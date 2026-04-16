@@ -135,9 +135,9 @@ fun FilterByDialog(
                     FilterChipGroup(
                         label = "Turno",
                         options = turnoOptions,
-                        selectedOptions = tempFilters["turno"]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList(),
+                        selectedOptions = tempFilters["turno"]?.split(",")?.filter { it.isNotEmpty() }?.map { it.capitalize() } ?: emptyList(),
                         onSelectionChanged = { options ->
-                            val newValue = options.joinToString(",")
+                            val newValue = options.joinToString(",") { it.lowercase() }
                             tempFilters = if (newValue.isEmpty()) tempFilters - "turno" else tempFilters + ("turno" to newValue)
                         }
                     )

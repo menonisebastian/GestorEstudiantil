@@ -64,6 +64,14 @@ class UserRepositoryImpl @Inject constructor(
         return !admins.isEmpty
     }
 
+    override suspend fun getAdminsInCenter(centroId: String): List<User.Admin> {
+        val admins = db.collection("usuarios")
+            .whereEqualTo("centroId", centroId)
+            .whereEqualTo("rol", "ADMIN")
+            .get().await()
+        return admins.toObjects(User.Admin::class.java)
+    }
+
     override suspend fun updateFcmToken(uid: String, token: String) {
         db.collection("usuarios").document(uid).update("fcmToken", token).await()
     }
