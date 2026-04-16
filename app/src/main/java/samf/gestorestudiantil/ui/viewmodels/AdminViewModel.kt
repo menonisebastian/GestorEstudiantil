@@ -125,6 +125,16 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun asignarTutorAClase(claseId: String, tutorId: String) {
+        viewModelScope.launch {
+            try {
+                adminRepository.asignarTutorAClase(claseId, tutorId)
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+            }
+        }
+    }
+
     fun desasignarAsignatura(asignaturaId: String, profesorId: String) {
         viewModelScope.launch {
             try {
@@ -222,6 +232,18 @@ class AdminViewModel @Inject constructor(
                 _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Contadores sincronizados")
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Error: ${e.message}")
+            }
+        }
+    }
+
+    fun generarClasesPorDefecto(centroId: String) {
+        viewModelScope.launch {
+            _adminState.value = _adminState.value.copy(isLoading = true)
+            try {
+                adminRepository.generarClasesPorDefecto(centroId)
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Clases generadas con éxito")
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Error al generar clases: ${e.message}")
             }
         }
     }

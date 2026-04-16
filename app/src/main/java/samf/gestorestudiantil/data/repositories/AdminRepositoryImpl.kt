@@ -1,7 +1,6 @@
 package samf.gestorestudiantil.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.gson.Gson
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -9,6 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
+import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.ScrapedCourse
@@ -170,6 +170,10 @@ class AdminRepositoryImpl @Inject constructor(
         actualizarAcronimosProfesor(profesorId)
     }
 
+    override suspend fun asignarTutorAClase(claseId: String, tutorId: String) {
+        db.collection("clases").document(claseId).update("tutorId", tutorId).await()
+    }
+
     private suspend fun actualizarAcronimosProfesor(profesorId: String) {
         val snapshot = db.collection("asignaturas")
             .whereEqualTo("profesorId", profesorId)
@@ -257,7 +261,7 @@ class AdminRepositoryImpl @Inject constructor(
             val sc = gson.fromJson(line, ScrapedCourse::class.java)
             if (sc._status != "ok") continue
 
-            val cursoId = "${idCentro}_${sc.acronimo ?: "DESCONOCIDO"}".replace(" ", "_")
+            val cursoId = "${idCentro}_${sc.acronimo}".replace(" ", "_")
             val cursoRef = db.collection("cursos").document(cursoId)
             val turnosNormalizados = (sc.turnos_disponibles ?: emptyList()).map { it.lowercase().trim() }
 
@@ -359,6 +363,73 @@ class AdminRepositoryImpl @Inject constructor(
                 it.getLong("cicloNum")?.toInt() == cicloNum
             }
             batch.update(asigDoc.reference, "numEstudiantesCurso", conteoReal)
+        }
+
+        batch.commit().await()
+    }
+
+    override suspend fun generarClasesPorDefecto(centroId: String) {
+        val batch = db.batch()
+
+        val asignaturasGlobales = db.collection("asignaturas").get().await().toObjects(Asignatura::class.java)
+
+        val cursosGlobales = db.collection("cursos")
+            .whereEqualTo("centroId", centroId)
+            .get()
+            .await()
+            .toObjects(Curso::class.java)
+
+        // 1. CAMBIO CLAVE: Obtenemos '.documents' crudos, sin pasarlos por toObjects()
+        val estudiantesSnapshots = db.collection("usuarios")
+            .whereEqualTo("centroId", centroId)
+            .whereEqualTo("rol", "ESTUDIANTE")
+            .whereEqualTo("estado", "ACTIVO")
+            .get()
+            .await()
+            .documents
+
+        val asignaturasAgrupadas = asignaturasGlobales.groupBy { asignatura ->
+            Triple(asignatura.cursoId, asignatura.turno.uppercase(), asignatura.cicloNum)
+        }
+
+        asignaturasAgrupadas.forEach { (claveAgrupacion, listaMaterias) ->
+            val (cursoId, turnoMayuscula, cicloNum) = claveAgrupacion
+
+            if (cursoId.isEmpty() || turnoMayuscula.isEmpty()) return@forEach
+
+            val cursoReal = cursosGlobales.find { it.id == cursoId }
+            val acronimoReal = cursoReal?.acronimo ?: return@forEach
+
+            val letraTurno = turnoMayuscula.first().uppercaseChar()
+            val idClase = "${acronimoReal}${letraTurno}${cicloNum}"
+
+            // 2. CAMBIO CLAVE: Leemos los campos exactos de la base de datos a mano
+            val idsEstudiantes = estudiantesSnapshots.filter { doc ->
+                // Extraemos los valores ignorando la clase User
+                val docCursoId = doc.getString("cursoId") ?: ""
+                val docTurno = doc.getString("turno") ?: ""
+                val docCicloNum = doc.getLong("cicloNum")?.toInt() ?: -1
+
+                // Filtramos asegurando mayúsculas vs mayúsculas
+                docCursoId == cursoId &&
+                        docTurno.uppercase() == turnoMayuscula &&
+                        docCicloNum == cicloNum
+            }.map { it.id } // Sacamos el ID literal del documento
+
+            val claseRef = db.collection("clases").document(idClase)
+
+            val nuevaClase = Clase(
+                id = idClase,
+                centroId = centroId,
+                cursoGlobalId = cursoId,
+                cicloNum = cicloNum,
+                turno = listaMaterias.first().turno,
+                tutorId = null,
+                estudiantesIds = idsEstudiantes, // ¡Esta vez estará lleno con los IDs correctos!
+                asignaturasIds = listaMaterias.map { it.id }
+            )
+
+            batch.set(claseRef, nuevaClase)
         }
 
         batch.commit().await()

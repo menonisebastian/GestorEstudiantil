@@ -21,6 +21,7 @@ interface AdminRepository {
 
     suspend fun asignarAsignaturaAProfesor(asignaturaId: String, profesorId: String)
     suspend fun desasignarAsignatura(asignaturaId: String, profesorId: String)
+    suspend fun asignarTutorAClase(claseId: String, tutorId: String)
     
     suspend fun guardarCentro(centro: Centro)
     suspend fun eliminarCentro(centroId: String)
@@ -33,4 +34,5 @@ interface AdminRepository {
     
     suspend fun seedDatabase(jsonlLines: List<String>)
     suspend fun recalcularTodosLosContadores()
+    suspend fun generarClasesPorDefecto(centroId: String)
 }

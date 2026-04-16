@@ -624,6 +624,9 @@ fun HomeScreen(
                             onAsignaturaClick = { asignatura: Asignatura ->
                                 onOpenDialog(DialogState.AsignarProfesor(asignatura))
                             },
+                            onAsignarTutor = { claseId, centroId ->
+                                onOpenDialog(DialogState.AsignarTutor(claseId, centroId))
+                            },
                             onUserClick = { user ->
                                 onOpenDialog(DialogState.UserProfile(user))
                             },

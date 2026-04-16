@@ -85,6 +85,11 @@ sealed class DialogState {
         val asignatura: Asignatura
     ) : DialogState()
 
+    data class AsignarTutor(
+        val claseId: String,
+        val centroId: String
+    ) : DialogState()
+
     // 6. Diálogos para Asignaturas (Profesores)
     data class AddUnidad(
         val asignaturaId: String,

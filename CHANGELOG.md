@@ -2,7 +2,17 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
-## [v0.5.8] - 2026-04-17
+## [v0.5.9] - 2026-04-16
+- **Modelo de Datos**: Introducción de la entidad `Clase.kt` para representar grupos específicos de alumnos. Incluye campos para `tutorId`, `estudiantesIds` y `asignaturasIds`, permitiendo una gestión granular de la relación entre cursos globales y grupos reales.
+- **Admin**: Implementación de la generación masiva de clases mediante `WriteBatch` de Firestore, automatizando la creación de documentos en la colección `clases` según la configuración de cursos y turnos.
+- **Admin**: Inclusión de un botón de acción masiva en el panel de centros para poblar la base de datos de forma eficiente (hasta 500 operaciones por lote).
+- **Corrección**: Sincronización de callbacks de navegación en `HomeScreen` para evitar errores de compilación tras la actualización del panel administrativo.
+- **Admin**: Implementación de la asignación de tutores a grupos (clases) directamente desde el panel de gestión de centros.
+- **Arquitectura**: Integración del patrón `DialogState` y `DialogOrchestrator` para la gestión centralizada de los diálogos de asignación de tutor.
+- **Modelo de Datos**: Evolución de la entidad `Clase.kt` incorporando campos para `estudiantesIds`, `asignaturasIds` y un sistema de ID normalizado (**ACRONIMO + TURNO + CICLO**) para mejorar la indexación y trazabilidad.
+- **Repositorio**: Ampliación de `AdminRepository` para gestionar la persistencia de tutores asignados a grupos específicos.
+
+## [v0.5.8] - 2026-04-16
 - **Admin**: Refactorización de `CentrosAdminPanel.kt` para mejorar la UX de gestión de ciclos.
 - **Admin**: Implementación de cabecera de tutor flotante con acceso directo a horarios en `CiclosScreen`.
 - **Admin**: Mejora en la visualización de perfiles de profesores: ahora se permite abrir el perfil del tutor incluso si no tiene una cuenta vinculada (usando fallback por nombre).
@@ -70,7 +80,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 - **Estilización de Menús**: Las opciones del menú ahora utilizan un fondo `surfaceColor` sin bordes, mejorando la integración visual con el tema de la aplicación.
 - **Consistencia de Acciones**: Implementado el uso de `MenuItem` para estandarizar iconos, colores y comportamientos (incluyendo acciones destructivas) en los menús de acción.
 
-## [v0.4.8] - 2026-04-27
+## [v0.4.8] - 2026-04-13
 - **Filtros de Seguridad**: Implementado filtrado estricto por Turno y Ciclo en el `ProfesorRepository`. Ahora los profesores solo ven a los alumnos que corresponden exactamente a su grupo, evitando la mezcla de estudiantes de diferentes turnos o años.
 - **Sincronización de Horarios**: Corregida la desincronización de datos entre la asignación de materias y los horarios. Al asignar un profesor desde el panel de administración, el cambio se refleja automáticamente en todos los bloques horarios correspondientes.
 - **Desacoplamiento de Estado**: Refactorizado el `AdminViewModel` para separar la lista de asignaturas del curso de la lista de asignaturas disponibles para asignación, eliminando el error que causaba que la vista principal se "resetease" al asignar un docente.

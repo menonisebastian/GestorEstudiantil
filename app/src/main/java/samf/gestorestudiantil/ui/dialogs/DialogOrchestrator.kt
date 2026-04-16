@@ -64,6 +64,13 @@ fun DialogOrchestrator(
                 )
             }
 
+            is DialogState.AsignarTutor -> {
+                AsignarTutorDialog(
+                    state = state,
+                    onDismissRequest = dismissAction
+                )
+            }
+
             is DialogState.AddUnidad -> {
                 AddUnidadDialog(
                     state = state,

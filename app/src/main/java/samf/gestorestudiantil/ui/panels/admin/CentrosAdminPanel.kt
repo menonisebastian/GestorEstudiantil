@@ -117,6 +117,19 @@ fun CentrosListScreen(
                     }
                 }
 
+                // Botón temporal para generar clases masivas
+                item {
+                    Button(
+                        onClick = {
+                            val id = adminState.centros.firstOrNull()?.id ?: "ies_comercio"
+                            adminViewModel.generarClasesPorDefecto(id)
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                    ) {
+                        Text("Generar Clases Masivas (Batch)")
+                    }
+                }
+
                 items(adminState.centros) { centro ->
                     CentroCard(centro = centro, onClick = { onCentroClick(centro) }, onEdit = { onEditCentro(centro) })
                 }
@@ -191,6 +204,7 @@ fun CiclosScreen(
     onEditAsignatura: (Asignatura) -> Unit,
     onAsignaturaClick: (Asignatura) -> Unit,
     onUserClick: (User) -> Unit,
+    onAsignarTutor: (String, String) -> Unit,
 ) {
     val asignaturasFiltradas = adminState.asignaturas 
     val ciclos = remember(asignaturasFiltradas) { 
@@ -290,6 +304,22 @@ fun CiclosScreen(
                                 color = textColor
                             )
                             Text(text = "Tutor del curso", fontSize = 11.sp, color = Color.Gray)
+                        }
+
+                        IconButton(
+                            onClick = {
+                                val turnoLetra = if (turno.lowercase().trim() == "matutino") "M" else "V"
+                                val cicloNumStr = currentCiclo.trim().firstOrNull()?.toString() ?: "1"
+                                val claseId = "${curso.acronimo}${turnoLetra}${cicloNumStr}".uppercase()
+                                onAsignarTutor(claseId, curso.centroId)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Asignar Tutor",
+                                tint = primaryColor,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
 
                         Button(
