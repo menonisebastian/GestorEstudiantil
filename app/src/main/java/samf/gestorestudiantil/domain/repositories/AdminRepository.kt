@@ -32,4 +32,5 @@ interface AdminRepository {
     suspend fun eliminarHorario(horarioId: String)
     
     suspend fun seedDatabase(jsonlLines: List<String>)
+    suspend fun recalcularTodosLosContadores()
 }

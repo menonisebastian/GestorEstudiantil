@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.panels.admin
 
-import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Edit
@@ -34,13 +31,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,28 +42,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import samf.gestorestudiantil.data.models.User
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.ui.NavDisplay
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.ui.components.AsignaturaCard
-import samf.gestorestudiantil.ui.dialogs.DialogState
-import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminState
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import androidx.core.graphics.toColorInt
+import samf.gestorestudiantil.ui.components.AccImg
+import samf.gestorestudiantil.ui.theme.surfaceDimColor
 
 @Composable
-fun AdminHeader(titulo: String, onBack: (() -> Unit)? = null) {
+fun AdminHeader(titulo: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
@@ -107,6 +106,17 @@ fun CentrosListScreen(
 //                        Text("Importar y limpiar IES Comercio")
 //                    }
 //                }
+
+                // Boton temporal para recalcular contadores
+                item {
+                    Button(
+                        onClick = { adminViewModel.recalcularContadores() },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                    ) {
+                        Text("Sincronizar Contadores de Estudiantes")
+                    }
+                }
+
                 items(adminState.centros) { centro ->
                     CentroCard(centro = centro, onClick = { onCentroClick(centro) }, onEdit = { onEditCentro(centro) })
                 }
@@ -119,11 +129,10 @@ fun CentrosListScreen(
 fun TiposCursoScreen(
     centro: Centro,
     adminState: AdminState,
-    onTipoClick: (String) -> Unit,
-    onBack: () -> Unit
+    onTipoClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Cursos en ${centro.nombre}", onBack)
+        AdminHeader("Cursos en ${centro.nombre}")
         val tipos = adminState.cursos.mapNotNull { it.tipo }.distinct().sorted()
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -137,15 +146,13 @@ fun TiposCursoScreen(
 @Composable
 fun CursosScreen(
     tipo: String,
-    centroId: String,
     adminState: AdminState,
     onCursoClick: (Curso) -> Unit,
     onEditCurso: (Curso) -> Unit,
-    onBack: () -> Unit
 ) {
     val headerTitle = if (tipo.contains("Curso", ignoreCase = true)) tipo else "Cursos de $tipo"
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader(headerTitle, onBack)
+        AdminHeader(headerTitle)
         val cursos = adminState.cursos.filter { it.tipo == tipo }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -160,10 +167,9 @@ fun CursosScreen(
 fun TurnosScreen(
     curso: Curso,
     onTurnoClick: (String) -> Unit,
-    onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Turnos de ${curso.acronimo}", onBack)
+        AdminHeader("Turnos de ${curso.acronimo}")
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 160.dp)
@@ -175,33 +181,136 @@ fun TurnosScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CiclosScreen(
     curso: Curso,
     turno: String,
     adminState: AdminState,
-    onVerAsignaturas: (String) -> Unit,
     onVerHorario: (String) -> Unit,
-    onBack: () -> Unit
+    onEditAsignatura: (Asignatura) -> Unit,
+    onAsignaturaClick: (Asignatura) -> Unit,
+    onUserClick: (User) -> Unit,
 ) {
+    val asignaturasFiltradas = adminState.asignaturas 
+    val ciclos = remember(asignaturasFiltradas) { 
+        asignaturasFiltradas.map { it.ciclo }.distinct().sortedBy { it } 
+    }
+    
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val currentCiclo = ciclos.getOrNull(selectedTabIndex) ?: ""
+    val asignaturasDelCiclo = asignaturasFiltradas.filter { it.ciclo == currentCiclo }
+
+    val profesorEjemplo = asignaturasDelCiclo.firstOrNull { it.profesorNombre.isNotEmpty() }
+
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Ciclos de ${curso.acronimo} ($turno)", onBack)
-        val ciclos = adminState.asignaturas.mapNotNull { it.ciclo }.distinct().sorted()
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 160.dp)
-        ) {
-            items(ciclos) { ciclo ->
-                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = surfaceColor)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Ciclo: $ciclo", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { onVerAsignaturas(ciclo) }, modifier = Modifier.weight(1f)) { Text("Asignaturas") }
-                            Button(onClick = { onVerHorario(ciclo) }, modifier = Modifier.weight(1f)) { Text("Horario") }
+        AdminHeader("Ciclos de ${curso.acronimo} ($turno)")
+
+        if (ciclos.isNotEmpty()) {
+            SecondaryTabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = Color.Transparent,
+                divider = {},
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                ciclos.forEachIndexed { index, ciclo ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        selectedContentColor = primaryColor,
+                        unselectedContentColor = surfaceDimColor,
+                        text = { Text("Ciclo $ciclo", fontWeight = FontWeight.Bold) }
+                    )
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(top = 90.dp, bottom = 160.dp)
+                ) {
+                    items(asignaturasDelCiclo) { asignatura ->
+                        AsignaturaCard(
+                            asignatura = asignatura,
+                            userRole = "ADMIN",
+                            onClick = { onAsignaturaClick(asignatura) },
+                            onEdit = { onEditAsignatura(asignatura) }
+                        )
+                    }
+                }
+
+                // Tarjeta Flotante del Tutor
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    onClick = {
+                        profesorEjemplo?.let { asig ->
+                            if (asig.profesorId.isNotEmpty()) {
+                                val prof = adminState.usuarios.find { it.id == asig.profesorId }
+                                if (prof != null) {
+                                    onUserClick(prof)
+                                } else {
+                                    onUserClick(User.Profesor(id = asig.profesorId, nombre = asig.profesorNombre))
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AccImg(
+                            userName = profesorEjemplo?.profesorNombre ?: "Sin Asignar",
+                            imgUrl = "",
+                            size = 40.dp,
+                            onClick = {
+                                profesorEjemplo?.let { asig ->
+                                    if (asig.profesorId.isNotEmpty()) {
+                                        val prof = adminState.usuarios.find { it.id == asig.profesorId }
+                                        if (prof != null) {
+                                            onUserClick(prof)
+                                        } else {
+                                            onUserClick(User.Profesor(id = asig.profesorId, nombre = asig.profesorNombre))
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = profesorEjemplo?.profesorNombre ?: "Sin Tutor Asignado",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textColor
+                            )
+                            Text(text = "Tutor del curso", fontSize = 11.sp, color = Color.Gray)
+                        }
+
+                        Button(
+                            onClick = { onVerHorario(currentCiclo) },
+                            contentPadding = PaddingValues(horizontal = 12.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = primaryColor.copy(alpha = 0.1f),
+                                contentColor = primaryColor
+                            )
+                        ) {
+                            Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Horario", fontSize = 12.sp)
                         }
                     }
                 }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No hay asignaturas configuradas", color = Color.Gray)
             }
         }
     }
@@ -209,15 +318,13 @@ fun CiclosScreen(
 
 @Composable
 fun AsignaturasScreen(
-    curso: Curso,
     ciclo: String,
     adminState: AdminState,
     onAsignaturaClick: (Asignatura) -> Unit,
     onEditAsignatura: (Asignatura) -> Unit,
-    onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Asignaturas - $ciclo", onBack)
+        AdminHeader("Asignaturas - $ciclo")
         val asignaturas = adminState.asignaturas.filter { it.ciclo == ciclo }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -242,7 +349,6 @@ fun HorariosAdminScreen(
     turno: String,
     adminState: AdminState,
     onEditHorario: (Horario) -> Unit,
-    onBack: () -> Unit
 ) {
     val slots = if (turno == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
     val dias = Horario.DIAS_SEMANA
@@ -252,7 +358,7 @@ fun HorariosAdminScreen(
     val tituloHorario = "${curso.acronimo} $turnoLetra$cicloNumStr"
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Horario - $tituloHorario", onBack)
+        AdminHeader("Horario - $tituloHorario")
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 160.dp)) {
             items(slots) { slot ->
                 val isReceso = slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")

@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
+import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.CourseRepository
 import javax.inject.Inject
 
@@ -29,6 +30,23 @@ class CourseRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun decrementStudentCount(cursoId: String, turno: String, ciclo: Int) {
+        // Decremento en curso
+        db.collection("cursos").document(cursoId)
+            .update("numEstudiantes", FieldValue.increment(-1))
+
+        // Decremento en asignaturas
+        val snapshot = db.collection("asignaturas")
+            .whereEqualTo("cursoId", cursoId)
+            .whereEqualTo("cicloNum", ciclo)
+            .whereEqualTo("turno", turno)
+            .get().await()
+
+        for (doc in snapshot.documents) {
+            doc.reference.update("numEstudiantesCurso", FieldValue.increment(-1))
+        }
+    }
+
     override suspend fun getCentros(): List<Centro> {
         val snapshot = db.collection("centros").get().await()
         return snapshot.toObjects(Centro::class.java)
@@ -39,5 +57,10 @@ class CourseRepositoryImpl @Inject constructor(
             .whereEqualTo("centroId", centroId)
             .get().await()
         return snapshot.toObjects(Curso::class.java)
+    }
+
+    override suspend fun getEstudiante(userId: String): User.Estudiante? {
+        val doc = db.collection("usuarios").document(userId).get().await()
+        return doc.toObject(User.Estudiante::class.java)
     }
 }

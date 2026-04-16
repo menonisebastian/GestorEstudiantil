@@ -325,6 +325,45 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun recalcularTodosLosContadores() {
+        // 1. Obtener todos los estudiantes activos
+        val usuariosSnapshot = db.collection("usuarios")
+            .whereEqualTo("rol", "ESTUDIANTE")
+            .whereEqualTo("estado", "ACTIVO")
+            .get().await()
+
+        val estudiantes = usuariosSnapshot.documents
+
+        // 2. Obtener todos los cursos y asignaturas
+        val cursosSnapshot = db.collection("cursos").get().await()
+        val asignaturasSnapshot = db.collection("asignaturas").get().await()
+
+        val batch = db.batch()
+
+        // 3. Limpiar y actualizar Cursos
+        cursosSnapshot.documents.forEach { cursoDoc ->
+            val cursoId = cursoDoc.id
+            val conteoReal = estudiantes.count { it.getString("cursoId") == cursoId }
+            batch.update(cursoDoc.reference, "numEstudiantes", conteoReal)
+        }
+
+        // 4. Limpiar y actualizar Asignaturas
+        asignaturasSnapshot.documents.forEach { asigDoc ->
+            val cursoId = asigDoc.getString("cursoId") ?: ""
+            val turno = asigDoc.getString("turno") ?: ""
+            val cicloNum = asigDoc.getLong("cicloNum")?.toInt() ?: 1
+
+            val conteoReal = estudiantes.count {
+                it.getString("cursoId") == cursoId &&
+                it.getString("turno") == turno &&
+                it.getLong("cicloNum")?.toInt() == cicloNum
+            }
+            batch.update(asigDoc.reference, "numEstudiantesCurso", conteoReal)
+        }
+
+        batch.commit().await()
+    }
+
     private fun extraerNumero(texto: String?): Int {
         if (texto.isNullOrEmpty()) return 0
         return texto.replace(Regex("\\D"), "").toIntOrNull() ?: 0

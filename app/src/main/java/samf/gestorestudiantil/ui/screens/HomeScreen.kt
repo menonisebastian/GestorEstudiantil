@@ -584,14 +584,12 @@ fun HomeScreen(
                             adminState = adminState,
                             onTipoClick = { tipo: String ->
                                 homeState.navigate(Routes.HomeRoutes.AdminCursos(route.centro.id, tipo))
-                            },
-                            onBack = { homeState.popBackStack() }
+                            }
                         )
                     }
                     entry<Routes.HomeRoutes.AdminCursos> { route ->
                         CursosScreen(
                             tipo = route.tipo,
-                            centroId = route.centroId,
                             adminState = adminState,
                             onCursoClick = { curso: Curso ->
                                 homeState.navigate(Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
@@ -599,7 +597,6 @@ fun HomeScreen(
                             onEditCurso = { curso: Curso ->
                                 homeState.navigate(Routes.HomeRoutes.EditCurso(curso, route.centroId))
                             },
-                            onBack = { homeState.popBackStack() }
                         )
                     }
                     entry<Routes.HomeRoutes.AdminTurnos> { route ->
@@ -609,7 +606,6 @@ fun HomeScreen(
                                 adminViewModel.cargarAsignaturasPorCurso(route.curso.id, turno)
                                 homeState.navigate(Routes.HomeRoutes.AdminCiclos(route.centroId, route.curso, turno))
                             },
-                            onBack = { homeState.popBackStack() }
                         )
                     }
                     entry<Routes.HomeRoutes.AdminCiclos> { route ->
@@ -617,20 +613,24 @@ fun HomeScreen(
                             curso = route.curso,
                             turno = route.turno,
                             adminState = adminState,
-                            onVerAsignaturas = { ciclo: String ->
-                                homeState.navigate(Routes.HomeRoutes.AdminAsignaturas(route.centroId, route.curso, route.turno, ciclo))
-                            },
                             onVerHorario = { ciclo: String ->
                                 val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
                                 adminViewModel.cargarHorariosPorCursoYCiclo(route.curso.id, cicloNum, route.turno)
                                 homeState.navigate(Routes.HomeRoutes.AdminHorarios(route.centroId, route.curso, route.turno, ciclo))
                             },
-                            onBack = { homeState.popBackStack() }
+                            onEditAsignatura = { asignatura: Asignatura ->
+                                homeState.navigate(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                            },
+                            onAsignaturaClick = { asignatura: Asignatura ->
+                                onOpenDialog(DialogState.AsignarProfesor(asignatura))
+                            },
+                            onUserClick = { user ->
+                                onOpenDialog(DialogState.UserProfile(user))
+                            },
                         )
                     }
                     entry<Routes.HomeRoutes.AdminAsignaturas> { route ->
                         AsignaturasScreen(
-                            curso = route.curso,
                             ciclo = route.ciclo,
                             adminState = adminState,
                             onAsignaturaClick = { asignatura: Asignatura ->
@@ -639,7 +639,6 @@ fun HomeScreen(
                             onEditAsignatura = { asignatura: Asignatura ->
                                 homeState.navigate(Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
                             },
-                            onBack = { homeState.popBackStack() }
                         )
                     }
                     entry<Routes.HomeRoutes.AdminHorarios> { route ->
@@ -670,8 +669,7 @@ fun HomeScreen(
                                         }
                                     )
                                 )
-                            },
-                            onBack = { homeState.popBackStack() }
+                            }
                         )
                     }
                     entry<Routes.HomeRoutes.EditCentro> { route ->

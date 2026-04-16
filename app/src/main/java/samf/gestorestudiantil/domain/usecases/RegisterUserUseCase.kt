@@ -58,11 +58,6 @@ class RegisterUserUseCase @Inject constructor(
         // 4. GUARDAR USUARIO
         userRepository.saveUser(newUser)
 
-        // 5. LÓGICA DE NEGOCIO: Incrementar contadores si es estudiante
-        if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
-            courseRepository.incrementStudentCount(cursoId, turno, ciclo)
-        }
-
         return newUser
     }
 }

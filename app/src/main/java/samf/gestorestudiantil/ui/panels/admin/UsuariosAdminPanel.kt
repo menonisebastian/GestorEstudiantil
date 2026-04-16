@@ -87,6 +87,9 @@ fun UsuariosAdminPanel(
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
 
+    val countActivos = remember(adminState.usuarios) { adminState.usuarios.count { it.estado == "ACTIVO" } }
+    val countPendientes = remember(adminState.usuarios) { adminState.usuarios.count { it.estado == "PENDIENTE" } }
+
     // Cargamos los usuarios y cursos al iniciar la pantalla
     LaunchedEffect(Unit) {
         adminViewModel.cargarUsuariosPorCentro(usuarioActual.centroId)
@@ -212,15 +215,36 @@ fun UsuariosAdminPanel(
             contentColor = textColor
         ) {
             tabs.forEachIndexed { index, title ->
+                val count = if (index == 0) countActivos else countPendientes
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = { selectedTabIndex = index },
                     text = {
-                        Text(
-                            text = title,
-                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                            color = if (selectedTabIndex == index) textColor else surfaceDimColor
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = title,
+                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTabIndex == index) textColor else surfaceDimColor
+                            )
+                            if (count > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(start = 6.dp)
+                                        .background(
+                                            color = if (selectedTabIndex == index) primaryColor.copy(alpha = 0.15f) else surfaceDimColor.copy(alpha = 0.1f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = count.toString(),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (selectedTabIndex == index) primaryColor else surfaceDimColor
+                                    )
+                                }
+                            }
+                        }
                     }
                 )
             }
@@ -251,7 +275,7 @@ fun UsuariosAdminPanel(
                             usuario = usuario,
                             isPending = selectedTabIndex == 1,
                             canDelete = usuario.id != usuarioActual.id,
-                            onAprobar = { adminViewModel.aprobarUsuario(usuario.id) },
+                            onAprobar = { adminViewModel.aprobarUsuario(usuario) },
                             onRechazar = {
                                 // USAMOS EL CALLBACK PARA ABRIR EL DIÁLOGO
                                 onOpenDialog(
@@ -260,7 +284,7 @@ fun UsuariosAdminPanel(
                                         content = "¿Desea eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.",
                                         onConfirm = {
                                             val usuarioEliminado = usuario
-                                            adminViewModel.rechazarOEliminarUsuario(usuario.id)
+                                            adminViewModel.rechazarOEliminarUsuario(usuario)
                                             appViewModel.showSnackbar(
                                                 message = "Usuario eliminado",
                                                 actionLabel = "Deshacer",

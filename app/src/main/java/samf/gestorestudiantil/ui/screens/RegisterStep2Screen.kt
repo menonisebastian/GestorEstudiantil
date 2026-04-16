@@ -291,18 +291,6 @@ fun RegisterStep2Screen(
                 }
             }
             
-            AnimatedVisibility(
-                visible = isLoading,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(backgroundColor.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
-            }
         }
     }
 }

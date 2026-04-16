@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.5.8] - 2026-04-17
+- **Admin**: Refactorización de `CentrosAdminPanel.kt` para mejorar la UX de gestión de ciclos.
+- **Admin**: Implementación de cabecera de tutor flotante con acceso directo a horarios en `CiclosScreen`.
+- **Admin**: Mejora en la visualización de perfiles de profesores: ahora se permite abrir el perfil del tutor incluso si no tiene una cuenta vinculada (usando fallback por nombre).
+- **UI**: Limpieza visual en paneles administrativos eliminando el botón de retroceso redundante en `AdminHeader` (gestión delegada al TopAppBar).
+- **UI**: Implementación de efectos de profundidad y transparencia en tarjetas flotantes para mejorar la jerarquía visual durante el scroll.
+
 ## [v0.5.7] - 2026-04-16
 - **Arquitectura**: Refactorización de `MainActivity` para delegar la lógica de negocio y configuración de SDKs a componentes especializados.
 - **Refactorización**: Movida la inicialización del SDK de Cloudinary a `GestorEstudiantilApp` para asegurar una instancia única global.

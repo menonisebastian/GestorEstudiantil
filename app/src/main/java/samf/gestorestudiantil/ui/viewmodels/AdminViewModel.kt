@@ -15,6 +15,7 @@ import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.AdminRepository
+import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.usecases.AssignSubjectToProfessorUseCase
 import samf.gestorestudiantil.domain.usecases.SeedDatabaseUseCase
 import javax.inject.Inject
@@ -33,6 +34,7 @@ data class AdminState(
 @HiltViewModel
 class AdminViewModel @Inject constructor(
     private val adminRepository: AdminRepository,
+    private val courseRepository: CourseRepository,
     private val seedDatabaseUseCase: SeedDatabaseUseCase,
     private val assignSubjectToProfessorUseCase: AssignSubjectToProfessorUseCase
 ) : ViewModel() {
@@ -63,20 +65,26 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun aprobarUsuario(usuarioId: String) {
+    fun aprobarUsuario(usuario: User) {
         viewModelScope.launch {
             try {
-                adminRepository.aprobarUsuario(usuarioId)
+                adminRepository.aprobarUsuario(usuario.id)
+                if (usuario is User.Estudiante) {
+                    courseRepository.incrementStudentCount(usuario.cursoId, usuario.turno, usuario.cicloNum)
+                }
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
             }
         }
     }
 
-    fun rechazarOEliminarUsuario(usuarioId: String) {
+    fun rechazarOEliminarUsuario(usuario: User) {
         viewModelScope.launch {
             try {
-                adminRepository.eliminarUsuario(usuarioId)
+                if (usuario is User.Estudiante && usuario.estado == "ACTIVO") {
+                    courseRepository.decrementStudentCount(usuario.cursoId, usuario.turno, usuario.cicloNum)
+                }
+                adminRepository.eliminarUsuario(usuario.id)
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
             }
@@ -206,9 +214,27 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun recalcularContadores() {
+        viewModelScope.launch {
+            _adminState.value = _adminState.value.copy(isLoading = true)
+            try {
+                adminRepository.recalcularTodosLosContadores()
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Contadores sincronizados")
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Error: ${e.message}")
+            }
+        }
+    }
+
     fun guardarUsuario(user: User) {
         viewModelScope.launch {
             try {
+                // Si el usuario es un estudiante y se está re-guardando (por ejemplo, al deshacer una eliminación)
+                // incrementamos el contador para restaurar el valor correcto si estaba ACTIVO.
+                if (user is User.Estudiante && user.estado == "ACTIVO") {
+                    courseRepository.incrementStudentCount(user.cursoId, user.turno, user.cicloNum)
+                }
+
                 val updates = mutableMapOf<String, Any?>(
                     "nombre" to user.nombre,
                     "rol" to user.rol
