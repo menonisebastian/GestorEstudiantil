@@ -29,11 +29,11 @@ import java.util.*
 @Composable
 fun VerEntregasProfesorDialog(
     state: DialogState.VerEntregasProfesor,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    onOpenDialog: (DialogState) -> Unit
 ) {
     val viewModel: ProfesorViewModel = viewModel()
     val entregas by viewModel.entregas.collectAsState()
-    var entregaParaCalificar by remember { mutableStateOf<Entrega?>(null) }
 
     LaunchedEffect(state.tarea.id) {
         viewModel.cargarEntregas(state.tarea.id)
@@ -52,7 +52,25 @@ fun VerEntregasProfesorDialog(
                         items(entregas) { entrega ->
                             EntregaItem(
                                 entrega = entrega,
-                                onCalificar = { entregaParaCalificar = entrega },
+                                onCalificar = {
+                                    onOpenDialog(
+                                        DialogState.AddEditCalificacion(
+                                            evaluacion = Evaluacion(
+                                                id = entrega.id,
+                                                nombre = state.tarea.titulo,
+                                                nota = entrega.calificacion?.toDouble() ?: 0.0,
+                                                estudianteId = entrega.estudianteId,
+                                                asignaturaId = entrega.asignaturaId,
+                                                comentario = entrega.comentarioProfesor,
+                                                adjunto = entrega.adjunto,
+                                                tipoEvaluacion = tipoEvaluacion.Tarea
+                                            ),
+                                            onSave = { evaluacion ->
+                                                state.onCalificar(evaluacion)
+                                            }
+                                        )
+                                    )
+                                },
                                 onDescargar = {
                                     entrega.adjunto.let { 
                                         viewModel.descargarArchivo(it.supabasePath, it.nombreArchivo)
@@ -68,26 +86,6 @@ fun VerEntregasProfesorDialog(
             TextButton(onClick = onDismissRequest) { Text("Cerrar") }
         }
     )
-
-    if (entregaParaCalificar != null) {
-        AddEditCalificacionDialog(
-            evaluacion = Evaluacion(
-                id = entregaParaCalificar!!.id, // Usamos el ID de la entrega para que coincida si ya existe
-                nombre = state.tarea.titulo,
-                nota = entregaParaCalificar!!.calificacion?.toDouble() ?: 0.0,
-                estudianteId = entregaParaCalificar!!.estudianteId,
-                asignaturaId = entregaParaCalificar!!.asignaturaId,
-                comentario = entregaParaCalificar!!.comentarioProfesor,
-                adjunto = entregaParaCalificar!!.adjunto,
-                tipoEvaluacion = tipoEvaluacion.Tarea
-            ),
-            onDismiss = { entregaParaCalificar = null },
-            onSave = { evaluacion ->
-                state.onCalificar(evaluacion)
-                entregaParaCalificar = null
-            }
-        )
-    }
 }
 
 @Composable

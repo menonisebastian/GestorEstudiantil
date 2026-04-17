@@ -154,6 +154,11 @@ sealed class DialogState {
         val evaluacion: Evaluacion
     ) : DialogState()
 
+    data class AddEditCalificacion(
+        val evaluacion: Evaluacion,
+        val onSave: (Evaluacion) -> Unit
+    ) : DialogState()
+
     // 9. Permisos
     data class NotificationPermissionRationale(
         val onConfirm: () -> Unit

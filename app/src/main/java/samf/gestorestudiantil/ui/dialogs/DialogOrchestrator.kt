@@ -144,7 +144,8 @@ fun DialogOrchestrator(
             is DialogState.VerEntregasProfesor -> {
                 VerEntregasProfesorDialog(
                     state = state,
-                    onDismissRequest = dismissAction
+                    onDismissRequest = dismissAction,
+                    onOpenDialog = onShowDialog
                 )
             }
 
@@ -152,6 +153,14 @@ fun DialogOrchestrator(
                 VerDetalleEvaluacionDialog(
                     evaluacion = state.evaluacion,
                     onDismiss = dismissAction
+                )
+            }
+
+            is DialogState.AddEditCalificacion -> {
+                AddEditCalificacionDialog(
+                    evaluacion = state.evaluacion,
+                    onDismiss = dismissAction,
+                    onSave = state.onSave
                 )
             }
 

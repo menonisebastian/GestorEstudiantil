@@ -16,6 +16,7 @@ import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
+import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -271,7 +272,7 @@ fun MateriaDetalleProfesorPanel(
             }
         }
 
-        FloatingActionButton(
+        CustomFAB(
             onClick = {
                 onOpenDialog(
                     DialogState.AddUnidad(
@@ -282,12 +283,10 @@ fun MateriaDetalleProfesorPanel(
                     )
                 )
             },
-            containerColor = primaryColor,
+            text = "Añadir Unidad",
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 100.dp, end = 16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Añadir Unidad", tint = textColor)
-        }
+        )
     }
 }

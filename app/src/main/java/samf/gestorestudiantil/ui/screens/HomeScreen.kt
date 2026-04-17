@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.Crossfade
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.activity.compose.BackHandler
@@ -19,7 +18,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Grading
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
@@ -30,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -39,6 +36,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
@@ -67,6 +65,7 @@ import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.BottomNavBar
+import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.components.IconLogo
 import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
@@ -103,7 +102,6 @@ val itemsEstudiante: Map<String, ImageVector> = mapOf(
     "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
     "Calendario" to Icons.Default.CalendarMonth,
-    "Recordatorios" to Icons.Outlined.Notifications,
     "Perfil" to Icons.Outlined.Person
 )
 
@@ -112,15 +110,14 @@ val itemsProfesor: Map<String, ImageVector> = mapOf(
     "Horarios" to Icons.Default.Schedule,
     "Calendario" to Icons.Default.CalendarMonth,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
-    "Recordatorios" to Icons.Outlined.Notifications,
     "Perfil" to Icons.Outlined.Person
 )
 
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
-    "Recordatorios" to Icons.Outlined.Notifications,
-    "Perfil" to Icons.Outlined.Person
+    "Perfil" to Icons.Outlined.Person,
+    "Recordatorios" to Icons.Outlined.Notifications
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,6 +146,7 @@ fun HomeScreen(
     // 2. Calculamos la pestaña actual basándonos en el Pager
     val currentTab = tabs.getOrNull(pagerState.currentPage) ?: tabs.firstOrNull() ?: ""
     val currentStack = homeState.getStack(currentTab)
+    val currentRoute = currentStack?.lastOrNull()
 
     // 3. LA MAGIA: Solo permitimos swipe si estamos en la raíz de la pestaña
     val canScrollPager = currentStack?.size == 1
@@ -305,6 +303,24 @@ fun HomeScreen(
                         title = {
                             IconLogo(width = 125.dp)
                         },
+                        actions = {
+                            if (usuario.rol != "ADMIN" && targetTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
+                                IconButton(
+                                    onClick = {
+                                        homeState.navigate("Calendario", Routes.HomeRoutes.Recordatorios)
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AccessTime,
+                                        contentDescription = "Recordatorios",
+                                        tint = surfaceDimColor
+                                    )
+                                }
+                            }
+                        },
                         navigationIcon = {
                             if (currentStack != null && currentStack.size > 1) {
                                 IconButton(
@@ -353,10 +369,9 @@ fun HomeScreen(
         },
         floatingActionButton = {
             // ✅ FAB Centralizado y Contextual
-            val currentRoute = currentStack?.lastOrNull()
             when {
-                (currentTab == "Recordatorios" || currentTab == "Notificaciones") -> {
-                    FloatingActionButton(
+                (currentRoute is Routes.HomeRoutes.Recordatorios || (currentTab == "Recordatorios" && usuario.rol == "ADMIN")) -> {
+                    CustomFAB(
                         onClick = {
                             onOpenDialog(
                                 DialogState.AddRecordatorio(
@@ -376,10 +391,8 @@ fun HomeScreen(
                                 )
                             )
                         },
-                        containerColor = primaryColor
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
-                    }
+                        text = "Añadir Recordatorio"
+                    )
                 }
                 usuario.rol == "ADMIN" && currentTab == "Centros" -> {
                     val canAdd = when (currentRoute) {
@@ -389,7 +402,7 @@ fun HomeScreen(
                         else -> false
                     }
                     if (canAdd) {
-                        FloatingActionButton(
+                        CustomFAB(
                             onClick = {
                                 when (currentRoute) {
                                     is Routes.HomeRoutes.Centros -> homeState.navigate(currentTab, Routes.HomeRoutes.EditCentro())
@@ -398,10 +411,8 @@ fun HomeScreen(
                                     else -> {}
                                 }
                             },
-                            containerColor = primaryColor
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = "Añadir", tint = textColor)
-                        }
+                            text = "Añadir"
+                        )
                     }
                 }
             }

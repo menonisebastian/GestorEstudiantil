@@ -953,6 +953,26 @@ fun CustomDropDownMenu(
 }
 
 @Composable
+fun CustomFAB(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = primaryColor,
+    contentColor: Color = whiteColor,
+    icon: ImageVector = Icons.Default.Add,
+    text: String? = null
+) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = modifier,
+        containerColor = containerColor,
+        contentColor = contentColor,
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Icon(icon, contentDescription = text)
+    }
+}
+
+@Composable
 fun TypeChip(option: ChipOption) {
     Box(
         modifier = Modifier

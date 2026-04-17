@@ -40,6 +40,7 @@ import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
+import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
@@ -183,7 +184,7 @@ fun CalendarioPanel(
 
         Box(modifier = Modifier.weight(1f)) {
             if (eventosDelDiaSeleccionado.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().padding(bottom = 140.dp), contentAlignment = Alignment.Center) {
                     Text(text = "No hay eventos para este día", color = textColor.copy(alpha = 0.6f))
                 }
             } else {
@@ -220,19 +221,10 @@ fun CalendarioPanel(
                     .align(Alignment.BottomEnd)
                     .padding(end = 16.dp, bottom = 100.dp)
             ) {
-                FloatingActionButton(
+                CustomFAB(
                     onClick = { onAddRecordatorio(selectedDate?.toString() ?: LocalDate.now().toString()) },
-                    containerColor = primaryColor,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Añadir Recordatorio",
-                        tint = textColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                    text = "Añadir Recordatorio"
+                )
             }
         }
     }

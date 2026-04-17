@@ -3,6 +3,12 @@
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.6.3] - 2026-04-17
+- **Arquitectura**: Migración total de la gestión de diálogos al patrón `DialogState` y `DialogOrchestrator`, eliminando estados locales y mejorando la consistencia en toda la aplicación.
+- **UI/UX**: Unificación de la estética de botones de acción mediante el uso exclusivo de `CustomFAB` en `HomeScreen`, `CalendarioPanel` y los paneles de detalle del profesor.
+- **Componentes**: Actualizado `CustomFAB` para permitir personalización de posicionamiento y comportamiento mediante parámetros `modifier`.
+- **Navegación**: Reubicación de la sección de "Recordatorios" como una sub-pantalla dentro del flujo de Calendario, optimizando el espacio en la barra de navegación principal para roles no-administrativos.
+- **UI/UX**: Implementada lógica de visibilidad inteligente para iconos de la `TopBar`, ocultando dinámicamente el acceso a recordatorios cuando el usuario ya se encuentra en dicha pantalla.
+- **Profesor**: Refactorización del flujo de calificaciones y entregas; la apertura de diálogos de edición (`AddEditCalificacion`) ahora se delega al orquestador central, eliminando la necesidad de estados `showDialog` anidados.
 - **UI/UX**: Estandarización del FAB (Floating Action Button) en el Calendario. Se eliminó el componente `FloatingPill` para unificar la acción de añadir recordatorios para todos los roles.
 - **Calendario**: Ahora tanto profesores como estudiantes solo pueden añadir recordatorios personales directamente desde la vista de calendario.
 - **UI/UX**: Optimización de la posición del FAB en el calendario, asegurando un padding inferior de 100.dp para evitar solapamientos con la barra de navegación.

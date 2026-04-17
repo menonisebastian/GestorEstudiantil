@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,12 +18,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.ui.components.AccImg
+import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
-import samf.gestorestudiantil.ui.dialogs.AddEditCalificacionDialog
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.dialogs.EvaluacionProfesorItem
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -75,7 +74,7 @@ fun CalificacionesProfesorPanel(
         ) {
             when (selectedTab) {
                 0 -> { // Pestaña Estudiantes
-                    val filteredEstudiantes = state.todosMisEstudiantes.filter {
+                    val filteredEstudiantes = state.todosMisEstudiantes.filter { it ->
                         val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true)
                         val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
                         val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
@@ -372,8 +371,6 @@ fun CalificacionesDetalleEstudiante(
     viewModel: ProfesorViewModel
 ) {
     val state by viewModel.state.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
-    var evaluacionAEditar by remember { mutableStateOf<Evaluacion?>(null) }
 
     LaunchedEffect(estudiante.id, asignatura.id) {
         viewModel.cargarEvaluacionesEstudiante(estudiante.id, asignatura.id)
@@ -394,8 +391,12 @@ fun CalificacionesDetalleEstudiante(
                     EvaluacionProfesorItem(
                         evaluacion = eval,
                         onEdit = {
-                            evaluacionAEditar = eval
-                            showDialog = true
+                            onOpenDialog(
+                                DialogState.AddEditCalificacion(
+                                    evaluacion = eval,
+                                    onSave = { viewModel.guardarEvaluacion(it) }
+                                )
+                            )
                         },
                         onDelete = { viewModel.eliminarEvaluacion(eval) },
                         onToggleVisibility = {
@@ -458,28 +459,19 @@ fun CalificacionesDetalleEstudiante(
             }
         }
 
-        FloatingActionButton(
+        CustomFAB(
             onClick = {
-                evaluacionAEditar = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id)
-                showDialog = true
+                onOpenDialog(
+                    DialogState.AddEditCalificacion(
+                        evaluacion = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id),
+                        onSave = { viewModel.guardarEvaluacion(it) }
+                    )
+                )
             },
-            containerColor = primaryColor,
+            text = "Añadir",
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 100.dp, end = 20.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Añadir", tint = textColor)
-        }
-    }
-
-    if (showDialog) {
-        AddEditCalificacionDialog(
-            evaluacion = evaluacionAEditar!!,
-            onDismiss = { showDialog = false },
-            onSave = {
-                viewModel.guardarEvaluacion(it)
-                showDialog = false
-            }
         )
     }
 }
