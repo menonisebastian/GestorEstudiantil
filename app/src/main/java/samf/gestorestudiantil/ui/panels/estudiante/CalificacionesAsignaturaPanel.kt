@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -43,6 +46,7 @@ import samf.gestorestudiantil.domain.toComposeIcon
 import samf.gestorestudiantil.ui.components.EvaluacionCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
+import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
@@ -65,75 +69,81 @@ fun CalificacionesAsignaturaPanel(
         evaluaciones.sumOf { it.nota } / evaluaciones.size
     } else 0.0
 
-    Column(modifier = Modifier
+    Box(modifier = Modifier
         .padding(horizontal = 20.dp)
         .fillMaxSize()
-    )
-    {
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            AccImg(
-                userName = profesor?.nombre ?: asignatura.profesorNombre,
-                imgUrl = profesor?.imgUrl ?: "",
-                size = 40.dp,
-                onClick = { profesor?.let { onOpenDialog(DialogState.UserProfile(it)) } }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(horizontalAlignment = Alignment.Start) {
-                Text(
-                    text = String.format(java.util.Locale.getDefault(), "Media: %.2f", notaMedia),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = if (notaMedia >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Column(horizontalAlignment = Alignment.End) {
-                val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
-                Text(
-                    text = asignatura.nombre,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
-                )
-                Text(
-                    text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
-                    fontSize = 12.sp,
-                    color = surfaceDimColor
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+    ) {
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        )
-        {
-            items(evaluaciones)
-            {
-                    modulo ->
+            contentPadding = PaddingValues(top = 90.dp, bottom = 140.dp)
+        ) {
+            items(evaluaciones) { modulo ->
                 EvaluacionCard(modulo, onClick = { onOpenDialog(DialogState.VerDetalleEvaluacion(modulo)) })
             }
         }
 
-        Row(
+        // Cabezal Flotante (Similar al del Tutor)
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 120.dp), // Espacio para que el BottomBar no lo tape
-            horizontalArrangement = Arrangement.End
+                .padding(vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AccImg(
+                    userName = profesor?.nombre ?: asignatura.profesorNombre,
+                    imgUrl = profesor?.imgUrl ?: "",
+                    size = 40.dp,
+                    onClick = { profesor?.let { onOpenDialog(DialogState.UserProfile(it)) } }
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Mis Calificaciones",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
+                    val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
+                    Text(
+                        text = asignatura.nombre,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                    Text(
+                        text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+
+        // Nota Media Flotante Inferior
+        Card(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 120.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = String.format(java.util.Locale.getDefault(), "Nota media: %.2f", notaMedia),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
+                text = String.format(java.util.Locale.getDefault(), "MEDIA: %.2f", notaMedia).uppercase(),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
             )
         }
     }

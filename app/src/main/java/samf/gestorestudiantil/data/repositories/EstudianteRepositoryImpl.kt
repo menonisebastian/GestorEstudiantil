@@ -88,9 +88,10 @@ class EstudianteRepositoryImpl @Inject constructor(
             .update("ultimaVezAsignaturas.$asignaturaId", timestamp).await()
     }
 
-    override suspend fun getEvaluaciones(asignaturaId: String): List<Evaluacion> {
+    override suspend fun getEvaluaciones(asignaturaId: String, estudianteId: String): List<Evaluacion> {
         val snapshot = db.collection("evaluaciones")
             .whereEqualTo("asignaturaId", asignaturaId)
+            .whereEqualTo("estudianteId", estudianteId)
             .get().await()
         return snapshot.toObjects(Evaluacion::class.java)
     }

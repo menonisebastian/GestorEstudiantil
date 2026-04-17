@@ -48,6 +48,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
@@ -65,6 +66,8 @@ import samf.gestorestudiantil.ui.viewmodels.AdminState
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import androidx.core.graphics.toColorInt
 import samf.gestorestudiantil.ui.components.AccImg
+import samf.gestorestudiantil.ui.components.CustomSearchBar
+import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.domain.capitalize
 
@@ -90,24 +93,17 @@ fun CentrosListScreen(
     onCentroClick: (Centro) -> Unit,
     onEditCentro: (Centro) -> Unit
 ) {
-    val context = LocalContext.current
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Gestión de Centros")
+    var searchText by remember { mutableStateOf("") }
+    Box(modifier = Modifier.fillMaxSize()) {
         if (adminState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else {
+            val filteredCentros = adminState.centros.filter { it.nombre.contains(searchText, ignoreCase = true) }
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 160.dp)
+                contentPadding = PaddingValues(top = 160.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
+                modifier = Modifier.fillMaxSize()
             ) {
-
-                // Boton temporal para importar datos desde jsonl
-//                item {
-//                    Button(onClick = { adminViewModel.cargarDatosDesdeJsonl(context) }, modifier = Modifier.padding(vertical = 8.dp)) {
-//                        Text("Importar y limpiar IES Comercio")
-//                    }
-//                }
-
                 // Boton temporal para recalcular contadores
                 item {
                     Button(
@@ -131,9 +127,24 @@ fun CentrosListScreen(
                     }
                 }
 
-                items(adminState.centros) { centro ->
+                items(filteredCentros) { centro ->
                     CentroCard(centro = centro, onClick = { onCentroClick(centro) }, onEdit = { onEditCentro(centro) })
                 }
+            }
+        }
+
+        // Header Flotante
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(text = "Gestión de Centros", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                CustomSearchBar(textoBusqueda = searchText, onValueChange = { searchText = it }, onFilterClick = {})
             }
         }
     }
@@ -145,14 +156,32 @@ fun TiposCursoScreen(
     adminState: AdminState,
     onTipoClick: (String) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Cursos en ${centro.nombre}")
+    Box(modifier = Modifier.fillMaxSize()) {
         val tipos = adminState.cursos.mapNotNull { it.tipo }.distinct().sorted()
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 160.dp)
+            contentPadding = PaddingValues(top = 100.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
             items(tipos) { tipo -> TipoCursoCard(tipo) { onTipoClick(tipo) } }
+        }
+
+        // Header Flotante
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = "Cursos en ${centro.nombre}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(16.dp)
+            )
         }
     }
 }
@@ -165,14 +194,32 @@ fun CursosScreen(
     onEditCurso: (Curso) -> Unit,
 ) {
     val headerTitle = if (tipo.contains("Curso", ignoreCase = true)) tipo else "Cursos de $tipo"
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader(headerTitle)
+    Box(modifier = Modifier.fillMaxSize()) {
         val cursos = adminState.cursos.filter { it.tipo == tipo }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 160.dp)
+            contentPadding = PaddingValues(top = 100.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
             items(cursos) { curso -> CursoCard(curso = curso, onClick = { onCursoClick(curso) }, onEdit = { onEditCurso(curso) }) }
+        }
+
+        // Header Flotante
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = headerTitle,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(16.dp)
+            )
         }
     }
 }
@@ -215,144 +262,108 @@ fun CiclosScreen(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val currentCiclo = ciclos.getOrNull(selectedTabIndex) ?: ""
     val asignaturasDelCiclo = asignaturasFiltradas.filter { it.ciclo == currentCiclo }
-
     val profesorEjemplo = asignaturasDelCiclo.firstOrNull { it.profesorNombre.isNotEmpty() }
-
     val currentCicloNum = currentCiclo.trim().firstOrNull()?.toString()?.toIntOrNull() ?: 1
-
-    // Buscamos la clase real en el estado para usar su ID como título
     val claseReal = adminState.clases.find {
         it.cursoGlobalId == curso.id &&
                 it.turno.lowercase().trim() == turno.lowercase().trim() &&
                 it.cicloNum == currentCicloNum
     }
-
     val idClaseTitulo = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim() == "matutino") "M" else "V"}${currentCicloNum}".uppercase()
 
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Ciclos de $idClaseTitulo")
-
+    Box(modifier = Modifier.fillMaxSize()) {
         if (ciclos.isNotEmpty()) {
-            SecondaryTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = Color.Transparent,
-                divider = {},
-                modifier = Modifier.padding(bottom = 8.dp)
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(top = 220.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
+                modifier = Modifier.fillMaxSize()
             ) {
-                ciclos.forEachIndexed { index, ciclo ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        selectedContentColor = primaryColor,
-                        unselectedContentColor = surfaceDimColor,
-                        text = { Text("Ciclo $ciclo", fontWeight = FontWeight.Bold) }
+                items(asignaturasDelCiclo) { asignatura ->
+                    AsignaturaCard(
+                        asignatura = asignatura,
+                        userRole = "ADMIN",
+                        onClick = { onAsignaturaClick(asignatura) },
+                        onEdit = { onEditAsignatura(asignatura) }
                     )
                 }
             }
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(top = 90.dp, bottom = 160.dp)
-                ) {
-                    items(asignaturasDelCiclo) { asignatura ->
-                        AsignaturaCard(
-                            asignatura = asignatura,
-                            userRole = "ADMIN",
-                            onClick = { onAsignaturaClick(asignatura) },
-                            onEdit = { onEditAsignatura(asignatura) }
-                        )
-                    }
-                }
-
-                // Tarjeta Flotante del Tutor
+            // Cabezal Flotante (Título + Tabs + Tutor)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(backgroundColor.copy(alpha = 0.95f))
+            ) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
                     colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    onClick = {
-                        profesorEjemplo?.let { asig ->
-                            if (asig.profesorId.isNotEmpty()) {
-                                val prof = adminState.usuarios.find { it.id == asig.profesorId }
-                                if (prof != null) {
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(text = "Ciclos de $idClaseTitulo", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                        
+                        // Tarjeta del Tutor dentro del área flotante
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = backgroundColor.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(12.dp),
+                            onClick = {
+                                profesorEjemplo?.let { asig ->
+                                    val prof = adminState.usuarios.find { it.id == asig.profesorId } ?: User.Profesor(id = asig.profesorId, nombre = asig.profesorNombre)
                                     onUserClick(prof)
-                                } else {
-                                    onUserClick(User.Profesor(id = asig.profesorId, nombre = asig.profesorNombre))
+                                }
+                            }
+                        ) {
+                            Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                AccImg(userName = profesorEjemplo?.profesorNombre ?: "Sin Asignar", imgUrl = "", size = 32.dp, onClick = {})
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = profesorEjemplo?.profesorNombre ?: "Sin Tutor Asignado", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textColor)
+                                    Text(text = "Tutor del curso", fontSize = 10.sp, color = surfaceDimColor)
+                                }
+                                IconButton(onClick = { 
+                                    val turnoLetra = if (turno.lowercase().trim() == "matutino") "M" else "V"
+                                    onAsignarTutor("${curso.acronimo}${turnoLetra}${currentCicloNum}".uppercase(), curso.centroId) 
+                                }, modifier = Modifier.size(24.dp)) {
+                                    Icon(Icons.Default.Edit, null, tint = primaryColor, modifier = Modifier.size(16.dp))
+                                }
+                                Button(
+                                    onClick = { onVerHorario(currentCiclo) },
+                                    contentPadding = PaddingValues(horizontal = 8.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.height(30.dp),
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = primaryColor.copy(alpha = 0.1f), contentColor = primaryColor)
+                                ) {
+                                    Icon(Icons.Default.Schedule, null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Horario", fontSize = 11.sp)
                                 }
                             }
                         }
                     }
+                }
+
+                SecondaryTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = textColor,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AccImg(
-                            userName = profesorEjemplo?.profesorNombre ?: "Sin Asignar",
-                            imgUrl = "",
-                            size = 40.dp,
-                            onClick = {
-                                profesorEjemplo?.let { asig ->
-                                    if (asig.profesorId.isNotEmpty()) {
-                                        val prof = adminState.usuarios.find { it.id == asig.profesorId }
-                                        if (prof != null) {
-                                            onUserClick(prof)
-                                        } else {
-                                            onUserClick(User.Profesor(id = asig.profesorId, nombre = asig.profesorNombre))
-                                        }
-                                    }
-                                }
-                            }
+                    ciclos.forEachIndexed { index, ciclo ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = { Text("Ciclo $ciclo", fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal) }
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = profesorEjemplo?.profesorNombre ?: "Sin Tutor Asignado",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textColor
-                            )
-                            Text(text = "Tutor del curso", fontSize = 11.sp, color = Color.Gray)
-                        }
-
-                        IconButton(
-                            onClick = {
-                                val turnoLetra = if (turno.lowercase().trim() == "matutino") "M" else "V"
-                                val cicloNumStr = currentCiclo.trim().firstOrNull()?.toString() ?: "1"
-                                val claseId = "${curso.acronimo}${turnoLetra}${cicloNumStr}".uppercase()
-                                onAsignarTutor(claseId, curso.centroId)
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Asignar Tutor",
-                                tint = primaryColor,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        Button(
-                            onClick = { onVerHorario(currentCiclo) },
-                            contentPadding = PaddingValues(horizontal = 12.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = primaryColor.copy(alpha = 0.1f),
-                                contentColor = primaryColor
-                            )
-                        ) {
-                            Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Horario", fontSize = 12.sp)
-                        }
                     }
                 }
             }
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No hay asignaturas configuradas", color = Color.Gray)
+                Text("No hay asignaturas configuradas", color = surfaceDimColor)
             }
         }
     }
@@ -365,20 +376,38 @@ fun AsignaturasScreen(
     onAsignaturaClick: (Asignatura) -> Unit,
     onEditAsignatura: (Asignatura) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Asignaturas - $ciclo")
-        val asignaturas = adminState.asignaturas.filter { it.ciclo == ciclo }
+    var searchText by remember { mutableStateOf("") }
+    Box(modifier = Modifier.fillMaxSize()) {
+        val filteredAsignaturas = adminState.asignaturas.filter { 
+            it.ciclo == ciclo && (it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)) 
+        }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 160.dp)
+            contentPadding = PaddingValues(top = 160.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
-            items(asignaturas) { asignatura ->
+            items(filteredAsignaturas) { asignatura ->
                 AsignaturaCard(
                     asignatura = asignatura,
                     userRole = "ADMIN",
                     onClick = { onAsignaturaClick(asignatura) },
                     onEdit = { onEditAsignatura(asignatura) }
                 )
+            }
+        }
+
+        // Header Flotante
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(text = "Asignaturas - $ciclo", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                CustomSearchBar(textoBusqueda = searchText, onValueChange = { searchText = it }, onFilterClick = {})
             }
         }
     }

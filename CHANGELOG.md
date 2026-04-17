@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.2] - 2026-04-17
+- **UI/UX**: Estandarización global del patrón de "Cabezal Flotante" (Floating Header) en todos los paneles de la aplicación (Estudiante, Profesor y Administrador).
+- **UI/UX**: Mejora de la profundidad visual mediante el uso de tarjetas elevadas con transparencia (alpha 0.95f) y elevación de 8.dp para un efecto de superposición.
+- **Admin**: Refactorización de los paneles de Usuarios y Centros, integrando `SecondaryTabRow` con contadores de elementos y cabezales unificados.
+- **Profesor**: Actualización estética de la gestión de calificaciones y horarios, incluyendo sub-vistas de alumnos y detalle de notas con el nuevo diseño de tarjetas elevadas.
+- **Componentes**: Rediseño de `CustomSearchBar` para mejorar el contraste visual y la sensación de profundidad ("hole effect") sobre superficies elevadas.
+
 ## [v0.6.1] - 2026-04-16
 - **UI/UX**: Estandarización de la capitalización de turnos en toda la aplicación (Perfil, Registro, Filtros, Diálogos) para mejorar la legibilidad.
 - **Admin**: Mejora en `HorariosAdminScreen` para mostrar el identificador único de la clase (`claseId`) en el encabezado basándose en el modelo `Clase.kt`.

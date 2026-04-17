@@ -39,3 +39,7 @@ val secondaryColor: Color
 val tertiaryColor: Color
     @Composable
     get() = colorScheme.tertiary
+
+val searchBarColor: Color
+    @Composable
+    get() = colorScheme.secondaryContainer

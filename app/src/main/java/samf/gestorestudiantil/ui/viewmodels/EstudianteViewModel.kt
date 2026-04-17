@@ -133,11 +133,11 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
-    fun cargarEvaluaciones(asignaturaId: String) {
+    fun cargarEvaluaciones(asignaturaId: String, estudianteId: String) {
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
-                val evaluations = estudianteRepository.getEvaluaciones(asignaturaId)
+                val evaluations = estudianteRepository.getEvaluaciones(asignaturaId, estudianteId)
                 _state.update { it.copy(isLoading = false, evaluaciones = evaluations) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = e.localizedMessage) }

@@ -86,6 +86,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -119,6 +120,7 @@ import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
+import samf.gestorestudiantil.ui.theme.searchBarColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
@@ -147,12 +149,11 @@ fun BottomNavBar(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 2.dp)
                 .wrapContentSize()
-                .clip(CircleShape)
-                .hazeEffect(hazeState){style = hazeStyle},
+                .shadow(elevation = 16.dp, shape = CircleShape, clip = false)
+                .hazeEffect(hazeState) { style = hazeStyle },
             shape = CircleShape,
             color = surfaceColor.copy(alpha = 0.95f),
-            tonalElevation = 8.dp,
-            shadowElevation = 10.dp
+            tonalElevation = 8.dp
         ) {
             Row(
                 modifier = Modifier
@@ -833,9 +834,9 @@ fun CustomSearchBar(
         },
         shape = RoundedCornerShape(16.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = surfaceColor,
-            unfocusedContainerColor = surfaceColor,
-            disabledContainerColor = surfaceColor,
+            focusedContainerColor = searchBarColor,
+            unfocusedContainerColor = searchBarColor,
+            disabledContainerColor = searchBarColor,
             focusedIndicatorColor = primaryColor.copy(alpha = 0.5f),
             unfocusedIndicatorColor = Color.Transparent,
             focusedLabelColor = primaryColor,

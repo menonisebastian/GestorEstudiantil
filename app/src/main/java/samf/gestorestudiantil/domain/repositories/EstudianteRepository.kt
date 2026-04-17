@@ -11,6 +11,6 @@ interface EstudianteRepository {
     suspend fun getCountNuevosPosts(asignaturaId: String, lastRead: Long): Int
     suspend fun getCountNuevasTareas(asignaturaId: String, lastRead: Long): Int
     suspend fun marcarAsignaturaLeida(usuarioId: String, asignaturaId: String, timestamp: Long)
-    suspend fun getEvaluaciones(asignaturaId: String): List<Evaluacion>
+    suspend fun getEvaluaciones(asignaturaId: String, estudianteId: String): List<Evaluacion>
     fun getHorarios(cursoId: String, turno: String, cicloNum: Int): Flow<List<Horario>>
 }

@@ -100,7 +100,6 @@ import java.util.UUID
 val itemsEstudiante: Map<String, ImageVector> = mapOf(
     "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
-    "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
     "Recordatorios" to Icons.Outlined.Notifications,
     "Perfil" to Icons.Outlined.Person
 )
@@ -481,7 +480,10 @@ fun HomeScreen(
                                     asignatura = route.asignatura,
                                     estudiante = usuario,
                                     onBackClick = { homeState.pop(pageTab) },
-                                    onOpenDialog = onOpenDialog
+                                    onOpenDialog = onOpenDialog,
+                                    onVerCalificaciones = { asignatura ->
+                                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                                    }
                                 )
                             }
                             else -> homeState.pop(pageTab)
@@ -567,9 +569,9 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
-                        // Cargar evaluaciones de la asignatura seleccionada
+                        // Cargar evaluaciones de la asignatura seleccionada para el estudiante actual
                         LaunchedEffect(route.asignatura.id) {
-                            estudianteViewModel.cargarEvaluaciones(route.asignatura.id)
+                            estudianteViewModel.cargarEvaluaciones(route.asignatura.id, usuario.id)
                         }
 
                         CalificacionesAsignaturaPanel(

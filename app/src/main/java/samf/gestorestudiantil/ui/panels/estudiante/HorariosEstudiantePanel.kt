@@ -52,30 +52,11 @@ fun HorariosEstudiantePanel(
 ) {
     var selectedDay by remember { mutableStateOf("Lunes") }
 
-    Column(
+    Box(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .fillMaxSize()
     ) {
-        // Título
-        Column(modifier = Modifier.padding(horizontal = 20.dp))
-        {
-            Text(
-                text = "Horario Personal",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = textColor,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-        }
-
-        // Barra de selección de días
-        WeekNavBar(
-            selectedItem = selectedDay,
-            onItemSelected = { nuevoDia -> selectedDay = nuevoDia }
-        )
-
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 androidx.compose.material3.CircularProgressIndicator(color = samf.gestorestudiantil.ui.theme.primaryColor)
@@ -87,9 +68,38 @@ fun HorariosEstudiantePanel(
                 label = "HorarioTransition",
                 transitionSpec = {
                     fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
-                }
+                },
+                modifier = Modifier.fillMaxSize()
             ) { dia ->
                 HorarioDelDia(dia, horarios, asignaturas, turno)
+            }
+        }
+
+        // Cabezal Flotante (Título + Selector de días)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Horario Personal",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = textColor,
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp)
+                )
+
+                WeekNavBar(
+                    selectedItem = selectedDay,
+                    onItemSelected = { nuevoDia -> selectedDay = nuevoDia }
+                )
             }
         }
     }
@@ -105,7 +115,7 @@ fun HorarioDelDia(dia: String, horarios: List<Horario>, asignaturas: List<Asigna
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 120.dp)
+        contentPadding = PaddingValues(top = 140.dp, bottom = 120.dp)
     ) {
         if (horarios.isEmpty()) {
             item {

@@ -16,6 +16,7 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
+import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -25,7 +26,8 @@ fun MateriaDetalleEstudiantePanel(
     asignatura: Asignatura,
     estudiante: User,
     onBackClick: () -> Unit,
-    onOpenDialog: (DialogState) -> Unit
+    onOpenDialog: (DialogState) -> Unit,
+    onVerCalificaciones: (Asignatura) -> Unit
 ) {
     val viewModel: EstudianteViewModel = hiltViewModel()
     val profesorViewModel: ProfesorViewModel = hiltViewModel()
@@ -44,53 +46,72 @@ fun MateriaDetalleEstudiantePanel(
     ) {
         item {
             val profesor by profesorViewModel.profesor.collectAsState()
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(vertical = 16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AccImg(
-                        userName = asignatura.profesorNombre,
-                        imgUrl = profesor?.imgUrl ?: "",
-                        onClick = {
-                            profesor?.let { onOpenDialog(DialogState.UserProfile(it)) }
-                        },
-                        size = 40.dp
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AccImg(
+                            userName = asignatura.profesorNombre,
+                            imgUrl = profesor?.imgUrl ?: "",
+                            onClick = {
+                                profesor?.let { onOpenDialog(DialogState.UserProfile(it)) }
+                            },
+                            size = 40.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Profesor/a",
+                                fontSize = 12.sp,
+                                color = textColor.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = asignatura.profesorNombre.ifEmpty { "Sin asignar" },
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textColor
+                            )
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        val titulo =
+                            "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${
+                                asignatura.ciclo.take(1)
+                            }"
                         Text(
-                            text = "Profesor/a",
-                            fontSize = 12.sp,
-                            color = textColor.copy(alpha = 0.6f)
+                            text = titulo,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                            lineHeight = 18.sp
                         )
                         Text(
-                            text = asignatura.profesorNombre.ifEmpty { "Sin asignar" },
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textColor
+                            text = asignatura.nombre,
+                            fontSize = 12.sp,
+                            color = textColor.copy(alpha = 0.7f),
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 14.sp
                         )
                     }
                 }
 
-                Column(horizontalAlignment = Alignment.End) {
-                    val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
+                TextButton(
+                    onClick = { onVerCalificaciones(asignatura) },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
                     Text(
-                        text = titulo,
-                        fontSize = 16.sp,
+                        text = "Ver mis calificaciones",
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = textColor,
-                        lineHeight = 18.sp
-                    )
-                    Text(
-                        text = asignatura.nombre,
-                        fontSize = 12.sp,
-                        color = textColor.copy(alpha = 0.7f),
-                        fontWeight = FontWeight.Normal,
-                        lineHeight = 14.sp
+                        color = primaryColor
                     )
                 }
             }

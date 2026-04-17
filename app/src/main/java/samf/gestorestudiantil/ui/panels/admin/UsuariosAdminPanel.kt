@@ -82,7 +82,6 @@ fun UsuariosAdminPanel(
     var filtroTurno by rememberSaveable { mutableStateOf("") }
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Activos, 1: Pendientes
     val tabs = listOf("Activos", "Pendientes")
-    //var confirmDialogVisible by remember { mutableStateOf(false) }
 
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
@@ -141,123 +140,19 @@ fun UsuariosAdminPanel(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        ) {
-            Text(
-                text = "Gestión de Usuarios",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = textColor,
-                modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
-            )
-
-            CustomSearchBar(
-                textoBusqueda = textoBusqueda,
-                onValueChange = { textoBusqueda = it },
-                onFilterClick = {
-                    onOpenDialog(
-                        DialogState.Filter(
-                            tipo = "Usuario",
-                            currentFilters = mapOf(
-                                "rol" to filtroRol,
-                                "curso" to filtroCurso,
-                                "ciclo" to filtroCiclo,
-                                "turno" to filtroTurno
-                            ),
-                            opcionesPersonalizadas = mapOf(
-                                "cursos" to adminState.cursos.map { it.acronimo }.distinct()
-                            ),
-                            onApply = { seleccion ->
-                                filtroRol = seleccion["rol"] ?: ""
-                                filtroCurso = seleccion["curso"] ?: ""
-                                filtroCiclo = seleccion["ciclo"] ?: ""
-                                filtroTurno = seleccion["turno"] ?: ""
-                            }
-                        )
-                    )
-                },
-                filters = mapOf(
-                    "rol" to filtroRol,
-                    "curso" to filtroCurso,
-                    "ciclo" to filtroCiclo,
-                    "turno" to filtroTurno
-                ),
-                onRemoveFilter = { keyPlusValue ->
-                    val (key, newValue) = if (keyPlusValue.contains(":")) {
-                        val parts = keyPlusValue.split(":")
-                        parts[0] to parts[1]
-                    } else {
-                        keyPlusValue to ""
-                    }
-                    when(key) {
-                        "rol" -> filtroRol = newValue
-                        "curso" -> filtroCurso = newValue
-                        "ciclo" -> filtroCiclo = newValue
-                        "turno" -> filtroTurno = newValue
-                    }
-                }
-            )
-        }
-
-        // Pestañas modernas de Material 3
-        SecondaryTabRow(
-            selectedTabIndex = selectedTabIndex,
-            containerColor = backgroundColor,
-            contentColor = textColor
-        ) {
-            tabs.forEachIndexed { index, title ->
-                val count = if (index == 0) countActivos else countPendientes
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = title,
-                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedTabIndex == index) textColor else surfaceDimColor
-                            )
-                            if (count > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 6.dp)
-                                        .background(
-                                            color = if (selectedTabIndex == index) primaryColor.copy(alpha = 0.15f) else surfaceDimColor.copy(alpha = 0.1f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = count.toString(),
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (selectedTabIndex == index) primaryColor else surfaceDimColor
-                                    )
-                                }
-                            }
-                        }
-                    }
-                )
-            }
-        }
-
-        // Contenido Principal
+        // Contenido Principal (Pasa por debajo del cabezal)
         if (adminState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 160.dp),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 220.dp, bottom = 120.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -277,7 +172,6 @@ fun UsuariosAdminPanel(
                             canDelete = usuario.id != usuarioActual.id,
                             onAprobar = { adminViewModel.aprobarUsuario(usuario) },
                             onRechazar = {
-                                // USAMOS EL CALLBACK PARA ABRIR EL DIÁLOGO
                                 onOpenDialog(
                                     DialogState.Confirmation(
                                         title = "Eliminar Usuario",
@@ -304,7 +198,124 @@ fun UsuariosAdminPanel(
                             appViewModel = appViewModel
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                }
+            }
+        }
+
+        // Cabezal Flotante (Título + Barra de Búsqueda + Tabs)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(backgroundColor.copy(alpha = 0.95f)) // Fondo para el área del TabRow
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Gestión de Usuarios",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor
+                    )
+
+                    CustomSearchBar(
+                        textoBusqueda = textoBusqueda,
+                        onValueChange = { textoBusqueda = it },
+                        onFilterClick = {
+                            onOpenDialog(
+                                DialogState.Filter(
+                                    tipo = "Usuario",
+                                    currentFilters = mapOf(
+                                        "rol" to filtroRol,
+                                        "curso" to filtroCurso,
+                                        "ciclo" to filtroCiclo,
+                                        "turno" to filtroTurno
+                                    ),
+                                    opcionesPersonalizadas = mapOf(
+                                        "cursos" to adminState.cursos.map { it.acronimo }.distinct()
+                                    ),
+                                    onApply = { seleccion ->
+                                        filtroRol = seleccion["rol"] ?: ""
+                                        filtroCurso = seleccion["curso"] ?: ""
+                                        filtroCiclo = seleccion["ciclo"] ?: ""
+                                        filtroTurno = seleccion["turno"] ?: ""
+                                    }
+                                )
+                            )
+                        },
+                        filters = mapOf(
+                            "rol" to filtroRol,
+                            "curso" to filtroCurso,
+                            "ciclo" to filtroCiclo,
+                            "turno" to filtroTurno
+                        ),
+                        onRemoveFilter = { keyPlusValue ->
+                            val (key, newValue) = if (keyPlusValue.contains(":")) {
+                                val parts = keyPlusValue.split(":")
+                                parts[0] to parts[1]
+                            } else {
+                                keyPlusValue to ""
+                            }
+                            when(key) {
+                                "rol" -> filtroRol = newValue
+                                "curso" -> filtroCurso = newValue
+                                "ciclo" -> filtroCiclo = newValue
+                                "turno" -> filtroTurno = newValue
+                            }
+                        }
+                    )
+                }
+            }
+
+            // Pestañas (TabRow) - Se mantienen fuera de la Card pero dentro del área flotante
+            SecondaryTabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = Color.Transparent, // Transparent para usar el fondo de la columna
+                contentColor = textColor,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    val count = if (index == 0) countActivos else countPendientes
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = title,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (selectedTabIndex == index) textColor else surfaceDimColor
+                                )
+                                if (count > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 6.dp)
+                                            .background(
+                                                color = if (selectedTabIndex == index) primaryColor.copy(alpha = 0.15f) else surfaceDimColor.copy(alpha = 0.1f),
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = count.toString(),
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (selectedTabIndex == index) primaryColor else surfaceDimColor
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }

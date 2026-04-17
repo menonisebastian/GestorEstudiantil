@@ -19,7 +19,8 @@ private val DarkColorScheme = darkColorScheme(
     surface = surfaceDark,
     onSurface = onSurfaceDark,
     surfaceDim = Gray,
-    error = SoftRed
+    error = SoftRed,
+    secondaryContainer = searchbarDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -30,7 +31,8 @@ private val LightColorScheme = lightColorScheme(
     surface = surfaceLight,
     onSurface = onSurfaceLight,
     surfaceDim = Gray,
-    error = SoftRed
+    error = SoftRed,
+    secondaryContainer = searchbarLight,
 
 
     /* Other default colors to override
