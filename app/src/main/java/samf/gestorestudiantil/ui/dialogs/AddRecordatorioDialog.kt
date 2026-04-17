@@ -52,7 +52,7 @@ fun AddRecordatorioDialog(
 ) {
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
+    var fecha by remember { mutableStateOf(state.initialDate) }
     var hora by remember { mutableStateOf("") }
     var tipo by remember { mutableStateOf(tipoRecordatorio.EXAMEN) }
 

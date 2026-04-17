@@ -60,6 +60,9 @@ sealed interface Routes {
         data object Horarios : HomeRoutes
 
         @Serializable
+        data object Calendario : HomeRoutes
+
+        @Serializable
         data object Calificaciones : HomeRoutes
 
         @Serializable

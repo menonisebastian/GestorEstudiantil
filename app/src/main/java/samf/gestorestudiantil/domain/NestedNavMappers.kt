@@ -18,6 +18,7 @@ fun authRouteToTab(route: Any): String = when (route) {
 fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
     "Asignaturas"     -> Routes.HomeRoutes.Materias
     "Horarios"        -> Routes.HomeRoutes.Horarios
+    "Calendario"      -> Routes.HomeRoutes.Calendario
     "Calificaciones"  -> Routes.HomeRoutes.Calificaciones
     "Recordatorios",
     "Notificaciones"  -> Routes.HomeRoutes.Recordatorios
@@ -35,6 +36,7 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
 fun routeToTab(route: Any, rol: String): String = when (route) {
     is Routes.HomeRoutes.Materias        -> "Asignaturas"
     is Routes.HomeRoutes.Horarios        -> "Horarios"
+    is Routes.HomeRoutes.Calendario      -> "Calendario"
     is Routes.HomeRoutes.Calificaciones  -> "Calificaciones"
     is Routes.HomeRoutes.Recordatorios   -> "Recordatorios"
     is Routes.HomeRoutes.Usuarios        -> "Usuarios"

@@ -35,7 +35,9 @@ fun CustomDatePickerDialog(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = if (state.initialDate.isNotBlank()) {
             try {
-                val millis = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(state.initialDate)?.time
+                // Soporta tanto yyyy/MM/dd como yyyy-MM-dd
+                val normalizedDate = state.initialDate.replace("-", "/")
+                val millis = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(normalizedDate)?.time
                     ?: System.currentTimeMillis()
 
                 if (millis < System.currentTimeMillis() - 86400000) {

@@ -63,6 +63,7 @@ class EstudianteViewModel @Inject constructor(
 
     private var asignaturasJob: Job? = null
     private var postsJob: Job? = null
+    private var tareasJob: Job? = null
     private var horariosJob: Job? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
 
@@ -74,9 +75,20 @@ class EstudianteViewModel @Inject constructor(
         asignaturasJob = viewModelScope.launch {
             estudianteRepository.getAsignaturas(cursoId, turno, cicloNum).collect { asignaturas ->
                 _state.update { it.copy(isLoading = false, asignaturas = asignaturas) }
-                subscribeToAsignaturas(asignaturas.map { it.id })
-                observarCambiosEnPostsYTareas(asignaturas.map { it.id })
+                val ids = asignaturas.map { it.id }
+                subscribeToAsignaturas(ids)
+                observarCambiosEnPostsYTareas(ids)
+                observarTodasLasTareas(ids)
                 recalcularNotificaciones(asignaturas, currentUltimaVez)
+            }
+        }
+    }
+
+    private fun observarTodasLasTareas(asignaturaIds: List<String>) {
+        tareasJob?.cancel()
+        tareasJob = viewModelScope.launch {
+            tareaRepository.getTareasPorAsignaturas(asignaturaIds).collect { tareas ->
+                _state.update { it.copy(tareas = tareas) }
             }
         }
     }

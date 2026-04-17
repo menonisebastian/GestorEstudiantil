@@ -68,6 +68,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -516,7 +517,6 @@ fun EvaluacionCard(evaluacion: Evaluacion, onClick: () -> Unit = {}) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TypeChip(option = evaluacion.tipoEvaluacion)
                     if (evaluacion.adjunto != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -541,12 +541,15 @@ fun EvaluacionCard(evaluacion: Evaluacion, onClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Text(
-                text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 18.sp,
-                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFD90808)
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                TypeChip(option = evaluacion.tipoEvaluacion)
+                Text(
+                    text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    color = if (evaluacion.nota >= 5) Color(0xFF73BE77) else Color(0xFFD55047)
+                )
+            }
         }
     }
 }
@@ -978,26 +981,24 @@ fun FloatingPill(
     buttonColor: Color = primaryColor,
     items: List<MenuItem>,
     expandedIcon: ImageVector,
-    shape: RoundedCornerShape = CircleShape,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(16.dp),
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.wrapContentSize(Alignment.TopEnd)
     ) {
-        IconButton(
+        FloatingActionButton(
             onClick = { expanded = true },
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = buttonColor,
-                contentColor = iconTint
-            ),
-            modifier = Modifier.size(32.dp),
+            containerColor = buttonColor,
+            contentColor = iconTint,
+            modifier = Modifier.size(56.dp),
             shape = shape
         ) {
             Icon(
                 imageVector = if (expanded) expandedIcon else baseIcon,
                 contentDescription = "Opciones",
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -1007,14 +1008,14 @@ fun FloatingPill(
             containerColor = Color.Transparent,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
-            offset = DpOffset(x = (-160).dp, y = 4.dp)
+            offset = DpOffset(x = (-130).dp, y = (-120).dp)
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(0.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.padding(end = 12.dp)
             ) {
-                items.forEach { item ->
+                items.reversed().forEach { item ->
                     Surface(
                         onClick = {
                             item.onClick()

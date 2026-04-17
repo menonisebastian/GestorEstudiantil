@@ -28,6 +28,7 @@ import samf.gestorestudiantil.ui.components.MenuItem
 import samf.gestorestudiantil.ui.components.TypeChip
 import samf.gestorestudiantil.ui.theme.*
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
+import java.util.Locale
 
 @Composable
 fun EvaluacionProfesorItem(
@@ -48,7 +49,7 @@ fun EvaluacionProfesorItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TypeChip(option = evaluacion.tipoEvaluacion)
+
                     if (evaluacion.adjunto != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -77,12 +78,15 @@ fun EvaluacionProfesorItem(
                 }
             }
 
-            Text(
-                text = String.format(java.util.Locale.getDefault(), "%.2f", evaluacion.nota),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                TypeChip(option = evaluacion.tipoEvaluacion)
+                Text(
+                    text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    color = if (evaluacion.nota >= 5) Color(0xFF73BE77) else Color(0xFFD55047)
+                )
+            }
             
             CustomDropDownMenu(
                 items = listOf(

@@ -259,8 +259,6 @@ fun EstudiantesAsignaturaLista(
     estudiantes: List<User>,
     onEstudianteClick: (User) -> Unit,
     onOpenDialog: (DialogState) -> Unit,
-    onBack: () -> Unit,
-    viewModel: ProfesorViewModel
 ) {
     var searchText by remember { mutableStateOf("") }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -274,7 +272,7 @@ fun EstudiantesAsignaturaLista(
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(top = 160.dp, bottom = 120.dp, start = 20.dp, end = 20.dp),
+            contentPadding = PaddingValues(top = 190.dp, bottom = 120.dp, start = 20.dp, end = 20.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             items(filteredEstudiantes) { estudiante ->
@@ -371,7 +369,6 @@ fun CalificacionesDetalleEstudiante(
     estudiante: User,
     asignatura: Asignatura,
     onOpenDialog: (DialogState) -> Unit,
-    onBack: () -> Unit,
     viewModel: ProfesorViewModel
 ) {
     val state by viewModel.state.collectAsState()
@@ -391,7 +388,7 @@ fun CalificacionesDetalleEstudiante(
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(top = 100.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
+                contentPadding = PaddingValues(top = 112.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
             ) {
                 items(state.evaluaciones) { eval ->
                     EvaluacionProfesorItem(
@@ -454,7 +451,7 @@ fun CalificacionesDetalleEstudiante(
                         text = String.format(java.util.Locale.getDefault(), "%.2f", notaMedia),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = if (notaMedia >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
+                        color = if (notaMedia >= 5) Color(0xFF73BE77) else Color(0xFFD55047)
                     )
                     Text("MEDIA", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = surfaceDimColor)
                 }

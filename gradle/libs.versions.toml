@@ -32,6 +32,7 @@ androidxHiltNavigationCompose = "1.3.0"
 ksp = "2.1.0-1.0.29"
 google-auth-library = "1.43.0"
 ui = "1.10.6"
+calendar = "2.10.1"
 
 [libraries]
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
@@ -83,6 +84,7 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 google-auth-library = { module = "com.google.auth:google-auth-library-oauth2-http", version.ref = "google-auth-library" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+calendar-compose = { module = "com.kizitonwose.calendar:compose", version.ref = "calendar" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

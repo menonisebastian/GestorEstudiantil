@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Grading
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Class
 import androidx.compose.material.icons.outlined.Notifications
@@ -85,6 +86,7 @@ import samf.gestorestudiantil.ui.panels.profesor.CalificacionesProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.EstudiantesAsignaturaLista
 import samf.gestorestudiantil.ui.panels.profesor.HorariosProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.MateriaDetalleProfesorPanel
+import samf.gestorestudiantil.ui.panels.CalendarioPanel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -100,6 +102,7 @@ import java.util.UUID
 val itemsEstudiante: Map<String, ImageVector> = mapOf(
     "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
+    "Calendario" to Icons.Default.CalendarMonth,
     "Recordatorios" to Icons.Outlined.Notifications,
     "Perfil" to Icons.Outlined.Person
 )
@@ -107,6 +110,7 @@ val itemsEstudiante: Map<String, ImageVector> = mapOf(
 val itemsProfesor: Map<String, ImageVector> = mapOf(
     "Asignaturas" to Icons.Outlined.Class,
     "Horarios" to Icons.Default.Schedule,
+    "Calendario" to Icons.Default.CalendarMonth,
     "Calificaciones" to Icons.AutoMirrored.Filled.Grading,
     "Recordatorios" to Icons.Outlined.Notifications,
     "Perfil" to Icons.Outlined.Person
@@ -351,11 +355,12 @@ fun HomeScreen(
             // ✅ FAB Centralizado y Contextual
             val currentRoute = currentStack?.lastOrNull()
             when {
-                currentTab == "Recordatorios" || currentTab == "Notificaciones" -> {
+                (currentTab == "Recordatorios" || currentTab == "Notificaciones") -> {
                     FloatingActionButton(
                         onClick = {
                             onOpenDialog(
                                 DialogState.AddRecordatorio(
+                                    initialDate = "",
                                     onSave = { titulo, descripcion, fecha, hora, tipo ->
                                         val nuevo = Recordatorio(
                                             id = UUID.randomUUID().toString(),
@@ -471,7 +476,6 @@ fun HomeScreen(
                                 MateriaDetalleProfesorPanel(
                                     asignatura = route.asignatura,
                                     profesor = usuario,
-                                    onBackClick = { homeState.pop(pageTab) },
                                     onOpenDialog = onOpenDialog
                                 )
                             }
@@ -510,6 +514,56 @@ fun HomeScreen(
                             }
                             else -> PlaceholderPanel("Horarios no disponibles")
                         }
+                    }
+                    entry<Routes.HomeRoutes.Calendario> {
+                        val tareas = if (usuario.rol == "PROFESOR") {
+                            profesorState.tareas
+                        } else {
+                            estudianteState.tareas
+                        }
+
+                        CalendarioPanel(
+                            usuarioActual = usuario,
+                            tareas = tareas,
+                            recordatorios = appState.recordatorios,
+                            paddingValues = PaddingValues(0.dp),
+                            onAddRecordatorio = { fechaSeleccionada ->
+                                onOpenDialog(
+                                    DialogState.AddRecordatorio(
+                                        initialDate = fechaSeleccionada,
+                                        onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                            val nuevo = Recordatorio(
+                                                id = UUID.randomUUID().toString(),
+                                                usuarioId = usuario.id,
+                                                titulo = titulo,
+                                                descripcion = descripcion,
+                                                fecha = fecha,
+                                                hora = hora,
+                                                tipo = tipo
+                                            )
+                                            appViewModel.agregarRecordatorio(nuevo)
+                                        }
+                                    )
+                                )
+                            },
+                            onAddTarea = { fechaSeleccionada ->
+                                // Aquí puedes abrir el diálogo de añadir tarea o navegar a donde corresponda
+                                // Por ahora lo dejamos como un placeholder o mostramos un mensaje
+                                appViewModel.showSnackbar("Función para añadir tarea en $fechaSeleccionada")
+                            },
+                            onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
+                            onDeleteTarea = { tarea ->
+                                if (usuario.rol == "PROFESOR") {
+                                    onOpenDialog(DialogState.Confirmation(
+                                        title = "Eliminar Tarea",
+                                        content = "¿Estás seguro de que deseas eliminar la tarea '${tarea.titulo}'? Esta acción es irreversible.",
+                                        onConfirm = { profesorViewModel.eliminarTarea(tarea) }
+                                    ))
+                                } else {
+                                    appViewModel.showSnackbar("Solo los profesores pueden eliminar tareas académicas.")
+                                }
+                            }
+                        )
                     }
                     // HomeScreen.kt — al navegar
                     entry<Routes.HomeRoutes.Calificaciones> {
@@ -554,8 +608,6 @@ fun HomeScreen(
                                 homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
                             },
                             onOpenDialog = onOpenDialog,
-                            onBack = { homeState.pop(pageTab) },
-                            viewModel = profesorViewModel
                         )
                     }
                     entry<Routes.HomeRoutes.CalificacionesEstudianteDetalle> { route ->
@@ -564,7 +616,6 @@ fun HomeScreen(
                             estudiante = route.estudiante,
                             asignatura = route.asignatura,
                             onOpenDialog = onOpenDialog,
-                            onBack = { homeState.pop(pageTab) },
                             viewModel = profesorViewModel
                         )
                     }

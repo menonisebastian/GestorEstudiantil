@@ -8,6 +8,7 @@ interface TareaRepository {
     // Tareas
     fun getTareasPorUnidad(unidadId: String): Flow<List<Tarea>>
     fun getTareasPorAsignatura(asignaturaId: String): Flow<List<Tarea>>
+    fun getTareasPorAsignaturas(asignaturaIds: List<String>): Flow<List<Tarea>>
     suspend fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null): String
     suspend fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null): String
     suspend fun eliminarTarea(tarea: Tarea)

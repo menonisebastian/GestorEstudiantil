@@ -413,6 +413,7 @@ class ProfesorViewModel @Inject constructor(
     private var entregasJob: Job? = null
     private var recalcularJob: Job? = null
     private var usuarioJob: Job? = null
+    private var tareasJob: Job? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
 
     fun cargarAsignaturas(profesorId: String, ultimaVez: Map<String, Long> = emptyMap()) {
@@ -422,6 +423,7 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             profesorRepository.getAsignaturas(profesorId).collect { lista ->
                 _state.update { it.copy(isLoading = false, asignaturas = lista) }
+                val ids = lista.map { it.id }
                 // Suscribir al profesor a sus asignaturas para recibir entregas
                 lista.forEach { asignatura ->
                     FirebaseMessaging.getInstance().subscribeToTopic("asignatura_${asignatura.id}_profesores")
@@ -429,8 +431,18 @@ class ProfesorViewModel @Inject constructor(
                 // Al cargar asignaturas, necesitamos conocer a todos los estudiantes de esos cursos para la pestaña global
                 cargarTodosMisEstudiantes(lista)
                 
-                observarCambiosEnEntregas(lista.map { it.id })
+                observarCambiosEnEntregas(ids)
+                observarTodasLasTareas(ids)
                 recalcularNotificaciones(lista, currentUltimaVez)
+            }
+        }
+    }
+
+    private fun observarTodasLasTareas(asignaturaIds: List<String>) {
+        tareasJob?.cancel()
+        tareasJob = viewModelScope.launch {
+            tareaRepository.getTareasPorAsignaturas(asignaturaIds).collect { tareas ->
+                _state.update { it.copy(tareas = tareas) }
             }
         }
     }

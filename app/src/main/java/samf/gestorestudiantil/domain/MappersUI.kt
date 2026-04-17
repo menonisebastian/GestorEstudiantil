@@ -181,13 +181,13 @@ fun String.toComposeIcon(): ImageVector {
 fun formatearFechaParaMostrar(fechaIso: String): String {
     if (fechaIso.isBlank()) return ""
     return try {
-        // Divide "2025/01/01" y reordena
-        val partes = fechaIso.split("/")
+        // Soporta tanto "2025/01/01" como "2025-01-01"
+        val partes = if (fechaIso.contains("/")) fechaIso.split("/") else fechaIso.split("-")
+        if (partes.size < 3) return fechaIso
         "${partes[2]}/${partes[1]}/${partes[0]}" // Retorna "01/01/2025"
-    } catch (e: Exception)
-    {
+    } catch (e: Exception) {
         e.printStackTrace()
-        fechaIso // Si falla, devuelve la original
+        fechaIso
     }
 }
 

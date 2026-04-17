@@ -28,7 +28,6 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 fun MateriaDetalleProfesorPanel(
     asignatura: Asignatura,
     profesor: User,
-    onBackClick: () -> Unit,
     onOpenDialog: (DialogState) -> Unit,
     appViewModel: AppViewModel = hiltViewModel()
 ) {

@@ -2,6 +2,11 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.3] - 2026-04-17
+- **UI/UX**: Estandarización del FAB (Floating Action Button) en el Calendario. Se eliminó el componente `FloatingPill` para unificar la acción de añadir recordatorios para todos los roles.
+- **Calendario**: Ahora tanto profesores como estudiantes solo pueden añadir recordatorios personales directamente desde la vista de calendario.
+- **UI/UX**: Optimización de la posición del FAB en el calendario, asegurando un padding inferior de 100.dp para evitar solapamientos con la barra de navegación.
+
 ## [v0.6.2] - 2026-04-17
 - **UI/UX**: Estandarización global del patrón de "Cabezal Flotante" (Floating Header) en todos los paneles de la aplicación (Estudiante, Profesor y Administrador).
 - **UI/UX**: Mejora de la profundidad visual mediante el uso de tarjetas elevadas con transparencia (alpha 0.95f) y elevación de 8.dp para un efecto de superposición.

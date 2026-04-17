@@ -41,6 +41,22 @@ class TareaRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
+    override fun getTareasPorAsignaturas(asignaturaIds: List<String>): Flow<List<Tarea>> = callbackFlow {
+        if (asignaturaIds.isEmpty()) {
+            trySend(emptyList())
+            awaitClose { }
+        } else {
+            val subscription = db.collection("tareas")
+                .whereIn("asignaturaId", asignaturaIds)
+                .addSnapshotListener { snapshot, _ ->
+                    if (snapshot != null) {
+                        trySend(snapshot.toObjects(Tarea::class.java))
+                    }
+                }
+            awaitClose { subscription.remove() }
+        }
+    }
+
     override suspend fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String?): String {
         val tareaId = "tarea_${tarea.asignaturaId}_${System.currentTimeMillis()}"
         var adjunto: AdjuntoInfo? = null

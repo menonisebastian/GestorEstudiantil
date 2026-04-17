@@ -21,6 +21,7 @@ sealed class DialogState {
 
     // 2. Diálogos de Recordatorios (Usado en HomeScreen y RecordatoriosPanel)
     data class AddRecordatorio(
+        val initialDate: String = "",
         val onSave: (String, String, String, String, tipoRecordatorio) -> Unit
     ) : DialogState()
 
