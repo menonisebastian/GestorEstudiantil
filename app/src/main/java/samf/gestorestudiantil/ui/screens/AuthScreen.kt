@@ -237,7 +237,7 @@ fun AuthScreen(
                                         } else {
                                             Toast.makeText(
                                                 context,
-                                                "No se pudo iniciar sesión con Google",
+                                                R.string.error_google_auth_cancelled,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -435,7 +435,7 @@ fun ForgotPasswordPanel(
             Button(
                 onClick = {
                     if (email.isBlank()) {
-                        Toast.makeText(context, "Por favor, introduce tu email", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.error_enter_email, Toast.LENGTH_SHORT).show()
                     } else {
                         onResetClick(email)
                     }
@@ -663,11 +663,11 @@ fun RegistroPanelStep1(
                         val confirmPassword = confirmPasswordState.text.toString()
 
                         if (name.isBlank() || email.isBlank() || password.isBlank()) {
-                            Toast.makeText(context, "Por favor rellena todos los campos", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, R.string.error_empty_fields, Toast.LENGTH_SHORT).show()
                         } else if (password != confirmPassword) {
-                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, R.string.error_passwords_mismatch, Toast.LENGTH_SHORT).show()
                         } else if (password.length < 6) {
-                            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, R.string.error_password_too_short, Toast.LENGTH_SHORT).show()
                         } else {
                             onNextClick(name, email, password, imgUrl)
                         }

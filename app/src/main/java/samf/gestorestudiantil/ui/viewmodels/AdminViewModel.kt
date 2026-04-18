@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Clase
@@ -19,6 +20,7 @@ import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.usecases.AssignSubjectToProfessorUseCase
 import samf.gestorestudiantil.domain.usecases.SeedDatabaseUseCase
+import samf.gestorestudiantil.ui.utils.ErrorMapper
 import javax.inject.Inject
 
 data class AdminState(
@@ -38,7 +40,8 @@ class AdminViewModel @Inject constructor(
     private val adminRepository: AdminRepository,
     private val courseRepository: CourseRepository,
     private val seedDatabaseUseCase: SeedDatabaseUseCase,
-    private val assignSubjectToProfessorUseCase: AssignSubjectToProfessorUseCase
+    private val assignSubjectToProfessorUseCase: AssignSubjectToProfessorUseCase,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _adminState = MutableStateFlow(AdminState())
@@ -53,7 +56,7 @@ class AdminViewModel @Inject constructor(
                 val lines = inputStream.bufferedReader().readLines()
                 seedDatabaseUseCase(lines)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = "Error al cargar datos: ${e.message}")
+                _adminState.value = _adminState.value.copy(errorMessage = context.getString(R.string.error_load_data))
             }
         }
     }
@@ -72,7 +75,7 @@ class AdminViewModel @Inject constructor(
             try {
                 adminRepository.aprobarUsuario(usuario.id)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+                _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
         }
     }
@@ -82,7 +85,7 @@ class AdminViewModel @Inject constructor(
             try {
                 adminRepository.eliminarUsuario(usuario.id)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+                _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
         }
     }
@@ -124,7 +127,7 @@ class AdminViewModel @Inject constructor(
             try {
                 assignSubjectToProfessorUseCase(asignaturaId, profesorId)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+                _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
         }
     }
@@ -134,7 +137,7 @@ class AdminViewModel @Inject constructor(
             try {
                 adminRepository.asignarTutorAClase(claseId, tutorId)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+                _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
         }
     }
@@ -144,7 +147,7 @@ class AdminViewModel @Inject constructor(
             try {
                 adminRepository.desasignarAsignatura(asignaturaId, profesorId)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+                _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
         }
     }
@@ -168,7 +171,7 @@ class AdminViewModel @Inject constructor(
     fun guardarCentro(centro: Centro) {
         viewModelScope.launch {
             try { adminRepository.guardarCentro(centro) }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
@@ -176,16 +179,15 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try { 
                 adminRepository.eliminarCentro(centro.id)
-                // Aquí se podría disparar el snackbar global si tuviéramos acceso a AppViewModel o un flow de eventos
             }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
     fun guardarCurso(curso: Curso) {
         viewModelScope.launch {
             try { adminRepository.guardarCurso(curso) }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
@@ -194,14 +196,14 @@ class AdminViewModel @Inject constructor(
             try { 
                 adminRepository.eliminarCurso(curso.id)
             }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
     fun guardarAsignatura(asignatura: Asignatura) {
         viewModelScope.launch {
             try { adminRepository.guardarAsignatura(asignatura) }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
@@ -210,21 +212,21 @@ class AdminViewModel @Inject constructor(
             try { 
                 adminRepository.eliminarAsignatura(asignatura.id)
             }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
     fun guardarHorario(horario: Horario) {
         viewModelScope.launch {
             try { adminRepository.guardarHorario(horario) }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
     fun eliminarHorario(horarioId: String) {
         viewModelScope.launch {
             try { adminRepository.eliminarHorario(horarioId) }
-            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage) }
+            catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }
 
@@ -233,9 +235,9 @@ class AdminViewModel @Inject constructor(
             _adminState.value = _adminState.value.copy(isLoading = true)
             try {
                 adminRepository.recalcularTodosLosContadores()
-                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Contadores sincronizados")
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.success_counters_synced))
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Error: ${e.message}")
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.error_sync_counters))
             }
         }
     }
@@ -245,9 +247,9 @@ class AdminViewModel @Inject constructor(
             _adminState.value = _adminState.value.copy(isLoading = true)
             try {
                 adminRepository.generarClasesPorDefecto(centroId)
-                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Clases generadas con éxito")
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.success_classes_generated))
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "Error al generar clases: ${e.message}")
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.error_generate_classes))
             }
         }
     }
@@ -274,7 +276,7 @@ class AdminViewModel @Inject constructor(
                 }
                 adminRepository.actualizarDatosUsuario(user.id, updates)
             } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(errorMessage = e.localizedMessage)
+                _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
         }
     }

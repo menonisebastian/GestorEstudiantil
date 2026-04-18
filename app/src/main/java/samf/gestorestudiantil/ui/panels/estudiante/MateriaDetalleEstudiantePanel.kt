@@ -8,6 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -25,7 +27,6 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 fun MateriaDetalleEstudiantePanel(
     asignatura: Asignatura,
     estudiante: User,
-    onBackClick: () -> Unit,
     onOpenDialog: (DialogState) -> Unit,
     onVerCalificaciones: (Asignatura) -> Unit
 ) {
@@ -54,9 +55,12 @@ fun MateriaDetalleEstudiantePanel(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         AccImg(
                             userName = asignatura.profesorNombre,
                             imgUrl = profesor?.imgUrl ?: "",
@@ -76,12 +80,16 @@ fun MateriaDetalleEstudiantePanel(
                                 text = asignatura.profesorNombre.ifEmpty { "Sin asignar" },
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = textColor
+                                color = textColor,
+                                maxLines = 1
                             )
                         }
                     }
 
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(
+                        modifier = Modifier.widthIn(max = 150.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
                         val titulo =
                             "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${
                                 asignatura.ciclo.take(1)
@@ -91,14 +99,18 @@ fun MateriaDetalleEstudiantePanel(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = textColor,
-                            lineHeight = 18.sp
+                            lineHeight = 18.sp,
+                            textAlign = TextAlign.End
                         )
                         Text(
                             text = asignatura.nombre,
                             fontSize = 12.sp,
                             color = textColor.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Normal,
-                            lineHeight = 14.sp
+                            lineHeight = 14.sp,
+                            textAlign = TextAlign.End,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

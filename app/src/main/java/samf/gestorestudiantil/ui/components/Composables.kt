@@ -116,6 +116,7 @@ import samf.gestorestudiantil.data.interfaces.ChipOption
 import samf.gestorestudiantil.data.models.Asignatura
 import java.util.Locale
 import samf.gestorestudiantil.data.models.Evaluacion
+import androidx.compose.material.icons.outlined.FileDownload
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -354,7 +355,9 @@ fun ProfileImagePicker(
 fun CustomNotificationCard(
     recordatorio: Recordatorio,
     onClick: () -> Unit = {},
-    onDelete: () -> Unit = {}
+    onDelete: () -> Unit = {},
+    showDelete: Boolean = true,
+    onDownload: (() -> Unit)? = null
 ) {
     val iconModifier = Modifier
         .size(16.dp)
@@ -392,17 +395,31 @@ fun CustomNotificationCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onDownload != null) {
+                    IconButton(
+                        onClick = onDownload,
+                        modifier = Modifier.size(32.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = tertiaryColor.copy(alpha = 0.1f))
+                    ) {
+                        Icon(Icons.Outlined.FileDownload, "Descargar", tint = tertiaryColor, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
                 TypeChip(option = recordatorio.tipo)
 
-                Spacer(modifier = Modifier.width(8.dp))
+                if (showDelete) {
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.size(32.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))
-                ) {
-                    Icon(Icons.Outlined.Delete, "Eliminar", tint = errorColor, modifier = Modifier.size(20.dp))
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))
+                    ) {
+                        Icon(Icons.Outlined.Delete, "Eliminar", tint = errorColor, modifier = Modifier.size(20.dp))
+                    }
                 }
             }
         }
@@ -507,41 +524,55 @@ fun EvaluacionCard(evaluacion: Evaluacion, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (evaluacion.adjunto != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = evaluacion.nombre,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = textColor
+                )
+
+                if (evaluacion.adjunto != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.AttachFile,
                             contentDescription = null,
                             tint = primaryColor,
                             modifier = Modifier.size(14.dp)
                         )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Archivo adjunto", fontSize = 11.sp, color = primaryColor)
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = evaluacion.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = textColor)
+
                 if (!evaluacion.comentario.isNullOrBlank()) {
                     Text(
                         text = evaluacion.comentario!!,
                         fontSize = 11.sp,
                         color = surfaceDimColor,
-                        maxLines = 1
+                        maxLines = 1,
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 TypeChip(option = evaluacion.tipoEvaluacion)
                 Text(
                     text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
@@ -764,7 +795,7 @@ fun CustomOptionsTextField(
 fun CustomSearchBar(
     textoBusqueda: String,
     onValueChange: (String) -> Unit,
-    onFilterClick: () -> Unit,
+    onFilterClick: (() -> Unit)? = null,
     filters: Map<String, String> = emptyMap(),
     onRemoveFilter: (String) -> Unit = {}
 ) {
@@ -830,8 +861,10 @@ fun CustomSearchBar(
                     }
                 }
 
-                IconButton(onClick = { onFilterClick() }) {
-                    Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray)
+                if (onFilterClick != null) {
+                    IconButton(onClick = { onFilterClick() }) {
+                        Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray)
+                    }
                 }
             }
         },

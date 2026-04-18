@@ -2,6 +2,18 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.5] - 2026-04-18
+- **Localización**: Finalizada la migración de textos del módulo de **Administración** (Usuarios, Centros, Cursos, Asignaturas) y componentes de edición a `strings.xml`.
+- **UX**: Eliminación de mensajes técnicos directos (`e.localizedMessage`) reemplazándolos por mensajes amigables en español en todo el flujo administrativo.
+- **Arquitectura**: Implementación de `ErrorMapper.kt` para la traducción centralizada de excepciones técnicas (Firebase, Red) a recursos de strings.
+- **Refactorización**: Actualización de `AdminViewModel`, `EstudianteViewModel`, `ProfesorViewModel` y `AuthViewModel` para utilizar el nuevo sistema de localización.
+- **UI**: Refactorización de pantallas de administración y autenticación para eliminar textos "hardcoded" y mejorar la consistencia visual.
+- **Admin**: Inyección de contexto en `AdminRepositoryImpl` para la localización de valores por defecto (ej. "Profesor desconocido").
+- **UI/UX**: Estandarización del diseño de tarjetas de evaluación (`EvaluacionCard`) con jerarquía visual mejorada mediante padding y bordes redondeados asimétricos.
+- **Filtros**: Implementado sistema de filtrado multidimensional para profesores (Ciclo, Curso, Turno) en el panel de asignaturas y visibilidad condicional del botón de filtros en `CustomSearchBar`.
+- **Calificaciones**: Añadida gestión de visibilidad para calificaciones, permitiendo a los profesores ocultar notas con indicadores visuales de estado (alpha y barra lateral) y switch de control en el diálogo de edición.
+- **Estudiantes**: Automatización del filtrado de evaluaciones ocultas en el repositorio del estudiante para garantizar que solo vean contenido publicado.
+
 ## [v0.6.4] - 2026-04-18
 - **Notificaciones**: Implementada la programación de notificaciones locales para recordatorios y tareas utilizando `AlarmManager`.
 - **Corrección**: Solucionado error `java.text.ParseException` en `NotificationScheduler` mediante la normalización de formatos de fecha (`-` a `/`) y validación de concatenación.

@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
@@ -62,6 +64,7 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AdminState
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 
@@ -81,7 +84,7 @@ fun UsuariosAdminPanel(
     var filtroCiclo by rememberSaveable { mutableStateOf("") }
     var filtroTurno by rememberSaveable { mutableStateOf("") }
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Activos, 1: Pendientes
-    val tabs = listOf("Activos", "Pendientes")
+    val tabs = listOf(stringResource(R.string.admin_tab_active), stringResource(R.string.admin_tab_pending))
 
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
@@ -161,7 +164,7 @@ fun UsuariosAdminPanel(
                         Box(modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                            Text("No hay usuarios en esta lista", color = surfaceDimColor)
+                            Text(stringResource(R.string.admin_no_users), color = surfaceDimColor)
                         }
                     }
                 } else {
@@ -174,16 +177,15 @@ fun UsuariosAdminPanel(
                             onRechazar = {
                                 onOpenDialog(
                                     DialogState.Confirmation(
-                                        title = "Eliminar Usuario",
-                                        content = "¿Desea eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.",
+                                        title = R.string.admin_delete_user_title.toString(),
+                                        content = R.string.admin_delete_user_confirm.toString() + " ${usuario.nombre}?",
                                         onConfirm = {
-                                            val usuarioEliminado = usuario
                                             adminViewModel.rechazarOEliminarUsuario(usuario)
                                             appViewModel.showSnackbar(
-                                                message = "Usuario eliminado",
-                                                actionLabel = "Deshacer",
+                                                message = R.string.admin_user_deleted.toString(),
+                                                actionLabel = R.string.label_undo.toString(),
                                                 onAction = {
-                                                    adminViewModel.guardarUsuario(usuarioEliminado)
+                                                    adminViewModel.guardarUsuario(usuario)
                                                 }
                                             )
                                         }
@@ -194,8 +196,7 @@ fun UsuariosAdminPanel(
                                 onOpenDialog(DialogState.UserProfile(usuario))
                             },
                             onOpenDialog = onOpenDialog,
-                            adminState = adminState,
-                            appViewModel = appViewModel
+                            adminState = adminState
                         )
                     }
                 }
@@ -221,7 +222,7 @@ fun UsuariosAdminPanel(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Gestión de Usuarios",
+                        text = stringResource(R.string.admin_management_users),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = textColor
@@ -233,7 +234,7 @@ fun UsuariosAdminPanel(
                         onFilterClick = {
                             onOpenDialog(
                                 DialogState.Filter(
-                                    tipo = "Usuario",
+                                    tipo = R.string.label_user.toString(),
                                     currentFilters = mapOf(
                                         "rol" to filtroRol,
                                         "curso" to filtroCurso,
@@ -332,8 +333,7 @@ fun UsuarioCardAdmin(
     onUserDialog: () -> Unit,
     onOpenDialog: (DialogState) -> Unit,
     adminViewModel: AdminViewModel = viewModel(),
-    adminState: samf.gestorestudiantil.ui.viewmodels.AdminState,
-    appViewModel: AppViewModel = hiltViewModel()
+    adminState: AdminState
 ) {
     val softRed = Color(0xFFD74132)
     Card(
@@ -384,7 +384,7 @@ fun UsuarioCardAdmin(
                             }, 
                             modifier = Modifier.size(32.dp)
                         ) {
-                            Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.label_edit), tint = surfaceDimColor, modifier = Modifier.size(20.dp))
                         }
                         
                         // Botón adicional para Profesores (Asignar materias)
@@ -399,14 +399,14 @@ fun UsuarioCardAdmin(
                                 },
                                 modifier = Modifier.size(32.dp)
                             ) {
-                                Icon(Icons.Outlined.School, contentDescription = "Materias", tint = surfaceDimColor, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Outlined.School, contentDescription = stringResource(R.string.label_subjects), tint = surfaceDimColor, modifier = Modifier.size(20.dp))
                             }
                         }
 
                         // MOSTRAR SOLO SI NO ES ÉL MISMO
                         if (canDelete) {
                             IconButton(onClick = onRechazar, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Eliminar", tint = softRed, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.label_delete), tint = softRed, modifier = Modifier.size(20.dp))
                             }
                         }
                     }
@@ -428,9 +428,11 @@ fun UsuarioCardAdmin(
                             .height(40.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Rechazar")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.admin_reject))
+                        }
                     }
 
                     Button(
@@ -441,9 +443,11 @@ fun UsuarioCardAdmin(
                             .height(40.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Aprobar")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.admin_approve))
+                        }
                     }
                 }
             }

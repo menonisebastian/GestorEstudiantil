@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
@@ -129,9 +130,9 @@ fun GooglePasswordSetupScreen(
                         val password = passwordState.text.toString()
                         val confirm = confirmPasswordState.text.toString()
                         if (password.length < 6) {
-                            Toast.makeText(context, "Mínimo 6 caracteres", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, R.string.error_password_too_short, Toast.LENGTH_SHORT).show()
                         } else if (password != confirm) {
-                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, R.string.error_passwords_mismatch, Toast.LENGTH_SHORT).show()
                         } else {
                             onNext(password)
                         }
@@ -340,12 +341,12 @@ fun GoogleAcademicSetupScreen(
                     Button(
                         onClick = {
                             if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
-                                Toast.makeText(context, "Por favor selecciona rol e instituto", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, R.string.error_selection_role_center, Toast.LENGTH_SHORT).show()
                             } else if (rolSeleccionado == "ESTUDIANTE") {
                                 if (cursoId.isEmpty()) {
-                                    Toast.makeText(context, "Debes seleccionar un curso", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, R.string.error_selection_course, Toast.LENGTH_SHORT).show()
                                 } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
-                                    Toast.makeText(context, "Debes seleccionar un turno", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
                                 } else {
                                     val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
                                     authViewModel.completeGoogleSetup(
@@ -364,9 +365,9 @@ fun GoogleAcademicSetupScreen(
                                 }
                             } else if (rolSeleccionado == "PROFESOR") {
                                 if (turno == "Seleccionar Turno...") {
-                                    Toast.makeText(context, "Debes seleccionar un turno de trabajo", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
                                 } else if (departamento.isEmpty()) {
-                                    Toast.makeText(context, "Debes seleccionar un departamento", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, R.string.error_selection_department, Toast.LENGTH_SHORT).show()
                                 } else {
                                     authViewModel.completeGoogleSetup(
                                         password = passwordValue,

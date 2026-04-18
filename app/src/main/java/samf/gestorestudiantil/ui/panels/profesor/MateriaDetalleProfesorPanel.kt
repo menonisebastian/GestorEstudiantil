@@ -3,13 +3,13 @@ package samf.gestorestudiantil.ui.panels.profesor
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
@@ -20,7 +20,6 @@ import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -53,9 +52,12 @@ fun MateriaDetalleProfesorPanel(
                         .fillMaxWidth()
                         .padding(vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         AccImg(
                             userName = profesor.nombre,
                             imgUrl = profesor.imgUrl,
@@ -75,26 +77,34 @@ fun MateriaDetalleProfesorPanel(
                                 text = profesor.nombre,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = textColor
+                                color = textColor,
+                                maxLines = 1
                             )
                         }
                     }
 
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(
+                        modifier = Modifier.widthIn(max = 150.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
                         val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
                         Text(
                             text = titulo,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = textColor,
-                            lineHeight = 18.sp
+                            lineHeight = 18.sp,
+                            textAlign = TextAlign.End
                         )
                         Text(
                             text = asignatura.nombre,
                             fontSize = 12.sp,
                             color = textColor.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Normal,
-                            lineHeight = 14.sp
+                            lineHeight = 14.sp,
+                            textAlign = TextAlign.End,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

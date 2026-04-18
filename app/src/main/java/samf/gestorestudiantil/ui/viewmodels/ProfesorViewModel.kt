@@ -38,6 +38,7 @@ import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
+import samf.gestorestudiantil.R
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -119,11 +120,11 @@ class ProfesorViewModel @Inject constructor(
                 )
                 profesorRepository.crearUnidad(nuevaUnidad)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Unidad creada con éxito", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.success_unit_created, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al crear unidad: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -134,11 +135,11 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Unidad actualizada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.success_update, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al editar unidad: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -149,11 +150,11 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.eliminarUnidad(unidadId)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Unidad eliminada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.success_delete, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al eliminar unidad: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, R.string.error_delete_item, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -174,7 +175,7 @@ class ProfesorViewModel @Inject constructor(
                 )
                 profesorRepository.crearPost(nuevoPost)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Post publicado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_post_published), Toast.LENGTH_SHORT).show()
                 }
                 if (visible) {
                     val asignatura = _state.value.asignaturas.find { it.id == asignaturaId }
@@ -182,7 +183,7 @@ class ProfesorViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al crear post: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -246,11 +247,11 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.editarPost(postId, titulo, contenido, visible)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Post actualizado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_update), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al editar post: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -261,11 +262,11 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.eliminarPost(postId)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Post eliminado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_delete), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al eliminar post: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -288,12 +289,12 @@ class ProfesorViewModel @Inject constructor(
                 enviarNotificacion(tarea.asignaturaId, "Nueva Tarea: ${tarea.titulo}", nombreProf, acronimo)
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Tarea creada con éxito", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_task_created), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al crear tarea: ${e.localizedMessage}") }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al crear tarea: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
@@ -307,12 +308,12 @@ class ProfesorViewModel @Inject constructor(
             try {
                 tareaRepository.editarTarea(tarea, fileData, fileName, mimeType)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Tarea actualizada con éxito", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_update), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al editar tarea: ${e.localizedMessage}") }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al editar tarea: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
@@ -325,12 +326,12 @@ class ProfesorViewModel @Inject constructor(
             try {
                 tareaRepository.eliminarTarea(tarea)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Tarea eliminada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_delete), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al eliminar tarea: ${e.localizedMessage}") }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al eliminar tarea: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -358,9 +359,9 @@ class ProfesorViewModel @Inject constructor(
                     "comentarioProfesor", comentario
                 ).await()
                 
-                Toast.makeText(context, "Calificación guardada", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.success_save), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Toast.makeText(context, "Error al calificar: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -399,7 +400,7 @@ class ProfesorViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al abrir: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.error_file_read), Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
@@ -582,14 +583,14 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.guardarEvaluacion(evaluacion)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Evaluación guardada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_save), Toast.LENGTH_SHORT).show()
                 }
                 // Enviar notificación al estudiante
                 enviarNotificacionCalificacion(evaluacion)
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al guardar: ${e.localizedMessage}") }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al guardar evaluación: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -647,12 +648,12 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.eliminarEvaluacion(evaluacion.id)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Evaluación eliminada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_delete), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al eliminar: ${e.localizedMessage}") }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al eliminar evaluación: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
                 }
             }
         }

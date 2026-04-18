@@ -92,6 +92,7 @@ class EstudianteRepositoryImpl @Inject constructor(
         val snapshot = db.collection("evaluaciones")
             .whereEqualTo("asignaturaId", asignaturaId)
             .whereEqualTo("estudianteId", estudianteId)
+            .whereEqualTo("visible", true)
             .get().await()
         return snapshot.toObjects(Evaluacion::class.java)
     }

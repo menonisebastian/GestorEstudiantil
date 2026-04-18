@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
 
@@ -67,7 +69,7 @@ fun IconPickerField(value: String, onValueChange: (String) -> Unit) {
         CustomTextField(
             value = value,
             onValueChange = onValueChange,
-            label = "Icono Name",
+            label = stringResource(R.string.label_icon_name),
             modifier = Modifier.weight(1f)
         )
         IconButton(onClick = { showDialog = true }) {
@@ -108,7 +110,7 @@ fun SimpleColorPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Seleccionar Color") },
+        title = { Text(stringResource(R.string.label_select_color)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 LazyVerticalGrid(
@@ -145,7 +147,7 @@ fun SimpleColorPickerDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Color Hex: ${currentColor.toHex()}",
+                    text = stringResource(R.string.label_color_hex, currentColor.toHex()),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
@@ -154,10 +156,10 @@ fun SimpleColorPickerDialog(
             TextButton(onClick ={
                 onColorSelected(currentColor.toHex())
                 onDismiss()
-            }) { Text("Aceptar") }
+            }) { Text(stringResource(R.string.label_accept)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.label_cancel)) }
         }
     )
 }
@@ -199,7 +201,7 @@ fun SimpleIconPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Seleccionar Icono") },
+        title = { Text(stringResource(R.string.label_select_icon)) },
         text = {
             Box(modifier = Modifier.height(300.dp)) {
                 LazyVerticalGrid(
@@ -222,7 +224,7 @@ fun SimpleIconPickerDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.label_close)) }
         }
     )
 }

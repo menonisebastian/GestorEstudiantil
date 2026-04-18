@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
@@ -26,6 +27,7 @@ import samf.gestorestudiantil.domain.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
+import samf.gestorestudiantil.ui.utils.ErrorMapper
 import com.google.auth.oauth2.GoogleCredentials
 import okhttp3.Call
 import okhttp3.Callback
@@ -142,9 +144,9 @@ class EstudianteViewModel @Inject constructor(
                     currentState.copy(asignaturas = nuevas)
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = e.localizedMessage) }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_mark_as_read)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al marcar como leída: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.error_mark_as_read), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -157,7 +159,7 @@ class EstudianteViewModel @Inject constructor(
                 val evaluations = estudianteRepository.getEvaluaciones(asignaturaId, estudianteId)
                 _state.update { it.copy(isLoading = false, evaluaciones = evaluations) }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = e.localizedMessage) }
+                _state.update { it.copy(isLoading = false, errorMessage = context.getString(R.string.error_load_evaluations)) }
             }
         }
     }
@@ -189,12 +191,13 @@ class EstudianteViewModel @Inject constructor(
                 enviarNotificacionAlProfesor(entrega, acronimoAsignatura)
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Tarea entregada con éxito", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_delivery), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al entregar: ${e.localizedMessage}") }
+                val errorMsg = ErrorMapper.getFriendlyMessage(context, e)
+                _state.update { it.copy(errorMessage = errorMsg) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al entregar: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
@@ -274,12 +277,12 @@ class EstudianteViewModel @Inject constructor(
             try {
                 tareaRepository.eliminarEntrega(entrega)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Entrega eliminada", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.success_delivery_deleted), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(errorMessage = "Error al eliminar entrega: ${e.localizedMessage}") }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_delivery)) }
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al eliminar entrega: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.error_delete_delivery), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -327,7 +330,7 @@ class EstudianteViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al abrir: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.error_open_file), Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }

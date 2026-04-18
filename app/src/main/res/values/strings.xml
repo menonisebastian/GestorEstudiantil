@@ -4,4 +4,148 @@
     <string name="github_link">https://github.com/menonisebastian/GestorEstudiantil</string>
     <string name="project_url_supa">https://tyxhqptbnxaghwpdfwad.supabase.co</string>
     <string name="api_supa">sb_publishable_QVAxUjSv-5l05ku2eblqBQ_sVUHMaeY</string>
+
+    <!-- Mensajes de Éxito -->
+    <string name="success_generic">Operación realizada con éxito</string>
+    <string name="success_save">Guardado correctamente</string>
+    <string name="success_update">Actualizado correctamente</string>
+    <string name="success_delete">Eliminado correctamente</string>
+    <string name="success_task_created">¡Tarea creada con éxito!</string>
+    <string name="success_unit_created">¡Unidad creada con éxito!</string>
+    <string name="success_post_published">Publicación realizada con éxito</string>
+    <string name="success_profile_updated">Perfil actualizado correctamente</string>
+    <string name="success_delivery">Tarea entregada con éxito</string>
+    <string name="success_delivery_deleted">Entrega eliminada correctamente</string>
+
+    <!-- Mensajes de Error Comunes -->
+    <string name="error_generic">Algo ha salido mal, por favor inténtalo de nuevo</string>
+    <string name="error_network">No hay conexión a internet</string>
+    <string name="error_unauthorized">No tienes permiso para realizar esta acción</string>
+    <string name="error_empty_fields">Por favor, rellena todos los campos obligatorios</string>
+    <string name="error_passwords_mismatch">Las contraseñas no coinciden</string>
+    <string name="error_password_too_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_invalid_email">El formato del correo electrónico no es válido</string>
+
+    <!-- Errores de Autenticación -->
+    <string name="error_auth_failed">Correo o contraseña incorrectos</string>
+    <string name="error_email_already_in_use">Este correo ya está registrado</string>
+    <string name="error_google_signin">Error al iniciar sesión con Google</string>
+
+    <!-- Errores Específicos de Funcionalidad -->
+    <string name="error_delete_item">No se pudo eliminar el elemento</string>
+    <string name="error_save_item">No se pudo guardar la información</string>
+    <string name="error_file_read">No se pudo leer el archivo seleccionado</string>
+    <string name="error_file_upload">Error al subir el archivo</string>
+    <string name="error_selection_required">Debes seleccionar una opción para continuar</string>
+    <string name="error_mark_as_read">Error al marcar como leída</string>
+    <string name="error_delivery">Error al realizar la entrega</string>
+    <string name="error_delete_delivery">Error al eliminar la entrega</string>
+    <string name="error_open_file">No se pudo abrir el archivo</string>
+    <string name="error_load_evaluations">Error al cargar las evaluaciones</string>
+    <string name="error_selection_role_center">Por favor selecciona rol e instituto</string>
+    <string name="error_selection_course">Debes seleccionar un curso</string>
+    <string name="error_selection_shift">Debes seleccionar un turno</string>
+    <string name="error_selection_department">Debes seleccionar un departamento</string>
+    <string name="error_setup_incomplete">Configuración incompleta</string>
+    <string name="success_registration">Registro completado con éxito</string>
+    <string name="error_google_auth_cancelled">No se pudo iniciar sesión con Google</string>
+    <string name="error_enter_email">Por favor, introduce tu email</string>
+
+    <!-- Mensajes de Administración -->
+    <string name="success_counters_synced">Contadores sincronizados correctamente</string>
+    <string name="error_sync_counters">Error al sincronizar contadores</string>
+    <string name="success_classes_generated">Clases generadas con éxito</string>
+    <string name="error_generate_classes">Error al generar las clases</string>
+    <string name="error_load_data">Error al cargar los datos</string>
+    <string name="admin_sync_counters">Sincronizar Contadores de Estudiantes</string>
+    <string name="admin_generate_classes_massively">Generar Clases Masivas (Batch)</string>
+    <string name="admin_management_centers">Gestión de Centros</string>
+    <string name="admin_courses_in">Cursos en %s</string>
+    <string name="admin_courses_of">Cursos de %s</string>
+    <string name="admin_shifts_of">Turnos de %s</string>
+    <string name="admin_cycles_of">Ciclos de %s</string>
+    <string name="admin_tutor_of_course">Tutor del curso</string>
+    <string name="admin_no_tutor_assigned">Sin Tutor Asignado</string>
+    <string name="admin_schedule">Horario</string>
+    <string name="admin_cycle_n">Ciclo %s</string>
+    <string name="admin_no_subjects_configured">No hay asignaturas configuradas</string>
+    <string name="admin_subjects_cycle">Asignaturas - %s</string>
+    <string name="admin_add_center">Añadir Centro</string>
+    <string name="admin_edit_center">Editar Centro</string>
+    <string name="admin_delete_center">Eliminar Centro</string>
+    <string name="admin_add_course">Añadir Curso</string>
+    <string name="admin_edit_course">Editar Curso</string>
+    <string name="admin_delete_course">Eliminar Curso</string>
+    <string name="admin_add_subject">Añadir Asignatura</string>
+    <string name="admin_edit_subject">Editar Asignatura</string>
+    <string name="admin_delete_subject">Eliminar Asignatura</string>
+    <string name="admin_edit_user">Editar Usuario</string>
+    <string name="label_name">Nombre</string>
+    <string name="label_address">Dirección</string>
+    <string name="label_type">Tipo</string>
+    <string name="label_cancel">Cancelar</string>
+    <string name="label_save">Guardar</string>
+    <string name="label_acronym">Acrónimo</string>
+    <string name="label_full_name">Nombre Completo</string>
+    <string name="label_description">Descripción</string>
+    <string name="label_modality">Modalidad</string>
+    <string name="label_url_info">URL Info</string>
+    <string name="label_total_hours">Horas Totales</string>
+    <string name="label_shifts_comma">Turnos (separados por coma)</string>
+    <string name="label_background_color_hex">Color Fondo Hex</string>
+    <string name="label_icon_color_hex">Color Icono Hex</string>
+    <string name="label_department">Departamento</string>
+    <string name="label_professor_id">ID Profesor</string>
+    <string name="label_cycle">Ciclo</string>
+    <string name="label_cycle_number">Número de Ciclo</string>
+    <string name="label_weekly_hours">Horas Semanales</string>
+    <string name="label_role">Rol</string>
+    <string name="label_shift">Turno</string>
+    <string name="label_base_course">Curso Base</string>
+    <string name="label_final_acronym">Acrónimo Final (Curso)</string>
+    <string name="admin_tab_active">Activos</string>
+    <string name="admin_tab_pending">Pendientes</string>
+    <string name="admin_no_users">No hay usuarios en esta lista</string>
+    <string name="admin_management_users">Gestión de Usuarios</string>
+    <string name="admin_delete_user_title">Eliminar Usuario</string>
+    <string name="admin_delete_user_confirm">¿Desea eliminar a %s? Esta acción no se puede deshacer.</string>
+    <string name="admin_user_deleted">Usuario eliminado</string>
+    <string name="label_undo">Deshacer</string>
+    <string name="admin_reject">Rechazar</string>
+    <string name="admin_approve">Aprobar</string>
+    <string name="label_edit">Editar</string>
+    <string name="label_delete">Eliminar</string>
+    <string name="label_subjects">Asignaturas</string>
+    <string name="label_user">Usuario</string>
+    <string name="label_icon_name">Nombre de Icono</string>
+    <string name="label_select_color">Seleccionar Color</string>
+    <string name="label_color_hex">Color Hex: %s</string>
+    <string name="label_accept">Aceptar</string>
+    <string name="label_select_icon">Seleccionar Icono</string>
+    <string name="label_close">Cerrar</string>
+
+    <!-- Opciones de Selección -->
+    <string name="option_ies">IES</string>
+    <string name="option_private_center">Centro Privado</string>
+    <string name="option_concerted_center">Centro Concertado</string>
+    <string name="option_university">Universidad</string>
+
+    <string name="option_fp_middle">FP Grado Medio</string>
+    <string name="option_fp_superior">FP Grado Superior</string>
+    <string name="option_baccalaureate">Bachillerato</string>
+    <string name="option_eso">ESO</string>
+
+    <string name="option_face_to_face">Presencial</string>
+    <string name="option_dual">Dual</string>
+    <string name="option_online">Online</string>
+
+    <string name="option_cycle_1">1</string>
+    <string name="option_cycle_2">2</string>
+    <string name="option_cycle_unique">Único</string>
+
+    <string name="option_morning">Matutino</string>
+    <string name="option_afternoon">Vespertino</string>
+
+    <string name="label_unknown_professor">Profesor desconocido</string>
+    <string name="admin_schedule_title">Horario %1$s - %2$s</string>
 </resources>

@@ -462,7 +462,8 @@ fun HomeScreen(
                                     paddingValues = PaddingValues(0.dp),
                                     onAsignaturaClick = { asignatura ->
                                         homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
-                                    }
+                                    },
+                                    onOpenDialog = onOpenDialog
                                 )
                             }
                             is User.Estudiante -> {
@@ -494,7 +495,6 @@ fun HomeScreen(
                                 MateriaDetalleEstudiantePanel(
                                     asignatura = route.asignatura,
                                     estudiante = usuario,
-                                    onBackClick = { homeState.pop(pageTab) },
                                     onOpenDialog = onOpenDialog,
                                     onVerCalificaciones = { asignatura ->
                                         homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
@@ -557,6 +557,14 @@ fun HomeScreen(
                                     )
                                 )
                             },
+                            onUpdateRecordatorio = { recordatorio ->
+                                onOpenDialog(
+                                    DialogState.EditRecordatorio(
+                                        recordatorio = recordatorio,
+                                        onSave = { appViewModel.actualizarRecordatorio(it) }
+                                    )
+                                )
+                            },
                             onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
                             onDeleteTarea = { tarea ->
                                 if (usuario.rol == "PROFESOR") {
@@ -567,6 +575,53 @@ fun HomeScreen(
                                     ))
                                 } else {
                                     appViewModel.showSnackbar("Solo los profesores pueden eliminar tareas académicas.")
+                                }
+                            },
+                            onDownloadTarea = { tarea ->
+                                tarea.adjunto?.let { adjunto ->
+                                    if (usuario.rol == "PROFESOR") {
+                                        profesorViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                                    } else {
+                                        estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                                    }
+                                }
+                            },
+                            onTareaClick = { tarea ->
+                                if (usuario.rol == "ESTUDIANTE") {
+                                    // Para que el diálogo muestre si ya se entregó, necesitamos cargar la entrega
+                                    estudianteViewModel.cargarMiEntrega(tarea.id, usuario.id)
+
+                                    onOpenDialog(
+                                        DialogState.TareaDetalleEstudiante(
+                                            tarea = tarea,
+                                            estudianteId = usuario.id,
+                                            estudianteNombre = usuario.nombre,
+                                            onEntregar = { data, name, mime ->
+                                                estudianteViewModel.realizarEntrega(
+                                                    samf.gestorestudiantil.data.models.Entrega(
+                                                        tareaId = tarea.id,
+                                                        estudianteId = usuario.id,
+                                                        estudianteNombre = usuario.nombre,
+                                                        profesorId = tarea.profesorId,
+                                                        asignaturaId = tarea.asignaturaId
+                                                    ),
+                                                    data,
+                                                    name,
+                                                    mime,
+                                                    tarea.titulo
+                                                )
+                                            },
+                                            onEliminarEntrega = {
+                                                estudianteViewModel.state.value.miEntrega?.let { entrega ->
+                                                    onOpenDialog(DialogState.Confirmation(
+                                                        title = "Eliminar entrega",
+                                                        content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                                        onConfirm = { estudianteViewModel.eliminarEntrega(entrega) }
+                                                    ))
+                                                }
+                                            }
+                                        )
+                                    )
                                 }
                             }
                         )
@@ -634,8 +689,6 @@ fun HomeScreen(
                         CalificacionesAsignaturaPanel(
                             asignatura = route.asignatura,
                             evaluaciones = estudianteState.evaluaciones,
-                            paddingValues = PaddingValues(0.dp),
-                            onBackClick = { homeState.pop(pageTab) },
                             onOpenDialog = onOpenDialog
                         )
                     }

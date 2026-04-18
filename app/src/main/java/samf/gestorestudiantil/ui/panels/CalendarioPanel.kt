@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.HorizontalDivider as Divider
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,9 +37,9 @@ import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
 import samf.gestorestudiantil.ui.components.CustomFAB
+import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
-import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import java.text.SimpleDateFormat
@@ -103,8 +102,11 @@ fun CalendarioPanel(
     recordatorios: List<Recordatorio>,
     paddingValues: PaddingValues,
     onAddRecordatorio: (String) -> Unit,
+    onUpdateRecordatorio: (Recordatorio) -> Unit,
     onDeleteRecordatorio: (Recordatorio) -> Unit,
-    onDeleteTarea: (Tarea) -> Unit
+    onDeleteTarea: (Tarea) -> Unit,
+    onDownloadTarea: (Tarea) -> Unit,
+    onTareaClick: (Tarea) -> Unit
 ) {
     val currentMonth = remember { YearMonth.now() }
     val startMonth = remember { currentMonth.minusMonths(12) }
@@ -197,28 +199,41 @@ fun CalendarioPanel(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 160.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 160.dp, start = 16.dp, end = 16.dp)
                 ) {
                     items(eventosDelDiaSeleccionado) { evento ->
-                        val canDelete = if (evento.tipo == TipoEventoVisual.TAREA) {
-                            usuarioActual.rol == "PROFESOR"
-                        } else {
-                            true // Recordatorios personales siempre se pueden borrar
-                        }
-                        
-                        EventoItem(
-                            evento = evento,
-                            canDelete = canDelete,
-                            onDelete = {
-                                if (evento.tipo == TipoEventoVisual.RECORDATORIO) {
-                                    val rec = recordatorios.find { it.id == evento.id }
-                                    if (rec != null) onDeleteRecordatorio(rec)
-                                } else {
-                                    val tar = tareas.find { it.id == evento.id }
-                                    if (tar != null) onDeleteTarea(tar)
-                                }
+                        if (evento.tipo == TipoEventoVisual.RECORDATORIO) {
+                            val rec = recordatorios.find { it.id == evento.id }
+                            if (rec != null) {
+                                CustomNotificationCard(
+                                    recordatorio = rec,
+                                    onClick = { onUpdateRecordatorio(rec) },
+                                    onDelete = { onDeleteRecordatorio(rec) }
+                                )
                             }
-                        )
+                        } else {
+                            val tar = tareas.find { it.id == evento.id }
+                            if (tar != null) {
+                                val canDelete = usuarioActual.rol == "PROFESOR"
+                                // Mapeamos la tarea a un Recordatorio temporal para usar CustomNotificationCard
+                                val syntheticRec = Recordatorio(
+                                    id = tar.id,
+                                    titulo = tar.titulo,
+                                    descripcion = tar.descripcion,
+                                    fecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(tar.fechaLimiteEntrega.toDate()),
+                                    hora = SimpleDateFormat("HH:mm", Locale.getDefault()).format(tar.fechaLimiteEntrega.toDate()),
+                                    tipo = tipoRecordatorio.TAREA
+                                )
+                                CustomNotificationCard(
+                                    recordatorio = syntheticRec,
+                                    onClick = { onTareaClick(tar) },
+                                    onDelete = { if (canDelete) onDeleteTarea(tar) },
+                                    showDelete = canDelete,
+                                    onDownload = if (tar.adjunto != null) { { onDownloadTarea(tar) } } else null
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -319,72 +334,3 @@ fun Day(
     }
 }
 
-@Composable
-fun EventoItem(
-    evento: EventoCalendario,
-    canDelete: Boolean,
-    onDelete: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = surfaceColor
-        ),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = evento.titulo,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = textColor,
-                    modifier = Modifier.weight(1f)
-                )
-                Surface(
-                    color = if (evento.tipo == TipoEventoVisual.TAREA) Color(0xFFFF5722) else evento.subtipoRecordatorio?.color ?: Color(0xFF64B5F6),
-                    shape = CircleShape
-                ) {
-                    val label = if (evento.tipo == TipoEventoVisual.TAREA) "TAREA" else evento.subtipoRecordatorio?.label?.uppercase() ?: "RECORDATORIO"
-                    Text(
-                        text = label,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.Bottom) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = evento.descripcion,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = textColor.copy(alpha = 0.8f)
-                    )
-                    evento.hora?.let {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Hora: $it",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = textColor.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-                if (canDelete) {
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            tint = surfaceDimColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}

@@ -125,7 +125,7 @@ class AuthViewModel @Inject constructor(
 
     fun loginWithEmail(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
-            _authState.value = _authState.value.copy(errorMessage = "Rellena todos los campos")
+            _authState.value = _authState.value.copy(errorMessage = "Por favor, rellena todos los campos")
             return
         }
         _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
@@ -133,7 +133,10 @@ class AuthViewModel @Inject constructor(
             try {
                 authRepository.loginWithEmail(email, pass)
             } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Credenciales incorrectas")
+                _authState.value = _authState.value.copy(
+                    isLoading = false, 
+                    errorMessage = "Correo o contraseña incorrectos"
+                )
             }
         }
     }
@@ -155,9 +158,9 @@ class AuthViewModel @Inject constructor(
                     email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, imgUrl, departamento
                 )
             } catch (e: FirebaseAuthUserCollisionException) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "El correo ya está registrado.")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Este correo ya está registrado")
             } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error en registro: ${e.message}")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "No se pudo completar el registro")
             }
         }
     }
@@ -168,7 +171,7 @@ class AuthViewModel @Inject constructor(
             try {
                 authRepository.signInWithGoogle(idToken)
             } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Error con Google Sign-In")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al iniciar sesión con Google")
             }
         }
     }

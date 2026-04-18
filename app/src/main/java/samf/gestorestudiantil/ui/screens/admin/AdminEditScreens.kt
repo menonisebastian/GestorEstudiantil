@@ -8,9 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
@@ -48,7 +50,7 @@ fun EditCentroScreen(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = if (state.centro == null) "Añadir Centro" else "Editar Centro",
+                    text = if (state.centro == null) stringResource(R.string.admin_add_center) else stringResource(R.string.admin_edit_center),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
@@ -71,24 +73,29 @@ fun EditCentroScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Eliminar Centro")
+                    Text(stringResource(R.string.admin_delete_center))
                 }
             }
             CustomTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
-                label = "Nombre"
+                label = stringResource(R.string.label_name)
             )
             CustomTextField(
                 value = direccion,
                 onValueChange = { direccion = it },
-                label = "Dirección"
+                label = stringResource(R.string.label_address)
             )
             CustomOptionsTextField(
                 texto = tipo,
                 onValueChange = { tipo = it },
-                opciones = listOf("IES", "Centro Privado", "Centro Concertado", "Universidad"),
-                label = "Tipo"
+                opciones = listOf(
+                    stringResource(R.string.option_ies),
+                    stringResource(R.string.option_private_center),
+                    stringResource(R.string.option_concerted_center),
+                    stringResource(R.string.option_university)
+                ),
+                label = stringResource(R.string.label_type)
             )
             Spacer(modifier = Modifier.height(180.dp))
         }
@@ -110,7 +117,7 @@ fun EditCentroScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.label_cancel))
                 }
                 Button(
                     onClick = {
@@ -123,7 +130,7 @@ fun EditCentroScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text("Guardar", color = textColor)
+                    Text(stringResource(R.string.label_save), color = textColor)
                 }
             }
         }
@@ -162,7 +169,7 @@ fun EditCursoScreen(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = if (state.curso == null) "Añadir Curso" else "Editar Curso",
+                    text = if (state.curso == null) stringResource(R.string.admin_add_course) else stringResource(R.string.admin_edit_course),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
@@ -185,31 +192,40 @@ fun EditCursoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
-                    Text("Eliminar Curso")
+                    Text(stringResource(R.string.admin_delete_course))
                 }
             }
-            CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. DAM)")
-            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
-            CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
+            CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = stringResource(R.string.label_acronym))
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = stringResource(R.string.label_full_name))
+            CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = stringResource(R.string.label_description), singleLine = false, minLines = 2)
             CustomOptionsTextField(
                 texto = tipo,
                 onValueChange = { tipo = it },
-                opciones = listOf("FP Grado Medio", "FP Grado Superior", "Bachillerato", "ESO"),
-                label = "Tipo"
+                opciones = listOf(
+                    stringResource(R.string.option_fp_middle),
+                    stringResource(R.string.option_fp_superior),
+                    stringResource(R.string.option_baccalaureate),
+                    stringResource(R.string.option_eso)
+                ),
+                label = stringResource(R.string.label_type)
             )
             CustomOptionsTextField(
                 texto = modalidad,
                 onValueChange = { modalidad = it },
-                opciones = listOf("presencial", "dual", "online"),
-                label = "Modalidad"
+                opciones = listOf(
+                    stringResource(R.string.option_face_to_face).lowercase(),
+                    stringResource(R.string.option_dual).lowercase(),
+                    stringResource(R.string.option_online).lowercase()
+                ),
+                label = stringResource(R.string.label_modality)
             )
-            CustomTextField(value = urlInfo, onValueChange = { urlInfo = it }, label = "URL Info")
-            CustomTextField(value = horasTotalesCurso, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotalesCurso = it }, label = "Horas Totales")
-            CustomTextField(value = turnosStr, onValueChange = { turnosStr = it }, label = "Turnos (separados por coma)")
+            CustomTextField(value = urlInfo, onValueChange = { urlInfo = it }, label = stringResource(R.string.label_url_info))
+            CustomTextField(value = horasTotalesCurso, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotalesCurso = it }, label = stringResource(R.string.label_total_hours))
+            CustomTextField(value = turnosStr, onValueChange = { turnosStr = it }, label = stringResource(R.string.label_shifts_comma))
 
             IconPickerField(value = iconoName, onValueChange = { iconoName = it })
-            ColorPickerField(label = "Color Fondo Hex", value = colorFondoHex, onValueChange = { colorFondoHex = it })
-            ColorPickerField(label = "Color Icono Hex", value = colorIconoHex, onValueChange = { colorIconoHex = it })
+            ColorPickerField(label = stringResource(R.string.label_background_color_hex), value = colorFondoHex, onValueChange = { colorFondoHex = it })
+            ColorPickerField(label = stringResource(R.string.label_icon_color_hex), value = colorIconoHex, onValueChange = { colorIconoHex = it })
             Spacer(modifier = Modifier.height(180.dp))
         }
 
@@ -230,7 +246,7 @@ fun EditCursoScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.label_cancel))
                 }
                 Button(
                     onClick = {
@@ -253,7 +269,7 @@ fun EditCursoScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text("Guardar", color = textColor)
+                    Text(stringResource(R.string.label_save), color = textColor)
                 }
             }
         }
@@ -293,7 +309,7 @@ fun EditAsignaturaScreen(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = if (state.asignatura == null) "Añadir Asignatura" else "Editar Asignatura",
+                    text = if (state.asignatura == null) stringResource(R.string.admin_add_subject) else stringResource(R.string.admin_edit_subject),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
@@ -316,11 +332,11 @@ fun EditAsignaturaScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
-                    Text("Eliminar Asignatura")
+                    Text(stringResource(R.string.admin_delete_subject))
                 }
             }
-            CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = "Acrónimo (ej. AD)")
-            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre Completo")
+            CustomTextField(value = acronimo, onValueChange = { acronimo = it }, label = stringResource(R.string.label_acronym))
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = stringResource(R.string.label_full_name))
             CustomOptionsTextField(
                 texto = departamento,
                 onValueChange = { departamento = it },
@@ -346,28 +362,35 @@ fun EditAsignaturaScreen(
                     "Orientación",
                     "Tecnología"
                 ),
-                label = "Departamento"
+                label = stringResource(R.string.label_department)
             )
-            CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = "Descripción", singleLine = false, minLines = 2)
-            CustomTextField(value = profesorId, onValueChange = { profesorId = it }, label = "ID Profesor")
+            CustomTextField(value = descripcion, onValueChange = { descripcion = it }, label = stringResource(R.string.label_description), singleLine = false, minLines = 2)
+            CustomTextField(value = profesorId, onValueChange = { profesorId = it }, label = stringResource(R.string.label_professor_id))
             CustomOptionsTextField(
                 texto = ciclo,
                 onValueChange = { ciclo = it },
-                opciones = listOf("1", "2", "único"),
-                label = "Ciclo"
+                opciones = listOf(
+                    stringResource(R.string.option_cycle_1),
+                    stringResource(R.string.option_cycle_2),
+                    stringResource(R.string.option_cycle_unique).lowercase()
+                ),
+                label = stringResource(R.string.label_cycle)
             )
             CustomOptionsTextField(
                 texto = cicloNum,
                 onValueChange = { cicloNum = it },
-                opciones = listOf("1", "2"),
-                label = "Número de Ciclo"
+                opciones = listOf(
+                    stringResource(R.string.option_cycle_1),
+                    stringResource(R.string.option_cycle_2)
+                ),
+                label = stringResource(R.string.label_cycle_number)
             )
-            CustomTextField(value = horasTotales, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotales = it }, label = "Horas Totales")
-            CustomTextField(value = horasSemanales, onValueChange = { if (it.all { c -> c.isDigit() }) horasSemanales = it }, label = "Horas Semanales")
+            CustomTextField(value = horasTotales, onValueChange = { if (it.all { c -> c.isDigit() }) horasTotales = it }, label = stringResource(R.string.label_total_hours))
+            CustomTextField(value = horasSemanales, onValueChange = { if (it.all { c -> c.isDigit() }) horasSemanales = it }, label = stringResource(R.string.label_weekly_hours))
 
             IconPickerField(value = iconoName, onValueChange = { iconoName = it })
-            ColorPickerField(label = "Color Fondo Hex", value = colorFondoHex, onValueChange = { colorFondoHex = it })
-            ColorPickerField(label = "Color Icono Hex", value = colorIconoHex, onValueChange = { colorIconoHex = it })
+            ColorPickerField(label = stringResource(R.string.label_background_color_hex), value = colorFondoHex, onValueChange = { colorFondoHex = it })
+            ColorPickerField(label = stringResource(R.string.label_icon_color_hex), value = colorIconoHex, onValueChange = { colorIconoHex = it })
             Spacer(modifier = Modifier.height(180.dp))
         }
 
@@ -388,7 +411,7 @@ fun EditAsignaturaScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = backgroundColor)
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.label_cancel))
                 }
                 Button(
                     onClick = {
@@ -412,7 +435,7 @@ fun EditAsignaturaScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text("Guardar", color = textColor)
+                    Text(stringResource(R.string.label_save), color = textColor)
                 }
             }
         }
@@ -433,7 +456,10 @@ fun EditUserScreen(
     var departamento by remember { mutableStateOf(if (state.user is User.Profesor) state.user.departamento else "") }
 
     val roles = listOf("ESTUDIANTE", "PROFESOR", "ADMIN")
-    val turnos = listOf("matutino", "vespertino")
+    val turnos = listOf(
+        stringResource(R.string.option_morning).lowercase(),
+        stringResource(R.string.option_afternoon).lowercase()
+    )
     val departamentos = listOf(
         "Actividades complementarias y extraescolares",
         "Administración y Gestión",
@@ -485,7 +511,7 @@ fun EditUserScreen(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "Editar Usuario",
+                    text = stringResource(R.string.admin_edit_user),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
@@ -497,66 +523,69 @@ fun EditUserScreen(
                 )
             }
 
-            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre")
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = stringResource(R.string.label_name))
 
-            Text("Rol", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.label_role), style = MaterialTheme.typography.labelLarge)
             CustomOptionsTextField(
                 texto = rol,
                 onValueChange = { rol = it },
                 opciones = roles,
-                label = "Rol"
+                label = stringResource(R.string.label_role)
             )
 
             if (rol == "ESTUDIANTE") {
-                Text("Turno", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.label_shift), style = MaterialTheme.typography.labelLarge)
                 CustomOptionsTextField(
                     texto = turno,
                     onValueChange = { turno = it },
                     opciones = turnos,
-                    label = "Turno"
+                    label = stringResource(R.string.label_shift)
                 )
 
-                Text("Curso Base", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.label_base_course), style = MaterialTheme.typography.labelLarge)
                 CustomOptionsTextField(
                     texto = state.cursos.find { it.id == cursoId }?.acronimo ?: "",
                     onValueChange = { acro ->
                         cursoId = state.cursos.find { it.acronimo == acro }?.id ?: ""
                     },
                     opciones = acronimosCursos,
-                    label = "Curso Base"
+                    label = stringResource(R.string.label_base_course)
                 )
 
-                Text("Ciclo", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.label_cycle), style = MaterialTheme.typography.labelLarge)
                 CustomOptionsTextField(
                     texto = cicloNum,
                     onValueChange = { cicloNum = it },
-                    opciones = listOf("1", "2"),
-                    label = "Ciclo (1 o 2)"
+                    opciones = listOf(
+                        stringResource(R.string.option_cycle_1),
+                        stringResource(R.string.option_cycle_2)
+                    ),
+                    label = stringResource(R.string.label_cycle_number)
                 )
 
                 CustomTextField(
                     value = cursoInput,
                     onValueChange = { cursoInput = it },
-                    label = "Acrónimo Final (Curso)",
+                    label = stringResource(R.string.label_final_acronym),
                     readOnly = true
                 )
             }
 
             if (rol == "PROFESOR") {
-                Text("Turno", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.label_shift), style = MaterialTheme.typography.labelLarge)
                 CustomOptionsTextField(
                     texto = turno,
                     onValueChange = { turno = it },
                     opciones = turnos,
-                    label = "Turno"
+                    label = stringResource(R.string.label_shift)
                 )
 
-                Text("Departamento", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.label_department), style = MaterialTheme.typography.labelLarge)
                 CustomOptionsTextField(
                     texto = departamento,
                     onValueChange = { departamento = it },
                     opciones = departamentos,
-                    label = "Departamento"
+                    label = stringResource(R.string.label_department)
                 )
             }
 
@@ -579,7 +608,7 @@ fun EditUserScreen(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.label_cancel))
                 }
                 Button(
                     onClick = {
@@ -614,7 +643,7 @@ fun EditUserScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text("Guardar", color = textColor)
+                    Text(stringResource(R.string.label_save), color = textColor)
                 }
             }
         }

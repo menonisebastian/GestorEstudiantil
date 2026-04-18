@@ -107,8 +107,8 @@ fun FilterByDialog(
                 )
             }
 
-            // Filtros adicionales para Usuarios / Calificaciones
-            if (state.tipo == "Usuario" || state.tipo == "Calificaciones") {
+            // Filtros adicionales para Usuarios / Calificaciones / Asignaturas
+            if (state.tipo == "Usuario" || state.tipo == "Calificaciones" || state.tipo == "Asignatura") {
                 if (cursoOptions.isNotEmpty()) {
                     FilterChipGroup(
                         label = "Curso",
@@ -121,7 +121,7 @@ fun FilterByDialog(
                     )
                 }
 
-                if (state.tipo == "Usuario") {
+                if (state.tipo == "Usuario" || state.tipo == "Asignatura") {
                     FilterChipGroup(
                         label = "Ciclo",
                         options = cicloOptions,
@@ -135,7 +135,7 @@ fun FilterByDialog(
                     FilterChipGroup(
                         label = "Turno",
                         options = turnoOptions,
-                        selectedOptions = tempFilters["turno"]?.split(",")?.filter { it.isNotEmpty() }?.map { it.capitalize() } ?: emptyList(),
+                        selectedOptions = tempFilters["turno"]?.split(",")?.filter { it.isNotEmpty() }?.map { opt -> opt.replaceFirstChar { it.uppercase() } } ?: emptyList(),
                         onSelectionChanged = { options ->
                             val newValue = options.joinToString(",") { it.lowercase() }
                             tempFilters = if (newValue.isEmpty()) tempFilters - "turno" else tempFilters + ("turno" to newValue)

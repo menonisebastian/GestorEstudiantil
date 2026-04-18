@@ -40,8 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +54,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
@@ -110,7 +112,7 @@ fun CentrosListScreen(
                         onClick = { adminViewModel.recalcularContadores() },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                     ) {
-                        Text("Sincronizar Contadores de Estudiantes")
+                        Text(stringResource(R.string.admin_sync_counters))
                     }
                 }
 
@@ -123,7 +125,7 @@ fun CentrosListScreen(
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                     ) {
-                        Text("Generar Clases Masivas (Batch)")
+                        Text(stringResource(R.string.admin_generate_classes_massively))
                     }
                 }
 
@@ -143,7 +145,7 @@ fun CentrosListScreen(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(text = "Gestión de Centros", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                Text(text = stringResource(R.string.admin_management_centers), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
                 CustomSearchBar(textoBusqueda = searchText, onValueChange = { searchText = it }, onFilterClick = {})
             }
         }
@@ -176,7 +178,7 @@ fun TiposCursoScreen(
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(
-                text = "Cursos en ${centro.nombre}",
+                text = stringResource(R.string.admin_courses_in, centro.nombre),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = textColor,
@@ -193,7 +195,7 @@ fun CursosScreen(
     onCursoClick: (Curso) -> Unit,
     onEditCurso: (Curso) -> Unit,
 ) {
-    val headerTitle = if (tipo.contains("Curso", ignoreCase = true)) tipo else "Cursos de $tipo"
+    val headerTitle = if (tipo.contains("Curso", ignoreCase = true)) tipo else stringResource(R.string.admin_courses_of, tipo)
     Box(modifier = Modifier.fillMaxSize()) {
         val cursos = adminState.cursos.filter { it.tipo == tipo }
         LazyColumn(
@@ -230,13 +232,13 @@ fun TurnosScreen(
     onTurnoClick: (String) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Turnos de ${curso.acronimo}")
+        AdminHeader(stringResource(R.string.admin_shifts_of, curso.acronimo))
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 160.dp)
         ) {
             items(curso.turnosDisponibles) { turno ->
-                TipoCursoCard(turno.capitalize()) { onTurnoClick(turno) }
+                TipoCursoCard(turno.capitalize() ) { onTurnoClick(turno) }
             }
         }
     }
@@ -303,7 +305,7 @@ fun CiclosScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(text = "Ciclos de $idClaseTitulo", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                        Text(text = stringResource(R.string.admin_cycles_of, idClaseTitulo), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
                         
                         // Tarjeta del Tutor dentro del área flotante
                         Card(
@@ -318,11 +320,11 @@ fun CiclosScreen(
                             }
                         ) {
                             Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                AccImg(userName = profesorEjemplo?.profesorNombre ?: "Sin Asignar", imgUrl = "", size = 32.dp, onClick = {})
+                                AccImg(userName = profesorEjemplo?.profesorNombre ?: stringResource(R.string.admin_no_tutor_assigned), imgUrl = "", size = 32.dp, onClick = {})
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = profesorEjemplo?.profesorNombre ?: "Sin Tutor Asignado", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textColor)
-                                    Text(text = "Tutor del curso", fontSize = 10.sp, color = surfaceDimColor)
+                                    Text(text = profesorEjemplo?.profesorNombre ?: stringResource(R.string.admin_no_tutor_assigned), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textColor)
+                                    Text(text = stringResource(R.string.admin_tutor_of_course), fontSize = 10.sp, color = surfaceDimColor)
                                 }
                                 IconButton(onClick = { 
                                     val turnoLetra = if (turno.lowercase().trim() == "matutino") "M" else "V"
@@ -339,7 +341,7 @@ fun CiclosScreen(
                                 ) {
                                     Icon(Icons.Default.Schedule, null, modifier = Modifier.size(14.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Horario", fontSize = 11.sp)
+                                    Text(stringResource(R.string.admin_schedule), fontSize = 11.sp)
                                 }
                             }
                         }
@@ -356,14 +358,14 @@ fun CiclosScreen(
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = { selectedTabIndex = index },
-                            text = { Text("Ciclo $ciclo", fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal) }
+                            text = { Text(stringResource(R.string.admin_cycle_n, ciclo), fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal) }
                         )
                     }
                 }
             }
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No hay asignaturas configuradas", color = surfaceDimColor)
+                Text(stringResource(R.string.admin_no_subjects_configured), color = surfaceDimColor)
             }
         }
     }
@@ -406,7 +408,7 @@ fun AsignaturasScreen(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(text = "Asignaturas - $ciclo", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
+                Text(text = stringResource(R.string.admin_subjects_cycle, ciclo), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
                 CustomSearchBar(textoBusqueda = searchText, onValueChange = { searchText = it }, onFilterClick = {})
             }
         }
@@ -434,7 +436,7 @@ fun HorariosAdminScreen(
     val claseId = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim().contains("matutino")) "M" else "V"}${cicloNumInt}".uppercase()
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        AdminHeader("Horario ${turno.capitalize()} - $claseId")
+        AdminHeader(stringResource(R.string.admin_schedule_title, turno.capitalize(), claseId))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 160.dp)) {
             items(slots) { slot ->
                 val isReceso = slot.contains("11:10 - 11:35") || slot.contains("18:40 - 19:05")

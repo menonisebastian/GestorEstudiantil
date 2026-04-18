@@ -15,10 +15,12 @@ import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.ScrapedCourse
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.AdminRepository
+import samf.gestorestudiantil.R
 import javax.inject.Inject
 
 class AdminRepositoryImpl @Inject constructor(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : AdminRepository {
 
     private val gson = Gson()
@@ -175,7 +177,7 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun asignarAsignaturaAProfesor(asignaturaId: String, profesorId: String) {
         val userDoc = db.collection("usuarios").document(profesorId).get().await()
-        val nombreProfesor = userDoc.getString("nombre") ?: "Profesor desconocido"
+        val nombreProfesor = userDoc.getString("nombre") ?: context.getString(R.string.label_unknown_professor)
 
         // 1. Actualizar la asignatura
         val updates = mapOf(

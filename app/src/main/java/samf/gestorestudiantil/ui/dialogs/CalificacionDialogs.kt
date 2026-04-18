@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -43,71 +44,112 @@ fun EvaluacionProfesorItem(
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            if (!evaluacion.visible) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .fillMaxHeight()
+                        .width(4.dp)
+                        .background(surfaceDimColor.copy(alpha = 0.5f))
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .graphicsLayer(alpha = if (evaluacion.visible) 1f else 0.6f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(evaluacion.nombre, fontWeight = FontWeight.Bold, color = textColor)
+                        if (!evaluacion.visible) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    "OCULTO",
+                                    fontSize = 10.sp,
+                                    color = surfaceDimColor,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+                    }
 
                     if (evaluacion.adjunto != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.AttachFile,
-                            contentDescription = "Tiene entrega",
-                            tint = primaryColor,
-                            modifier = Modifier.size(14.dp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.AttachFile,
+                                contentDescription = "Tiene entrega",
+                                tint = primaryColor,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Archivo adjunto", fontSize = 11.sp, color = primaryColor)
+                        }
+                    }
+
+                    if (!evaluacion.comentario.isNullOrBlank()) {
+                        Text(
+                            text = evaluacion.comentario!!,
+                            fontSize = 11.sp,
+                            color = surfaceDimColor,
+                            maxLines = 1,
+                            modifier = Modifier.padding(top = 2.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(evaluacion.nombre, fontWeight = FontWeight.Bold, color = textColor)
-                if (!evaluacion.comentario.isNullOrBlank()) {
-                    Text(
-                        text = evaluacion.comentario!!,
-                        fontSize = 11.sp,
-                        color = surfaceDimColor,
-                        maxLines = 1
-                    )
-                }
-            }
-            
-            if (evaluacion.adjunto != null && onDownload != null) {
-                IconButton(onClick = onDownload) {
-                    Icon(Icons.Default.Download, contentDescription = "Descargar entrega", tint = primaryColor)
-                }
-            }
 
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                TypeChip(option = evaluacion.tipoEvaluacion)
-                Text(
-                    text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp,
-                    color = if (evaluacion.nota >= 5) Color(0xFF73BE77) else Color(0xFFD55047)
-                )
-            }
-            
-            CustomDropDownMenu(
-                items = listOf(
-                    MenuItem(
-                        text = "Editar",
-                        icon = Icons.Default.Edit,
-                        onClick = onEdit
-                    ),
-                    MenuItem(
-                        text = if (evaluacion.visible) "Ocultar" else "Mostrar",
-                        icon = if (evaluacion.visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        onClick = onToggleVisibility
-                    ),
-                    MenuItem(
-                        text = "Eliminar",
-                        icon = Icons.Default.Delete,
-                        onClick = onDelete,
-                        isDestructive = true
+                if (evaluacion.adjunto != null && onDownload != null) {
+                    IconButton(onClick = onDownload) {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = "Descargar entrega",
+                            tint = primaryColor
+                        )
+                    }
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TypeChip(option = evaluacion.tipoEvaluacion)
+                    Text(
+                        text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 18.sp,
+                        color = if (evaluacion.nota >= 5) Color(0xFF73BE77) else Color(0xFFD55047)
+                    )
+                }
+
+                CustomDropDownMenu(
+                    items = listOf(
+                        MenuItem(
+                            text = "Editar",
+                            icon = Icons.Default.Edit,
+                            onClick = onEdit
+                        ),
+                        MenuItem(
+                            text = if (evaluacion.visible) "Ocultar" else "Mostrar",
+                            icon = if (evaluacion.visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            onClick = onToggleVisibility
+                        ),
+                        MenuItem(
+                            text = "Eliminar",
+                            icon = Icons.Default.Delete,
+                            onClick = onDelete,
+                            isDestructive = true
+                        )
                     )
                 )
-            )
+            }
         }
     }
 }
@@ -141,7 +183,7 @@ fun VerDetalleEvaluacionDialog(
                 ) {
                     Text("Calificación", color = surfaceDimColor, fontSize = 14.sp)
                     Text(
-                        text = String.format(java.util.Locale.getDefault(), "%.2f", evaluacion.nota),
+                        text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
@@ -208,9 +250,10 @@ fun AddEditCalificacionDialog(
     onSave: (Evaluacion) -> Unit
 ) {
     var nombre by remember { mutableStateOf(evaluacion.nombre) }
-    var nota by remember { mutableStateOf(evaluacion.nota.let { if (it == 0.0 && evaluacion.id.isEmpty()) "" else String.format(java.util.Locale.US, "%.2f", it) }) }
+    var nota by remember { mutableStateOf(evaluacion.nota.let { if (it == 0.0 && evaluacion.id.isEmpty()) "" else String.format(Locale.US, "%.2f", it) }) }
     var tipoSeleccionado by remember { mutableStateOf(evaluacion.tipoEvaluacion) }
     var comentario by remember { mutableStateOf(evaluacion.comentario ?: "") }
+    var visible by remember { mutableStateOf(evaluacion.visible) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -273,6 +316,25 @@ fun AddEditCalificacionDialog(
                     minLines = 3
                 )
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("Visibilidad para el estudiante", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+                        Text(if (visible) "Visible" else "Oculto", color = surfaceDimColor, fontSize = 12.sp)
+                    }
+                    Switch(
+                        checked = visible,
+                        onCheckedChange = { visible = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = primaryColor,
+                            checkedTrackColor = primaryColor.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+
                 evaluacion.adjunto?.let { adjunto ->
                     val viewModel: ProfesorViewModel = viewModel()
                     OutlinedCard(
@@ -304,8 +366,10 @@ fun AddEditCalificacionDialog(
                         nombre = nombre,
                         nota = nota.replace(",", ".").toDoubleOrNull() ?: 0.0,
                         tipoEvaluacion = tipoSeleccionado,
-                        comentario = comentario.ifBlank { null }
+                        comentario = comentario.ifBlank { null },
+                        visible = visible
                     ))
+                    onDismiss()
                 },
                 shape = RoundedCornerShape(12.dp),
                 enabled = nombre.isNotBlank() && nota.isNotBlank(),
