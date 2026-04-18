@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.4] - 2026-04-18
+- **Notificaciones**: Implementada la programación de notificaciones locales para recordatorios y tareas utilizando `AlarmManager`.
+- **Corrección**: Solucionado error `java.text.ParseException` en `NotificationScheduler` mediante la normalización de formatos de fecha (`-` a `/`) y validación de concatenación.
+- **Notificaciones**: Implementado `BootReceiver` para reprogramar automáticamente las alertas de los recordatorios tras un reinicio del dispositivo, garantizando la persistencia de los avisos.
+- **Configuración**: Añadido permiso `RECEIVE_BOOT_COMPLETED` y registro de receptores (`NotificationReceiver` y `BootReceiver`) en el `AndroidManifest.xml`.
+- **UI/UX**: Reforzada la validación de formato en la selección de hora dentro de `AddRecordatorioDialog` para asegurar la compatibilidad con el motor de notificaciones.
+
 ## [v0.6.3] - 2026-04-17
 - **Arquitectura**: Migración total de la gestión de diálogos al patrón `DialogState` y `DialogOrchestrator`, eliminando estados locales y mejorando la consistencia en toda la aplicación.
 - **UI/UX**: Unificación de la estética de botones de acción mediante el uso exclusivo de `CustomFAB` en `HomeScreen`, `CalendarioPanel` y los paneles de detalle del profesor.

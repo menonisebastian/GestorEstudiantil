@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.ui.panels
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,20 +9,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Assignment
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.HorizontalDivider as Divider
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -106,7 +103,6 @@ fun CalendarioPanel(
     recordatorios: List<Recordatorio>,
     paddingValues: PaddingValues,
     onAddRecordatorio: (String) -> Unit,
-    onAddTarea: (String) -> Unit,
     onDeleteRecordatorio: (Recordatorio) -> Unit,
     onDeleteTarea: (Tarea) -> Unit
 ) {
@@ -114,7 +110,7 @@ fun CalendarioPanel(
     val startMonth = remember { currentMonth.minusMonths(12) }
     val endMonth = remember { currentMonth.plusMonths(12) }
     val daysOfWeek = remember { daysOfWeek() }
-    
+
     var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     val calendarState = rememberCalendarState(
         startMonth = startMonth,
@@ -139,6 +135,15 @@ fun CalendarioPanel(
             .padding(paddingValues)
             .background(MaterialTheme.colorScheme.background)
     ) {
+        Box(modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(16.dp))
+            .background(surfaceColor.copy(alpha = 0.95f), RoundedCornerShape(16.dp))
+            .padding(16.dp),
+            contentAlignment = Alignment.Center){
+            Text(text = "Mi Calendario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = textColor)
+        }
         // Cabecera del Calendario
         MonthHeader(
             currentMonth = calendarState.firstVisibleMonth.yearMonth,
@@ -159,9 +164,11 @@ fun CalendarioPanel(
             dayContent = { day ->
                 val isSelected = selectedDate == day.date
                 val tieneEventos = eventosTotales.any { it.fechaIso == day.date.toString() }
+                val isToday = day.date == LocalDate.now()
                 
                 Day(
                     day = day,
+                    isToday = isToday,
                     isSelected = isSelected,
                     tieneEventos = tieneEventos,
                     onClick = { selectedDate = it.date }
@@ -175,7 +182,7 @@ fun CalendarioPanel(
         Divider(modifier = Modifier.padding(vertical = 8.dp), color = surfaceColor.copy(alpha = 0.2f))
 
         Text(
-            text = selectedDate?.let { "Eventos para el ${formatearFechaParaMostrar(it.toString())}" } ?: "Selecciona un día",
+            text = selectedDate?.let { "Eventos para el ${formatearFechaParaMostrar(it.toString(), prettyDate = true)}" } ?: "Selecciona un día",
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
@@ -278,13 +285,16 @@ fun Day(
     day: CalendarDay,
     isSelected: Boolean,
     tieneEventos: Boolean,
+    isToday: Boolean = false,
     onClick: (CalendarDay) -> Unit
 ) {
+
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clip(CircleShape)
             .background(if (isSelected) tertiaryColor else Color.Transparent)
+            .border(width = 1.dp, color = if (isToday) tertiaryColor else Color.Transparent, shape = CircleShape)
             .clickable(
                 enabled = day.position == DayPosition.MonthDate,
                 onClick = { onClick(day) }

@@ -557,11 +557,6 @@ fun HomeScreen(
                                     )
                                 )
                             },
-                            onAddTarea = { fechaSeleccionada ->
-                                // Aquí puedes abrir el diálogo de añadir tarea o navegar a donde corresponda
-                                // Por ahora lo dejamos como un placeholder o mostramos un mensaje
-                                appViewModel.showSnackbar("Función para añadir tarea en $fechaSeleccionada")
-                            },
                             onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
                             onDeleteTarea = { tarea ->
                                 if (usuario.rol == "PROFESOR") {

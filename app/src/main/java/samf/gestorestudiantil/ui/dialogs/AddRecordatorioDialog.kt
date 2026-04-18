@@ -97,7 +97,13 @@ fun AddRecordatorioDialog(
                 value = hora,
                 label = "Hora",
                 onShowTimePicker = {
-                    onShowDialog(DialogState.TimePicker(hora) { hora = it })
+                    onShowDialog(DialogState.TimePicker(hora) { 
+                        // Asegurarnos de que la hora tenga el formato HH:mm
+                        val formattedTime = if (it.length == 4 && !it.contains(":")) {
+                            "${it.substring(0, 2)}:${it.substring(2)}"
+                        } else it
+                        hora = formattedTime 
+                    })
                 }
             )
             Column {

@@ -1,8 +1,10 @@
 package samf.gestorestudiantil.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import samf.gestorestudiantil.data.models.Recordatorio
+import samf.gestorestudiantil.domain.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
 import javax.inject.Inject
 
@@ -38,7 +41,8 @@ data class AppState(
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val recordatorioRepository: RecordatorioRepository
+    private val recordatorioRepository: RecordatorioRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
@@ -65,6 +69,9 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             recordatorioRepository.getRecordatorios(usuarioId).collect { lista ->
                 _state.update { it.copy(recordatorios = lista) }
+                lista.forEach { recordatorio ->
+                    NotificationScheduler.scheduleRecordatorioNotification(context, recordatorio)
+                }
             }
         }
     }
@@ -73,6 +80,7 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 recordatorioRepository.guardarRecordatorio(recordatorio)
+                NotificationScheduler.scheduleRecordatorioNotification(context, recordatorio)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar recordatorio: ${e.localizedMessage}") }
             }
@@ -83,6 +91,7 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 recordatorioRepository.eliminarRecordatorio(recordatorio.id)
+                NotificationScheduler.cancelNotification(context, recordatorio.id)
                 showSnackbar(
                     message = "Recordatorio eliminado",
                     actionLabel = "Deshacer",
@@ -100,6 +109,7 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 recordatorioRepository.actualizarRecordatorio(recordatorio)
+                NotificationScheduler.scheduleRecordatorioNotification(context, recordatorio)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al actualizar recordatorio: ${e.localizedMessage}") }
             }

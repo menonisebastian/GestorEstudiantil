@@ -22,6 +22,7 @@ import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Tarea
+import samf.gestorestudiantil.domain.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
@@ -89,6 +90,10 @@ class EstudianteViewModel @Inject constructor(
         tareasJob = viewModelScope.launch {
             tareaRepository.getTareasPorAsignaturas(asignaturaIds).collect { tareas ->
                 _state.update { it.copy(tareas = tareas) }
+                // Programar notificaciones para las tareas que tengan fecha límite futura
+                tareas.forEach { tarea ->
+                    NotificationScheduler.scheduleTareaNotification(context, tarea)
+                }
             }
         }
     }

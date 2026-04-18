@@ -178,13 +178,37 @@ fun String.toComposeIcon(): ImageVector {
 }
 
 // ============ FORMATEO DE FECHA ============ //
-fun formatearFechaParaMostrar(fechaIso: String): String {
+fun formatearFechaParaMostrar(fechaIso: String, prettyDate: Boolean = false): String
+{
+
     if (fechaIso.isBlank()) return ""
     return try {
         // Soporta tanto "2025/01/01" como "2025-01-01"
         val partes = if (fechaIso.contains("/")) fechaIso.split("/") else fechaIso.split("-")
+        val mes = partes[1].toInt()
+        val dia = partes[2].toInt()
         if (partes.size < 3) return fechaIso
-        "${partes[2]}/${partes[1]}/${partes[0]}" // Retorna "01/01/2025"
+        if (prettyDate) {
+            // Guardamos el resultado del when en una nueva variable (nombreMes)
+            val nombreMes = when (mes) {
+                1 -> "Enero"
+                2 -> "Febrero"
+                3 -> "Marzo"
+                4 -> "Abril"
+                5 -> "Mayo"
+                6 -> "Junio"
+                7 -> "Julio"
+                8 -> "Agosto"
+                9 -> "Septiembre"
+                10 -> "Octubre"   // Añadidos los meses faltantes
+                11 -> "Noviembre"
+                12 -> "Diciembre"
+                else -> ""
+            }
+            // Usamos 'nombreMes' en lugar de 'mes'
+            "$dia de $nombreMes de ${partes[0]}"
+        }
+        else "${partes[2]}/${partes[1]}/${partes[0]}" // Retorna "01/01/2025"
     } catch (e: Exception) {
         e.printStackTrace()
         fechaIso
@@ -201,8 +225,6 @@ fun compararFechaActual(fecha: String): Boolean {
  * Obtiene la primera letra del nombre y del apellido de un usuario.
  * Si el nombre tiene varias partes, toma la primera y la última (asumiendo que es el apellido).
  */
-fun obtenerIniciales(user: User?): String = obtenerInicialesDeNombre(user?.nombre)
-
 fun obtenerInicialesDeNombre(nombre: String?): String {
     val nombreCompleto = nombre?.trim() ?: return ""
     if (nombreCompleto.isEmpty()) return ""

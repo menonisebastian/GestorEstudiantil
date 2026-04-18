@@ -89,7 +89,7 @@ fun HorariosEstudiantePanel(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Horario Personal",
+                    text = "Mi Horario Personal",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = textColor,

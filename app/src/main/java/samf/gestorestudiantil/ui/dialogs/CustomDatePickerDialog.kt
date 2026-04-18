@@ -22,6 +22,7 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
+import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -99,13 +100,13 @@ fun CustomDatePickerDialog(
             },
             colors = DatePickerDefaults.colors(
                 containerColor = surfaceColor,
-                titleContentColor = tertiaryColor,
-                headlineContentColor = primaryColor,
-                subheadContentColor = secondaryColor,
+                titleContentColor = textColor,
+                headlineContentColor = textColor,
+                subheadContentColor = whiteColor,
                 selectedDayContainerColor = primaryColor,
                 todayContentColor = tertiaryColor,
                 todayDateBorderColor = tertiaryColor,
-                navigationContentColor = primaryColor,
+                navigationContentColor = textColor,
                 weekdayContentColor = secondaryColor,
             )
         )
