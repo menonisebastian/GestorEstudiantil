@@ -234,12 +234,6 @@ fun AuthScreen(
                                         )
                                         if (googleToken != null) {
                                             authViewModel.loginWithGoogleToken(googleToken)
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                R.string.error_google_auth_cancelled,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
                                         }
                                     }
                                 },

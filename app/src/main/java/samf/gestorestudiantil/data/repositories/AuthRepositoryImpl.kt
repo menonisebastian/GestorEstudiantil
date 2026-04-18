@@ -1,19 +1,24 @@
 package samf.gestorestudiantil.data.repositories
 
 import android.app.Activity
+import android.content.Context
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.domain.repositories.AuthRepository
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) : AuthRepository {
 
     override fun getAuthStateFlow(): Flow<String?> = callbackFlow {
@@ -25,18 +30,29 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun registerUser(email: String, pass: String): String {
-        val result = auth.createUserWithEmailAndPassword(email, pass).await()
-        return result.user?.uid ?: throw Exception("Auth error")
+        return try {
+            val result = auth.createUserWithEmailAndPassword(email, pass).await()
+            result.user?.uid ?: throw Exception(context.getString(R.string.error_auth_failed))
+        } catch (e: Exception) {
+            if (e is FirebaseAuthUserCollisionException) {
+                throw Exception(context.getString(R.string.error_email_already_in_use))
+            }
+            throw Exception(context.getString(R.string.error_auth_failed))
+        }
     }
 
     override suspend fun loginWithEmail(email: String, pass: String): String {
-        val credential = EmailAuthProvider.getCredential(email, pass)
-        val result = if (auth.currentUser != null) {
-            auth.currentUser?.linkWithCredential(credential)?.await()
-        } else {
-            auth.signInWithEmailAndPassword(email, pass).await()
+        return try {
+            val credential = EmailAuthProvider.getCredential(email, pass)
+            val result = if (auth.currentUser != null) {
+                auth.currentUser?.linkWithCredential(credential)?.await()
+            } else {
+                auth.signInWithEmailAndPassword(email, pass).await()
+            }
+            result?.user?.uid ?: throw Exception(context.getString(R.string.error_auth_failed))
+        } catch (e: Exception) {
+            throw Exception(context.getString(R.string.error_auth_failed))
         }
-        return result?.user?.uid ?: throw Exception("Login error")
     }
 
     override suspend fun signInWithGoogle(idToken: String): String {
@@ -47,29 +63,47 @@ class AuthRepositoryImpl @Inject constructor(
             } else {
                 auth.signInWithCredential(credential).await()
             }
-            result?.user?.uid ?: throw Exception("Google Sign-In error")
-        } catch (e: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
-            // El email ya existe con otro proveedor. Usamos la credencial de la excepción para entrar.
-            val result = e.updatedCredential?.let { auth.signInWithCredential(it).await() }
-            result?.user?.uid ?: throw e
+            result?.user?.uid ?: throw Exception(context.getString(R.string.error_google_signin))
+        } catch (e: Exception) {
+            if (e is FirebaseAuthUserCollisionException) {
+                val result = e.updatedCredential?.let { auth.signInWithCredential(it).await() }
+                result?.user?.uid ?: throw Exception(context.getString(R.string.error_google_signin))
+            } else {
+                throw Exception(context.getString(R.string.error_google_signin))
+            }
         }
     }
 
     override suspend fun signInWithGithub(activity: Activity): String {
         val provider = OAuthProvider.newBuilder("github.com")
 
-        val pendingResultTask = auth.pendingAuthResult
         return try {
+            val pendingResultTask = auth.pendingAuthResult
             val result = if (pendingResultTask != null) {
                 pendingResultTask.await()
             } else {
                 auth.startActivityForSignInWithProvider(activity, provider.build()).await()
             }
-            result?.user?.uid ?: throw Exception("Github Sign-In error")
-        } catch (e: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
-            // El email ya existe con otro proveedor. Usamos la credencial de la excepción para entrar.
-            val result = e.updatedCredential?.let { auth.signInWithCredential(it).await() }
-            result?.user?.uid ?: throw e
+
+            val credential = result?.credential
+
+            if (auth.currentUser != null && credential != null) {
+                auth.currentUser?.linkWithCredential(credential)?.await()
+            }
+
+            result?.user?.uid ?: throw Exception(context.getString(R.string.error_github_signin))
+        } catch (e: Exception) {
+            if (e is FirebaseAuthUserCollisionException) {
+                val credential = e.updatedCredential
+                if (credential != null) {
+                    val result = auth.signInWithCredential(credential).await()
+                    result.user?.uid ?: throw Exception(context.getString(R.string.error_github_signin))
+                } else {
+                    throw Exception(context.getString(R.string.error_github_signin))
+                }
+            } else {
+                throw Exception(context.getString(R.string.error_github_signin))
+            }
         }
     }
 

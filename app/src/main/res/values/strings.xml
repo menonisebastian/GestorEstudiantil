@@ -30,6 +30,7 @@
     <string name="error_auth_failed">Correo o contraseña incorrectos</string>
     <string name="error_email_already_in_use">Este correo ya está registrado</string>
     <string name="error_google_signin">Error al iniciar sesión con Google</string>
+    <string name="error_github_signin">Error al iniciar sesión con Github</string>
 
     <!-- Errores Específicos de Funcionalidad -->
     <string name="error_delete_item">No se pudo eliminar el elemento</string>

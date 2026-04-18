@@ -44,7 +44,7 @@ class CompleteGoogleSetupUseCase @Inject constructor(
             }
         }
 
-        val uid = authRepository.getCurrentUserUid() ?: throw Exception("User not logged in")
+        val uid = authRepository.getCurrentUserUid() ?: throw Exception("Usuario no autenticado")
 
         // 3. Asegurar datos de perfil si vienen vacíos (pueden venir de AuthState.user que es nulo en el primer login de Google)
         val finalName = if (name.isBlank()) authRepository.getCurrentUserName() ?: "Usuario Google" else name

@@ -42,18 +42,14 @@ suspend fun signInWithGoogle(
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
             return googleIdTokenCredential.idToken
         } else {
-            Toast.makeText(context, "Unexpected credential type", Toast.LENGTH_SHORT).show()
             return null
         }
 
     } catch (e: GetCredentialException) {
-        Toast.makeText(context, "GetCredential error: ${e.message}", Toast.LENGTH_SHORT).show()
         return null
     } catch (e: GoogleIdTokenParsingException) {
-        Toast.makeText(context, "Error parsing Google ID Token: ${e.message}", Toast.LENGTH_SHORT).show()
         return null
     } catch (e: Exception) {
-        Toast.makeText(context, "Sign in failed: ${e.message}", Toast.LENGTH_SHORT).show()
         return null
     }
 }
