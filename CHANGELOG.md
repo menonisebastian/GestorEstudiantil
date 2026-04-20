@@ -2,6 +2,10 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.6] - 2026-04-20
+- **Corrección**: Solucionado bug de vinculación de cuentas al loguearse con Github.
+- **Corrección**: Agregado de vuelta el campo ultimaVezAsignaturas en User.Estudiantes, que había sido eliminado en la migración a la nueva estructura de datos.
+
 ## [v0.6.5] - 2026-04-18
 - **Localización**: Finalizada la migración de textos del módulo de **Administración** (Usuarios, Centros, Cursos, Asignaturas) y componentes de edición a `strings.xml`.
 - **UX**: Eliminación de mensajes técnicos directos (`e.localizedMessage`) reemplazándolos por mensajes amigables en español en todo el flujo administrativo.
