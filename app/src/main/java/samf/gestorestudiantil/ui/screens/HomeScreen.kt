@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Class
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Snackbar
@@ -116,8 +115,8 @@ val itemsProfesor: Map<String, ImageVector> = mapOf(
 val itemsAdmin: Map<String, ImageVector> = mapOf(
     "Usuarios" to Icons.Outlined.Person,
     "Centros" to Icons.Default.Business,
+    "Calendario" to Icons.Default.CalendarMonth,
     "Perfil" to Icons.Outlined.Person,
-    "Recordatorios" to Icons.Outlined.Notifications
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -304,7 +303,7 @@ fun HomeScreen(
                             IconLogo(width = 125.dp)
                         },
                         actions = {
-                            if (usuario.rol != "ADMIN" && targetTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
+                            if (targetTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
                                 IconButton(
                                     onClick = {
                                         homeState.navigate("Calendario", Routes.HomeRoutes.Recordatorios)
@@ -370,7 +369,7 @@ fun HomeScreen(
         floatingActionButton = {
             // ✅ FAB Centralizado y Contextual
             when {
-                (currentRoute is Routes.HomeRoutes.Recordatorios || (currentTab == "Recordatorios" && usuario.rol == "ADMIN")) -> {
+                (currentRoute is Routes.HomeRoutes.Recordatorios || (currentTab == "Calendario" && usuario.rol == "ADMIN")) -> {
                     CustomFAB(
                         onClick = {
                             onOpenDialog(
@@ -527,10 +526,10 @@ fun HomeScreen(
                         }
                     }
                     entry<Routes.HomeRoutes.Calendario> {
-                        val tareas = if (usuario.rol == "PROFESOR") {
-                            profesorState.tareas
-                        } else {
-                            estudianteState.tareas
+                        val tareas = when (usuario.rol) {
+                            "PROFESOR" -> profesorState.tareas
+                            "ESTUDIANTE" -> estudianteState.tareas
+                            else -> emptyList()
                         }
 
                         CalendarioPanel(

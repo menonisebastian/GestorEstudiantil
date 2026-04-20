@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.domain
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -42,14 +43,21 @@ suspend fun signInWithGoogle(
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
             return googleIdTokenCredential.idToken
         } else {
+            Toast.makeText(context, "Tipo de credencial inesperado", Toast.LENGTH_SHORT).show()
             return null
         }
 
     } catch (e: GetCredentialException) {
+        Toast.makeText(context, "Error de GetCredential: ${e.message}", Toast.LENGTH_SHORT).show()
+        Log.e("GoogleAuthError", "Error de credenciales: ${e.message}", e)
         return null
     } catch (e: GoogleIdTokenParsingException) {
+        Toast.makeText(context, "Error al parsear el Google ID Token: ${e.message}", Toast.LENGTH_SHORT).show()
+        Log.e("GoogleAuthError", "Error parseando token: ${e.message}", e)
         return null
     } catch (e: Exception) {
+        Toast.makeText(context, "Registro fallido: ${e.message}", Toast.LENGTH_SHORT).show()
+        Log.e("GoogleAuthError", "Error general: ${e.message}", e)
         return null
     }
 }
