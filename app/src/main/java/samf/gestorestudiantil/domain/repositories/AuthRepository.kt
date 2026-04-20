@@ -9,6 +9,7 @@ interface AuthRepository {
     suspend fun loginWithEmail(email: String, pass: String): String
     suspend fun signInWithGoogle(idToken: String): String
     suspend fun signInWithGithub(activity: Activity): String
+    suspend fun linkGithubAfterReauth(activity: Activity, existingUid: String): String
     suspend fun updatePassword(password: String)
     fun getCurrentUserUid(): String?
     fun getCurrentUserName(): String?

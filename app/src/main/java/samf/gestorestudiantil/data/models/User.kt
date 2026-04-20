@@ -26,7 +26,8 @@ sealed class User {
         val cursoId: String = "",
         val curso: String = "",
         val turno: String = "",
-        val cicloNum: Int = 1
+        val cicloNum: Int = 1,
+        val ultimaVezAsignaturas: Map<String, Long> = emptyMap()
     ) : User()
 
     @Serializable

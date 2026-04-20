@@ -2,6 +2,7 @@ package samf.gestorestudiantil.data.repositories
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -86,25 +87,74 @@ class AuthRepositoryImpl @Inject constructor(
             }
 
             val credential = result?.credential
-
+            // Si ya hay un usuario autenticado (de otro proveedor), vinculamos GitHub
             if (auth.currentUser != null && credential != null) {
-                auth.currentUser?.linkWithCredential(credential)?.await()
+                try {
+                    auth.currentUser?.linkWithCredential(credential)?.await()
+                } catch (linkEx: Exception) {
+                    // Si el link falla (ya vinculado), ignoramos el error
+                }
             }
 
             result?.user?.uid ?: throw Exception(context.getString(R.string.error_github_signin))
-        } catch (e: Exception) {
-            if (e is FirebaseAuthUserCollisionException) {
-                val credential = e.updatedCredential
-                if (credential != null) {
-                    val result = auth.signInWithCredential(credential).await()
-                    result.user?.uid ?: throw Exception(context.getString(R.string.error_github_signin))
-                } else {
-                    throw Exception(context.getString(R.string.error_github_signin))
-                }
-            } else {
-                throw Exception(context.getString(R.string.error_github_signin))
+
+        } catch (e: FirebaseAuthUserCollisionException) {
+            Log.d("GithubAuth", "=== COLLISION EXCEPTION ===")
+            Log.d("GithubAuth", "e.email: ${e.email}")
+            Log.d("GithubAuth", "e.updatedCredential: ${e.updatedCredential}")
+            Log.d("GithubAuth", "e.message: ${e.message}")
+
+            var email = e.email
+            Log.d("GithubAuth", "email es null: ${email == null}")
+
+            if (email != null) {
+                val methods = auth.fetchSignInMethodsForEmail(email).await().signInMethods
+                Log.d("GithubAuth", "methods: $methods")
             }
+
+            // Email ya existe con otro proveedor — necesitamos ese proveedor para vincular
+            email = e.email
+                ?: throw Exception(context.getString(R.string.error_github_signin))
+
+            val githubCredential = e.updatedCredential
+                ?: throw Exception(context.getString(R.string.error_github_signin))
+
+            // Averiguamos con qué proveedor está registrado este email
+            @Suppress("DEPRECATION")
+            val methods = auth.fetchSignInMethodsForEmail(email).await().signInMethods
+                ?: emptyList()
+
+            when {
+                methods.contains(GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD) -> {
+                    // Lanzamos excepción con código para que el ViewModel lo maneje
+                    // en la UI (necesita re-autenticar con Google + mostrar diálogo)
+                    throw Exception("COLLISION_GOOGLE:$email")
+                }
+                methods.contains(EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD) -> {
+                    throw Exception("COLLISION_EMAIL:$email")
+                }
+                else -> {
+                    // Proveedor desconocido o GitHub ya vinculado — intentamos directo
+                    val result = auth.signInWithCredential(githubCredential).await()
+                    result.user?.uid
+                        ?: throw Exception(context.getString(R.string.error_github_signin))
+                }
+            }
+        } catch (e: Exception) {
+            // Re-lanzamos nuestros códigos de colisión sin transformar
+            if (e.message?.startsWith("COLLISION_") == true) throw e
+            throw Exception(context.getString(R.string.error_github_signin))
         }
+    }
+
+    // Nueva función pública para completar el link con GitHub tras re-autenticar
+    override suspend fun linkGithubAfterReauth(activity: Activity, existingUid: String): String {
+        val provider = OAuthProvider.newBuilder("github.com")
+        val result = auth.currentUser
+            ?.startActivityForLinkWithProvider(activity, provider.build())
+            ?.await()
+            ?: throw Exception(context.getString(R.string.error_github_signin))
+        return result.user?.uid ?: existingUid
     }
 
     override suspend fun updatePassword(password: String) {

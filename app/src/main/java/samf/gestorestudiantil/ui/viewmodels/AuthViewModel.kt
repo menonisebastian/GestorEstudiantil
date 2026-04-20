@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -181,43 +180,64 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 authRepository.signInWithGithub(activity)
-
-                // Temporizador de seguridad para evitar carga infinita si Firestore no responde
-                launch {
-                    delay(15000)
-                    if (_authState.value.isLoading) {
+            } catch (e: Exception) {
+                val msg = e.message ?: ""
+                when {
+                    msg.startsWith("COLLISION_GOOGLE:") -> {
+                        // El email está registrado con Google.
+                        // Hacemos sign-in con Google y luego vinculamos GitHub.
+                        handleGithubGoogleCollision(activity, msg.removePrefix("COLLISION_GOOGLE:"))
+                    }
+                    msg.startsWith("COLLISION_EMAIL:") -> {
                         _authState.value = _authState.value.copy(
                             isLoading = false,
-                            errorMessage = "Autenticación exitosa, pero hay problemas de conexión con la base de datos."
+                            errorMessage = "Este email ya está registrado con contraseña. " +
+                                    "Inicia sesión con email y contraseña primero."
+                        )
+                    }
+                    else -> {
+                        _authState.value = _authState.value.copy(
+                            isLoading = false,
+                            errorMessage = "Error con GitHub Sign-In"
                         )
                     }
                 }
-            } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Error con GitHub Sign-In")
             }
         }
     }
 
-    fun handleGitHubLoginSuccess(uid: String, name: String?, email: String?, photoUrl: String?) {
-        _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
-        viewModelScope.launch {
-            try {
-                val user = userRepository.getUser(uid)
-                if (user != null && user.rol.isNotBlank()) {
-                    _authState.value = _authState.value.copy(isSuccess = true, user = user, isLoading = false)
-                } else {
-                    val githubUser = User.Incompleto(
-                        id = uid,
-                        nombre = name ?: "",
-                        email = email ?: "",
-                        imgUrl = photoUrl ?: "",
-                        rol = ""
-                    )
-                    _authState.value = _authState.value.copy(requireGooglePasswordSetup = true, user = githubUser, isLoading = false)
-                }
-            } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error verificando usuario: ${e.localizedMessage}")
+    private suspend fun handleGithubGoogleCollision(activity: Activity, email: String) {
+        try {
+            // 1. Hacemos sign-in con Google (el usuario verá el selector de cuenta)
+            val credentialManager = androidx.credentials.CredentialManager.create(activity)
+            val token = activity.getString(samf.gestorestudiantil.R.string.id_token)
+            val googleToken = samf.gestorestudiantil.domain.signInWithGoogle(
+                context = activity,
+                credentialManager = credentialManager,
+                serverClientId = token
+            )
+
+            if (googleToken == null) {
+                _authState.value = _authState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Necesitas confirmar tu cuenta de Google para vincular GitHub."
+                )
+                return
             }
+
+            // 2. Sign-in con Google para autenticar al usuario
+            authRepository.signInWithGoogle(googleToken)
+
+            // 3. Ahora que el usuario está autenticado con Google, vinculamos GitHub
+            authRepository.linkGithubAfterReauth(activity, "")
+
+            // El listener de authState maneja la navegación automáticamente
+
+        } catch (e: Exception) {
+            _authState.value = _authState.value.copy(
+                isLoading = false,
+                errorMessage = "Error al vincular GitHub con tu cuenta de Google: ${e.localizedMessage}"
+            )
         }
     }
 
