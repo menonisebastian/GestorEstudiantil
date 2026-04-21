@@ -104,10 +104,6 @@ import samf.gestorestudiantil.domain.obtenerInicialesDeNombre
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.ui.theme.textColor
 import coil.compose.AsyncImage
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.CupertinoMaterials
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.domain.formatearFechaParaMostrar
 import samf.gestorestudiantil.domain.toComposeColor
@@ -128,18 +124,14 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.whiteColor
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun BottomNavBar(
     items: Map<String, ImageVector>,
     selectedItem: String,
     onItemSelected: (String) -> Unit,
-    hazeState: HazeState?,
     userImgUrl: String = "",
     userName: String = ""
 ) {
-
-    val hazeStyle = CupertinoMaterials.thick()
 
     Box(
         modifier = Modifier
@@ -151,8 +143,7 @@ fun BottomNavBar(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 2.dp)
                 .wrapContentSize()
-                .shadow(elevation = 16.dp, shape = CircleShape, clip = false)
-                .hazeEffect(hazeState) { style = hazeStyle },
+                .shadow(elevation = 16.dp, shape = CircleShape, clip = false),
             shape = CircleShape,
             color = surfaceColor.copy(alpha = 0.95f),
             tonalElevation = 8.dp

@@ -53,8 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
@@ -162,7 +160,7 @@ fun HomeScreen(
     val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
     val adminState by adminViewModel.adminState.collectAsState()
 
-    val hazeState = rememberHazeState()
+    //val hazeState = rememberHazeState()
 
     // Cargar datos al entrar o cuando cambien los datos clave del usuario
     LaunchedEffect(usuario) {
@@ -267,7 +265,6 @@ fun HomeScreen(
     }
 
     Scaffold(
-        modifier = Modifier.hazeSource(hazeState),
         containerColor = backgroundColor,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
@@ -361,7 +358,6 @@ fun HomeScreen(
                         }
                     }
                 },
-                hazeState = hazeState,
                 userImgUrl = usuario.imgUrl,
                 userName = usuario.nombre
             )
@@ -421,6 +417,7 @@ fun HomeScreen(
         // REEMPLAZAMOS CROSSFADE POR HORIZONTAL PAGER
         HorizontalPager(
             state = pagerState,
+            beyondViewportPageCount = 0,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())

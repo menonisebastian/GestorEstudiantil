@@ -1,5 +1,10 @@
 package samf.gestorestudiantil.ui.panels
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -126,11 +131,6 @@ fun CalendarioPanel(
         mapearEventos(tareas, recordatorios)
     }
 
-    val eventosDelDiaSeleccionado = remember(selectedDate, eventosTotales) {
-        val dateStr = selectedDate?.toString() ?: ""
-        eventosTotales.filter { it.fechaIso == dateStr }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -183,55 +183,86 @@ fun CalendarioPanel(
 
         Divider(modifier = Modifier.padding(vertical = 8.dp), color = surfaceColor.copy(alpha = 0.2f))
 
-        Text(
-            text = selectedDate?.let { "Eventos para el ${formatearFechaParaMostrar(it.toString(), prettyDate = true)}" } ?: "Selecciona un día",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = textColor
-        )
-
         Box(modifier = Modifier.weight(1f)) {
-            if (eventosDelDiaSeleccionado.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = 140.dp), contentAlignment = Alignment.Center) {
-                    Text(text = "No hay eventos para este día", color = textColor.copy(alpha = 0.6f))
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 160.dp, start = 16.dp, end = 16.dp)
-                ) {
-                    items(eventosDelDiaSeleccionado) { evento ->
-                        if (evento.tipo == TipoEventoVisual.RECORDATORIO) {
-                            val rec = recordatorios.find { it.id == evento.id }
-                            if (rec != null) {
-                                CustomNotificationCard(
-                                    recordatorio = rec,
-                                    onClick = { onUpdateRecordatorio(rec) },
-                                    onDelete = { onDeleteRecordatorio(rec) }
-                                )
-                            }
-                        } else {
-                            val tar = tareas.find { it.id == evento.id }
-                            if (tar != null) {
-                                val canDelete = usuarioActual.rol == "PROFESOR"
-                                // Mapeamos la tarea a un Recordatorio temporal para usar CustomNotificationCard
-                                val syntheticRec = Recordatorio(
-                                    id = tar.id,
-                                    titulo = tar.titulo,
-                                    descripcion = tar.descripcion,
-                                    fecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(tar.fechaLimiteEntrega.toDate()),
-                                    hora = SimpleDateFormat("HH:mm", Locale.getDefault()).format(tar.fechaLimiteEntrega.toDate()),
-                                    tipo = tipoRecordatorio.TAREA
-                                )
-                                CustomNotificationCard(
-                                    recordatorio = syntheticRec,
-                                    onClick = { onTareaClick(tar) },
-                                    onDelete = { if (canDelete) onDeleteTarea(tar) },
-                                    showDelete = canDelete,
-                                    onDownload = if (tar.adjunto != null) { { onDownloadTarea(tar) } } else null
-                                )
+            AnimatedContent(
+                targetState = selectedDate,
+                label = "EventosContentTransition",
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                },
+                modifier = Modifier.fillMaxSize()
+            ) { targetDate ->
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Text(
+                        text = targetDate?.let { "Eventos para el ${formatearFechaParaMostrar(it.toString(), prettyDate = true)}" } ?: "Selecciona un día",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+
+                    val eventosDelDia = remember(targetDate, eventosTotales) {
+                        val dateStr = targetDate?.toString() ?: ""
+                        eventosTotales.filter { it.fechaIso == dateStr }
+                    }
+
+                    if (eventosDelDia.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 140.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No hay eventos para este día",
+                                color = textColor.copy(alpha = 0.6f)
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 160.dp, start = 16.dp, end = 16.dp)
+                        ) {
+                            items(eventosDelDia) { evento ->
+                                if (evento.tipo == TipoEventoVisual.RECORDATORIO) {
+                                    val rec = recordatorios.find { it.id == evento.id }
+                                    if (rec != null) {
+                                        CustomNotificationCard(
+                                            recordatorio = rec,
+                                            onClick = { onUpdateRecordatorio(rec) },
+                                            onDelete = { onDeleteRecordatorio(rec) }
+                                        )
+                                    }
+                                } else {
+                                    val tar = tareas.find { it.id == evento.id }
+                                    if (tar != null) {
+                                        val canDelete = usuarioActual.rol == "PROFESOR"
+                                        val syntheticRec = Recordatorio(
+                                            id = tar.id,
+                                            titulo = tar.titulo,
+                                            descripcion = tar.descripcion,
+                                            fecha = SimpleDateFormat(
+                                                "yyyy-MM-dd",
+                                                Locale.getDefault()
+                                            ).format(tar.fechaLimiteEntrega.toDate()),
+                                            hora = SimpleDateFormat(
+                                                "HH:mm",
+                                                Locale.getDefault()
+                                            ).format(tar.fechaLimiteEntrega.toDate()),
+                                            tipo = tipoRecordatorio.TAREA
+                                        )
+                                        CustomNotificationCard(
+                                            recordatorio = syntheticRec,
+                                            onClick = { onTareaClick(tar) },
+                                            onDelete = { if (canDelete) onDeleteTarea(tar) },
+                                            showDelete = canDelete,
+                                            onDownload = if (tar.adjunto != null) {
+                                                { onDownloadTarea(tar) }
+                                            } else null
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

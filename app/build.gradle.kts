@@ -148,7 +148,5 @@ dependencies {
         exclude(group = "io.grpc", module = "grpc-netty-shaded")
     }
 
-    implementation(libs.haze)
-    implementation(libs.haze.materials)
     implementation(libs.calendar.compose)
 }
