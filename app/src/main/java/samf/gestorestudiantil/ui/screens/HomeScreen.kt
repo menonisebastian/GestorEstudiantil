@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -163,7 +164,7 @@ fun HomeScreen(
     //val hazeState = rememberHazeState()
 
     // Cargar datos al entrar o cuando cambien los datos clave del usuario
-    LaunchedEffect(usuario) {
+    LaunchedEffect(usuario.id) {
         // Cargar usuario en AppViewModel para disparar carga de recordatorios
         appViewModel.setCurrentUser(
             CurrentUserUiState(
@@ -199,7 +200,7 @@ fun HomeScreen(
     }
 
     // Sincronizar tiempos de lectura cuando el usuario cambie en tiempo real (vía AppNavigation listener)
-    LaunchedEffect(usuario) {
+    LaunchedEffect(usuario.id, usuario.rol) {
         when (usuario) {
             is User.Estudiante -> {
                 estudianteViewModel.actualizarTiemposLectura(emptyMap()) // Ajustar si es necesario
@@ -279,13 +280,13 @@ fun HomeScreen(
         },
         topBar = {
             AnimatedContent(
-                targetState = currentTab, // <-- Usamos currentTab derivado del pager
+                targetState = currentTab == "Perfil", // Usamos booleano para mayor estabilidad
                 transitionSpec = {
-                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
                 },
                 label = "TopBarAnimation"
-            ) { targetTab ->
-                if (targetTab == "Perfil") {
+            ) { isPerfil ->
+                if (isPerfil) {
                     CenterAlignedTopAppBar(
                         title = {
                             TitleLogo(125.dp)
@@ -300,7 +301,7 @@ fun HomeScreen(
                             IconLogo(width = 125.dp)
                         },
                         actions = {
-                            if (targetTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
+                            if (currentTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
                                 IconButton(
                                     onClick = {
                                         homeState.navigate("Calendario", Routes.HomeRoutes.Recordatorios)
@@ -451,14 +452,24 @@ fun HomeScreen(
                 entryProvider = entryProvider {
                     // Estudiante / Profesor
                     entry<Routes.HomeRoutes.Materias> {
+                        val onAsignaturaClickProfesor = remember(pageTab) {
+                            { asignatura: Asignatura ->
+                                homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
+                            }
+                        }
+                        val onAsignaturaClickEstudiante = remember(pageTab, usuario.id) {
+                            { asignatura: Asignatura ->
+                                estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
+                                homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
+                            }
+                        }
+
                         when (usuario) {
                             is User.Profesor -> {
                                 AsignaturasProfesorPanel(
                                     profesor = usuario,
                                     paddingValues = PaddingValues(0.dp),
-                                    onAsignaturaClick = { asignatura ->
-                                        homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
-                                    },
+                                    onAsignaturaClick = onAsignaturaClickProfesor,
                                     onOpenDialog = onOpenDialog
                                 )
                             }
@@ -466,10 +477,7 @@ fun HomeScreen(
                                 AsignaturasEstudiantePanel(
                                     asignaturas = estudianteState.asignaturas,
                                     paddingValues = PaddingValues(0.dp),
-                                    onAsignaturaClick = { asignatura ->
-                                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
-                                        homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
-                                    }
+                                    onAsignaturaClick = onAsignaturaClickEstudiante
                                 )
                             }
                             else -> {
@@ -651,24 +659,24 @@ fun HomeScreen(
                         }
                     }
                     entry<Routes.HomeRoutes.EstudiantesAsignatura> { route ->
-                        val profesorViewModel: ProfesorViewModel = hiltViewModel()
-                        val pState by profesorViewModel.state.collectAsState()
-
                         LaunchedEffect(route.asignatura.id) {
                             profesorViewModel.cargarEstudiantesPorAsignatura(route.asignatura)
                         }
 
+                        val onEstudianteClick = remember(pageTab, route.asignatura) {
+                            { estudiante: User ->
+                                homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
+                            }
+                        }
+
                         EstudiantesAsignaturaLista(
                             asignatura = route.asignatura,
-                            estudiantes = pState.estudiantes,
-                            onEstudianteClick = { estudiante ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
-                            },
+                            estudiantes = profesorState.estudiantes,
+                            onEstudianteClick = onEstudianteClick,
                             onOpenDialog = onOpenDialog,
                         )
                     }
                     entry<Routes.HomeRoutes.CalificacionesEstudianteDetalle> { route ->
-                        val profesorViewModel: ProfesorViewModel = hiltViewModel()
                         CalificacionesDetalleEstudiante(
                             estudiante = route.estudiante,
                             asignatura = route.asignatura,
@@ -890,8 +898,6 @@ fun HomeScreen(
                         )
                     }
                     entry<Routes.HomeRoutes.EditUser> { route ->
-                        val adminState by adminViewModel.adminState.collectAsState()
-
                         LaunchedEffect(route.user.centroId) {
                             if (adminState.cursos.isEmpty()) {
                                 adminViewModel.cargarCursosPorCentro(route.user.centroId)
@@ -919,11 +925,13 @@ fun HomeScreen(
         }
     }
 
-    DialogOrchestrator(
-        states = dialogStack,
-        onShowDialog = { dialogStack.add(it) },
-        onDismiss = { dialogStack.remove(it) }
-    )
+    key(dialogStack.size) {
+        DialogOrchestrator(
+            states = dialogStack,
+            onShowDialog = { dialogStack.add(it) },
+            onDismiss = { dialogStack.remove(it) }
+        )
+    }
 }
 
 // Composable de relleno para las pantallas que aún no están creadas

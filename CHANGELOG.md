@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.7] - 2026-04-20
+- **Rendimiento**: Optimización mayor de `HomeScreen` mediante el hoisting de ViewModels (`Profesor`, `Estudiante`, `Admin`, `App`) para evitar re-instanciaciones durante la navegación por pestañas.
+- **Rendimiento**: Implementación de `derivedStateOf` en paneles de listas (Asignaturas, Calificaciones) para optimizar el filtrado y reducir recomposiciones innecesarias.
+- **Rendimiento**: Optimización de la lógica de búsqueda en paneles de Horarios (Profesor/Estudiante) y administración (`UsuariosAdminPanel`, `CentrosAdminPanel`) mediante el uso de `derivedStateOf` y `remember`.
+- **Rendimiento**: Configuración de `HorizontalPager` con `beyondViewportPageCount = 0` para minimizar la carga de componentes fuera de pantalla.
+- **Estabilidad**: Estabilización de lambdas de navegación y callbacks en `HomeScreen` utilizando `remember` para mantener referencias consistentes durante el ciclo de vida de la pantalla.
+- **Corrección**: Solucionados errores de compilación por falta de imports y referencias de estado en `CalificacionesEstudiantePanel`.
+
 ## [v0.6.6] - 2026-04-20
 - **Corrección**: Solucionado bug de vinculación de cuentas al loguearse con Github.
 - **Corrección**: Agregado de vuelta el campo ultimaVezAsignaturas en User.Estudiantes, que había sido eliminado en la migración a la nueva estructura de datos.

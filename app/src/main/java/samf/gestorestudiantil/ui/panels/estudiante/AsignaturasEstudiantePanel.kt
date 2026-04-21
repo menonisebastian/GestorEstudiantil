@@ -18,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,9 +44,11 @@ fun AsignaturasEstudiantePanel(
 ) {
     var textoBusqueda by remember { mutableStateOf("") }
 
-    val asignaturasFiltradas = remember(textoBusqueda, asignaturas) {
-        if (textoBusqueda.isBlank()) asignaturas
-        else asignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
+    val asignaturasFiltradas by remember(textoBusqueda, asignaturas) {
+        derivedStateOf {
+            if (textoBusqueda.isBlank()) asignaturas
+            else asignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
+        }
     }
 
     Box(

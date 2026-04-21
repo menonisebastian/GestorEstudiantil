@@ -48,13 +48,16 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import samf.gestorestudiantil.ui.components.AsignaturaCard
 import java.util.Locale
+import androidx.core.graphics.toColorInt
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
@@ -100,7 +103,9 @@ fun CentrosListScreen(
         if (adminState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else {
-            val filteredCentros = adminState.centros.filter { it.nombre.contains(searchText, ignoreCase = true) }
+            val filteredCentros by remember(searchText, adminState.centros) {
+                derivedStateOf { adminState.centros.filter { it.nombre.contains(searchText, ignoreCase = true) } }
+            }
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(top = 160.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
@@ -159,7 +164,9 @@ fun TiposCursoScreen(
     onTipoClick: (String) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        val tipos = adminState.cursos.mapNotNull { it.tipo }.distinct().sorted()
+        val tipos by remember(adminState.cursos) {
+            derivedStateOf { adminState.cursos.mapNotNull { it.tipo }.distinct().sorted() }
+        }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(top = 100.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
@@ -197,7 +204,9 @@ fun CursosScreen(
 ) {
     val headerTitle = if (tipo.contains("Curso", ignoreCase = true)) tipo else stringResource(R.string.admin_courses_of, tipo)
     Box(modifier = Modifier.fillMaxSize()) {
-        val cursos = adminState.cursos.filter { it.tipo == tipo }
+        val cursos by remember(tipo, adminState.cursos) {
+            derivedStateOf { adminState.cursos.filter { it.tipo == tipo } }
+        }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(top = 100.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
@@ -256,15 +265,19 @@ fun CiclosScreen(
     onUserClick: (User) -> Unit,
     onAsignarTutor: (String, String) -> Unit,
 ) {
-    val asignaturasFiltradas = adminState.asignaturas 
-    val ciclos = remember(asignaturasFiltradas) { 
-        asignaturasFiltradas.map { it.ciclo }.distinct().sortedBy { it } 
+    val asignaturasFiltradas = adminState.asignaturas
+    val ciclos by remember(asignaturasFiltradas) {
+        derivedStateOf { asignaturasFiltradas.map { it.ciclo }.distinct().sortedBy { it } }
     }
-    
+
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val currentCiclo = ciclos.getOrNull(selectedTabIndex) ?: ""
-    val asignaturasDelCiclo = asignaturasFiltradas.filter { it.ciclo == currentCiclo }
-    val profesorEjemplo = asignaturasDelCiclo.firstOrNull { it.profesorNombre.isNotEmpty() }
+    val asignaturasDelCiclo by remember(asignaturasFiltradas, currentCiclo) {
+        derivedStateOf { asignaturasFiltradas.filter { it.ciclo == currentCiclo } }
+    }
+    val profesorEjemplo by remember(asignaturasDelCiclo) {
+        derivedStateOf { asignaturasDelCiclo.firstOrNull { it.profesorNombre.isNotEmpty() } }
+    }
     val currentCicloNum = currentCiclo.trim().firstOrNull()?.toString()?.toIntOrNull() ?: 1
     val claseReal = adminState.clases.find {
         it.cursoGlobalId == curso.id &&
@@ -380,8 +393,12 @@ fun AsignaturasScreen(
 ) {
     var searchText by remember { mutableStateOf("") }
     Box(modifier = Modifier.fillMaxSize()) {
-        val filteredAsignaturas = adminState.asignaturas.filter { 
-            it.ciclo == ciclo && (it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)) 
+        val filteredAsignaturas by remember(ciclo, searchText, adminState.asignaturas) {
+            derivedStateOf {
+                adminState.asignaturas.filter {
+                    it.ciclo == ciclo && (it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true))
+                }
+            }
         }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -435,6 +452,12 @@ fun HorariosAdminScreen(
     }
     val claseId = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim().contains("matutino")) "M" else "V"}${cicloNumInt}".uppercase()
 
+    val horarioMap by remember(adminState.horarios, adminState.asignaturas) {
+        derivedStateOf {
+            adminState.horarios.associateBy { "${it.dia}_${it.horaInicio}_${it.horaFin}" }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         AdminHeader(stringResource(R.string.admin_schedule_title, turno.capitalize(), claseId))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 160.dp)) {
@@ -444,7 +467,8 @@ fun HorariosAdminScreen(
                     Text(text = slot, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp), color = primaryColor)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         dias.forEach { dia ->
-                            val h = adminState.horarios.find { it.dia == dia && "${it.horaInicio} - ${it.horaFin}" == slot }
+                            val key = "${dia}_${slot.split(" - ")[0]}_${slot.split(" - ")[1]}"
+                            val h = horarioMap[key]
                             val asig = adminState.asignaturas.find { it.id == h?.asignaturaId }
                             Box(modifier = Modifier.weight(1f).height(60.dp), contentAlignment = Alignment.Center) {
                                 Card(

@@ -41,9 +41,9 @@ fun CalificacionesProfesorPanel(
     paddingValues: PaddingValues,
     onOpenDialog: (DialogState) -> Unit,
     onAsignaturaClick: (Asignatura) -> Unit,
-    onEstudianteClick: (User, Asignatura) -> Unit
+    onEstudianteClick: (User, Asignatura) -> Unit,
+    viewModel: ProfesorViewModel = viewModel()
 ) {
-    val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
     var searchText by remember { mutableStateOf("") }
@@ -52,15 +52,47 @@ fun CalificacionesProfesorPanel(
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Estudiantes", "Asignaturas")
 
-    LaunchedEffect(profesor.id) {
-        viewModel.cargarAsignaturas(profesor.id)
-    }
-
     val cursosOpciones = remember(state.todosMisEstudiantes) {
         state.todosMisEstudiantes.filterIsInstance<User.Estudiante>().map { it.curso }.distinct().sorted()
     }
     val asignaturasOpciones = remember(state.asignaturas) {
         state.asignaturas.map { it.acronimo }.distinct().sorted()
+    }
+
+    val filteredEstudiantes by remember(state.todosMisEstudiantes, searchText, filtroCurso, filtroAsignatura, state.asignaturas) {
+        derivedStateOf {
+            state.todosMisEstudiantes.filter {
+                val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true)
+                val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
+                val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
+                    it is User.Estudiante && cursosSeleccionados.contains(it.curso)
+                }
+                val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
+                val coincideAsignatura = if (asignaturasSeleccionadas.isEmpty()) true else {
+                    it is User.Estudiante && state.asignaturas.any { asig ->
+                        asignaturasSeleccionadas.contains(asig.acronimo) && asig.cursoId == it.cursoId
+                    }
+                }
+                coincideBusqueda && coincideCurso && coincideAsignatura
+            }
+        }
+    }
+
+    val filteredAsignaturas by remember(state.asignaturas, searchText, filtroAsignatura, filtroCurso) {
+        derivedStateOf {
+            state.asignaturas.filter {
+                val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)
+                val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
+                val coincideAsignatura = if (asignaturasSeleccionadas.isEmpty()) true else {
+                    asignaturasSeleccionadas.contains(it.acronimo)
+                }
+                val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
+                val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
+                    cursosSeleccionados.any { curso -> it.cursoId.contains(curso, ignoreCase = true) }
+                }
+                coincideBusqueda && coincideAsignatura && coincideCurso
+            }
+        }
     }
 
     Box(
@@ -74,20 +106,6 @@ fun CalificacionesProfesorPanel(
         ) {
             when (selectedTab) {
                 0 -> { // Pestaña Estudiantes
-                    val filteredEstudiantes = state.todosMisEstudiantes.filter { it ->
-                        val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true)
-                        val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
-                        val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
-                            it is User.Estudiante && cursosSeleccionados.contains(it.curso)
-                        }
-                        val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
-                        val coincideAsignatura = if (asignaturasSeleccionadas.isEmpty()) true else {
-                            it is User.Estudiante && state.asignaturas.any { asig -> 
-                                asignaturasSeleccionadas.contains(asig.acronimo) && asig.cursoId == it.cursoId 
-                            }
-                        }
-                        coincideBusqueda && coincideCurso && coincideAsignatura
-                    }
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 220.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
@@ -115,18 +133,6 @@ fun CalificacionesProfesorPanel(
                     }
                 }
                 1 -> { // Pestaña Asignaturas
-                    val filteredAsignaturas = state.asignaturas.filter {
-                        val coincideBusqueda = it.nombre.contains(searchText, ignoreCase = true) || it.acronimo.contains(searchText, ignoreCase = true)
-                        val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
-                        val coincideAsignatura = if (asignaturasSeleccionadas.isEmpty()) true else {
-                            asignaturasSeleccionadas.contains(it.acronimo)
-                        }
-                        val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
-                        val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
-                            cursosSeleccionados.any { curso -> it.cursoId.contains(curso, ignoreCase = true) }
-                        }
-                        coincideBusqueda && coincideAsignatura && coincideCurso
-                    }
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 220.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
@@ -140,6 +146,7 @@ fun CalificacionesProfesorPanel(
                 }
             }
         }
+
 
         // Cabezal Flotante (Título + Barra de Búsqueda + Tabs)
         Column(
@@ -260,15 +267,20 @@ fun EstudiantesAsignaturaLista(
     onOpenDialog: (DialogState) -> Unit,
 ) {
     var searchText by remember { mutableStateOf("") }
-    Box(modifier = Modifier.fillMaxSize()) {
-        val filteredEstudiantes = if (searchText.isEmpty()) {
-            estudiantes
-        } else {
-            estudiantes.filter {
-                it.nombre.contains(searchText, ignoreCase = true)
+    
+    val filteredEstudiantes by remember(estudiantes, searchText) {
+        derivedStateOf {
+            if (searchText.isEmpty()) {
+                estudiantes
+            } else {
+                estudiantes.filter {
+                    it.nombre.contains(searchText, ignoreCase = true)
+                }
             }
         }
+    }
 
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(top = 190.dp, bottom = 120.dp, start = 20.dp, end = 20.dp),
@@ -283,6 +295,7 @@ fun EstudiantesAsignaturaLista(
                 )
             }
         }
+
 
         // Header Flotante (Unificado con el resto de la app)
         Card(

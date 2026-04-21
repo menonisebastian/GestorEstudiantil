@@ -98,7 +98,9 @@ fun HorariosProfesorPanel(
 
 @Composable
 fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: List<Asignatura>, turno: String) {
-    val slots = if (turno.lowercase().trim() == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
+    val slots = remember(turno) {
+        if (turno.lowercase().trim() == "matutino") Horario.HORAS_MATUTINO else Horario.HORAS_VESPERTINO
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -109,8 +111,12 @@ fun HorarioDelDiaProfesor(dia: String, horarios: List<Horario>, asignaturas: Lis
         contentPadding = PaddingValues(top = 140.dp, bottom = 120.dp)
     ) {
         items(slots) { slot ->
-            val h = horarios.find { it.dia.equals(dia, ignoreCase = true) && "${it.horaInicio.trim()} - ${it.horaFin.trim()}" == slot.trim() }
-            val asig = asignaturas.find { it.id == h?.asignaturaId }
+            val h = remember(horarios, dia, slot) {
+                horarios.find { it.dia.equals(dia, ignoreCase = true) && "${it.horaInicio.trim()} - ${it.horaFin.trim()}" == slot.trim() }
+            }
+            val asig = remember(asignaturas, h) {
+                asignaturas.find { it.id == h?.asignaturaId }
+            }
             ItemHorarioProfesor(slot, h, asig)
         }
     }

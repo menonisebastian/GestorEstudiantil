@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -89,8 +90,8 @@ fun UsuariosAdminPanel(
     // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
 
-    val countActivos = remember(adminState.usuarios) { adminState.usuarios.count { it.estado == "ACTIVO" } }
-    val countPendientes = remember(adminState.usuarios) { adminState.usuarios.count { it.estado == "PENDIENTE" } }
+    val countActivos by remember(adminState.usuarios) { derivedStateOf { adminState.usuarios.count { it.estado == "ACTIVO" } } }
+    val countPendientes by remember(adminState.usuarios) { derivedStateOf { adminState.usuarios.count { it.estado == "PENDIENTE" } } }
 
     // Cargamos los usuarios y cursos al iniciar la pantalla
     LaunchedEffect(Unit) {
@@ -107,39 +108,41 @@ fun UsuariosAdminPanel(
     }
 
     // Filtrar la lista real proveniente de Firebase
-    val usuariosFiltrados = remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, filtroTurno, selectedTabIndex, adminState.usuarios) {
-        val estadoFiltro = if (selectedTabIndex == 1) "PENDIENTE" else "ACTIVO"
-        val rolesSeleccionados = filtroRol.split(",").filter { it.isNotEmpty() }
-        val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
-        val ciclosSeleccionados = filtroCiclo.split(",").filter { it.isNotEmpty() }
-        val turnosSeleccionados = filtroTurno.split(",").filter { it.isNotEmpty() }
+    val usuariosFiltrados by remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, filtroTurno, selectedTabIndex, adminState.usuarios) {
+        derivedStateOf {
+            val estadoFiltro = if (selectedTabIndex == 1) "PENDIENTE" else "ACTIVO"
+            val rolesSeleccionados = filtroRol.split(",").filter { it.isNotEmpty() }
+            val cursosSeleccionados = filtroCurso.split(",").filter { it.isNotEmpty() }
+            val ciclosSeleccionados = filtroCiclo.split(",").filter { it.isNotEmpty() }
+            val turnosSeleccionados = filtroTurno.split(",").filter { it.isNotEmpty() }
 
-        adminState.usuarios.filter {
-            val coincideEstado = it.estado == estadoFiltro
-            val coincideTexto = it.nombre.contains(textoBusqueda, ignoreCase = true) || 
-                                it.email.contains(textoBusqueda, ignoreCase = true)
-            val coincideRol = if (rolesSeleccionados.isEmpty()) true else rolesSeleccionados.any { rol -> it.rol.equals(rol, ignoreCase = true) }
-            val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
-                when (it) {
-                    is User.Estudiante -> cursosSeleccionados.any { curso -> it.curso.contains(curso, ignoreCase = true) }
-                    is User.Profesor -> cursosSeleccionados.any { curso -> it.departamento.contains(curso, ignoreCase = true) }
-                    else -> true
+            adminState.usuarios.filter {
+                val coincideEstado = it.estado == estadoFiltro
+                val coincideTexto = it.nombre.contains(textoBusqueda, ignoreCase = true) ||
+                                    it.email.contains(textoBusqueda, ignoreCase = true)
+                val coincideRol = if (rolesSeleccionados.isEmpty()) true else rolesSeleccionados.any { rol -> it.rol.equals(rol, ignoreCase = true) }
+                val coincideCurso = if (cursosSeleccionados.isEmpty()) true else {
+                    when (it) {
+                        is User.Estudiante -> cursosSeleccionados.any { curso -> it.curso.contains(curso, ignoreCase = true) }
+                        is User.Profesor -> cursosSeleccionados.any { curso -> it.departamento.contains(curso, ignoreCase = true) }
+                        else -> true
+                    }
                 }
-            }
-            val coincideCiclo = if (ciclosSeleccionados.isEmpty()) true else {
-                when (it) {
-                    is User.Estudiante -> ciclosSeleccionados.any { ciclo -> it.cicloNum.toString() == ciclo }
-                    else -> true
+                val coincideCiclo = if (ciclosSeleccionados.isEmpty()) true else {
+                    when (it) {
+                        is User.Estudiante -> ciclosSeleccionados.any { ciclo -> it.cicloNum.toString() == ciclo }
+                        else -> true
+                    }
                 }
-            }
-            val coincideTurno = if (turnosSeleccionados.isEmpty()) true else {
-                when (it) {
-                    is User.Estudiante -> turnosSeleccionados.any { turno -> it.turno.equals(turno, ignoreCase = true) }
-                    else -> true
+                val coincideTurno = if (turnosSeleccionados.isEmpty()) true else {
+                    when (it) {
+                        is User.Estudiante -> turnosSeleccionados.any { turno -> it.turno.equals(turno, ignoreCase = true) }
+                        else -> true
+                    }
                 }
+
+                coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo && coincideTurno
             }
-            
-            coincideEstado && coincideTexto && coincideRol && coincideCurso && coincideCiclo && coincideTurno
         }
     }
 

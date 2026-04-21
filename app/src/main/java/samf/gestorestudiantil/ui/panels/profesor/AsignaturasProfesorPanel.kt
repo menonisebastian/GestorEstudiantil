@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,20 +59,22 @@ fun AsignaturasProfesorPanel(
         viewModel.cargarAsignaturas(profesor.id)
     }
 
-    val asignaturasFiltradas = remember(textoBusqueda, currentFilters, state.asignaturas) {
-        state.asignaturas.filter { materia ->
-            val matchTexto = textoBusqueda.isBlank() || materia.nombre.contains(textoBusqueda, ignoreCase = true)
-            
-            val filterCiclo = currentFilters["ciclo"]?.split(",")?.filter { it.isNotEmpty() }
-            val matchCiclo = filterCiclo == null || filterCiclo.contains(materia.cicloNum.toString())
-            
-            val filterTurno = currentFilters["turno"]?.split(",")?.filter { it.isNotEmpty() }
-            val matchTurno = filterTurno == null || filterTurno.any { it.equals(materia.turno, ignoreCase = true) }
-            
-            val filterCurso = currentFilters["curso"]?.split(",")?.filter { it.isNotEmpty() }
-            val matchCurso = filterCurso == null || filterCurso.any { it.equals(materia.cursoId.split("_").lastOrNull(), ignoreCase = true) }
+    val asignaturasFiltradas by remember(textoBusqueda, currentFilters, state.asignaturas) {
+        derivedStateOf {
+            state.asignaturas.filter { materia ->
+                val matchTexto = textoBusqueda.isBlank() || materia.nombre.contains(textoBusqueda, ignoreCase = true)
 
-            matchTexto && matchCiclo && matchTurno && matchCurso
+                val filterCiclo = currentFilters["ciclo"]?.split(",")?.filter { it.isNotEmpty() }
+                val matchCiclo = filterCiclo == null || filterCiclo.contains(materia.cicloNum.toString())
+
+                val filterTurno = currentFilters["turno"]?.split(",")?.filter { it.isNotEmpty() }
+                val matchTurno = filterTurno == null || filterTurno.any { it.equals(materia.turno, ignoreCase = true) }
+
+                val filterCurso = currentFilters["curso"]?.split(",")?.filter { it.isNotEmpty() }
+                val matchCurso = filterCurso == null || filterCurso.any { it.equals(materia.cursoId.split("_").lastOrNull(), ignoreCase = true) }
+
+                matchTexto && matchCiclo && matchTurno && matchCurso
+            }
         }
     }
 
