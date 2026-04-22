@@ -186,7 +186,7 @@ fun HomeScreen(
                         usuario.cursoId,
                         usuario.turno,
                         usuario.cicloNum,
-                        emptyMap() // Se sincroniza en el siguiente effect
+                        usuario.ultimaVezAsignaturas
                     )
                     estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
                 }
@@ -203,7 +203,7 @@ fun HomeScreen(
     LaunchedEffect(usuario.id, usuario.rol) {
         when (usuario) {
             is User.Estudiante -> {
-                estudianteViewModel.actualizarTiemposLectura(emptyMap()) // Ajustar si es necesario
+                estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas) // Ajustar si es necesario
             }
             is User.Profesor -> {
                 profesorViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
