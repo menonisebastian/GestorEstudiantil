@@ -48,9 +48,9 @@ fun AsignaturasProfesorPanel(
     profesor: User,
     paddingValues: PaddingValues,
     onAsignaturaClick: (Asignatura) -> Unit,
-    onOpenDialog: (DialogState) -> Unit = {}
+    onOpenDialog: (DialogState) -> Unit = {},
+    viewModel: ProfesorViewModel = viewModel()
 ) {
-    val viewModel: ProfesorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
     var textoBusqueda by remember { mutableStateOf("") }
     var currentFilters by remember { mutableStateOf<Map<String, String>>(emptyMap()) }

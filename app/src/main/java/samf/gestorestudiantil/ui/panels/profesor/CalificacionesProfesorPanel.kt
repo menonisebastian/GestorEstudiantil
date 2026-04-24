@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.data.models.Asignatura
@@ -37,12 +37,11 @@ import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalificacionesProfesorPanel(
-    profesor: User,
     paddingValues: PaddingValues,
     onOpenDialog: (DialogState) -> Unit,
     onAsignaturaClick: (Asignatura) -> Unit,
     onEstudianteClick: (User, Asignatura) -> Unit,
-    viewModel: ProfesorViewModel = viewModel()
+    viewModel: ProfesorViewModel = hiltViewModel() // Se cambió de viewModel() a hiltViewModel() por consistencia si se usa solo
 ) {
     val state by viewModel.state.collectAsState()
 

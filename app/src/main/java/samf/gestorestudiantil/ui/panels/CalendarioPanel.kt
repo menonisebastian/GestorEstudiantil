@@ -201,9 +201,11 @@ fun CalendarioPanel(
                         color = textColor
                     )
 
-                    val eventosDelDia = remember(targetDate, eventosTotales) {
-                        val dateStr = targetDate?.toString() ?: ""
-                        eventosTotales.filter { it.fechaIso == dateStr }
+                    val eventosDelDia by remember(targetDate, eventosTotales) {
+                        derivedStateOf {
+                            val dateStr = targetDate?.toString() ?: ""
+                            eventosTotales.filter { it.fechaIso == dateStr }
+                        }
                     }
 
                     if (eventosDelDia.isEmpty()) {

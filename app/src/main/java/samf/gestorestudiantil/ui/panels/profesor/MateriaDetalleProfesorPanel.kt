@@ -29,9 +29,9 @@ fun MateriaDetalleProfesorPanel(
     asignatura: Asignatura,
     profesor: User,
     onOpenDialog: (DialogState) -> Unit,
-    appViewModel: AppViewModel = hiltViewModel()
+    appViewModel: AppViewModel = hiltViewModel(),
+    viewModel: ProfesorViewModel = hiltViewModel()
 ) {
-    val viewModel: ProfesorViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(asignatura.id) {

@@ -28,10 +28,10 @@ fun MateriaDetalleEstudiantePanel(
     asignatura: Asignatura,
     estudiante: User,
     onOpenDialog: (DialogState) -> Unit,
-    onVerCalificaciones: (Asignatura) -> Unit
+    onVerCalificaciones: (Asignatura) -> Unit,
+    viewModel: EstudianteViewModel = hiltViewModel(),
+    profesorViewModel: ProfesorViewModel = hiltViewModel()
 ) {
-    val viewModel: EstudianteViewModel = hiltViewModel()
-    val profesorViewModel: ProfesorViewModel = hiltViewModel()
     val state by profesorViewModel.state.collectAsState()
 
     LaunchedEffect(asignatura.id) {

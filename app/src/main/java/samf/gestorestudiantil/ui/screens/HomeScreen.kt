@@ -42,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,6 +67,7 @@ import samf.gestorestudiantil.ui.components.IconLogo
 import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
+import samf.gestorestudiantil.ui.navigation.HomeState
 import samf.gestorestudiantil.ui.navigation.Routes
 import samf.gestorestudiantil.ui.navigation.rememberHomeState
 import samf.gestorestudiantil.ui.panels.admin.*
@@ -90,9 +90,14 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AdminState
+import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
+import samf.gestorestudiantil.ui.viewmodels.AppState
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.CurrentUserUiState
+import samf.gestorestudiantil.ui.viewmodels.EstudianteState
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
+import samf.gestorestudiantil.ui.viewmodels.ProfesorState
 import java.util.UUID
 
 // 1. Definimos los mapas de navegación según tu requerimiento inicial
@@ -158,7 +163,7 @@ fun HomeScreen(
     val profesorViewModel: ProfesorViewModel = hiltViewModel()
     val profesorState by profesorViewModel.state.collectAsState()
 
-    val adminViewModel: samf.gestorestudiantil.ui.viewmodels.AdminViewModel = hiltViewModel()
+    val adminViewModel: AdminViewModel = hiltViewModel()
     val adminState by adminViewModel.adminState.collectAsState()
 
     //val hazeState = rememberHazeState()
@@ -230,25 +235,28 @@ fun HomeScreen(
         }
     }
 
-    val onOpenDialog: (DialogState) -> Unit = { newState ->
-        dialogStack.clear()
-        dialogStack.add(newState)
+    val onOpenDialog: (DialogState) -> Unit = remember {
+        { newState: DialogState ->
+            dialogStack.clear()
+            dialogStack.add(newState)
+        }
     }
 
     // ✅ Manejo de Redirección por Notificación Actualizado
-    LaunchedEffect(targetAsignaturaId, estudianteState.asignaturas, profesorState.asignaturas) {
-        if (targetAsignaturaId != null) {
-            val asignaturas = if (usuario.rol == "PROFESOR") profesorState.asignaturas else estudianteState.asignaturas
-            val asignatura = asignaturas.find { it.id == targetAsignaturaId }
+    LaunchedEffect(targetAsignaturaId) {
+        if (targetAsignaturaId == null) return@LaunchedEffect
+        
+        val asignaturas = if (usuario.rol == "PROFESOR") 
+            profesorState.asignaturas else estudianteState.asignaturas
+        val asignatura = asignaturas.find { it.id == targetAsignaturaId }
 
-            if (asignatura != null) {
-                val tabIndex = tabs.indexOf("Asignaturas")
-                if (tabIndex != -1) {
-                    // Nos movemos al tab y agregamos la ruta
-                    pagerState.animateScrollToPage(tabIndex)
-                    homeState.navigate("Asignaturas", Routes.HomeRoutes.MateriaDetalle(asignatura))
-                    onNotificationHandled()
-                }
+        if (asignatura != null) {
+            val tabIndex = tabs.indexOf("Asignaturas")
+            if (tabIndex != -1) {
+                // Nos movemos al tab y agregamos la ruta
+                pagerState.animateScrollToPage(tabIndex)
+                homeState.navigate("Asignaturas", Routes.HomeRoutes.MateriaDetalle(asignatura))
+                onNotificationHandled()
             }
         }
     }
@@ -428,513 +436,719 @@ fun HomeScreen(
             val pageTab = tabs.getOrNull(page) ?: return@HorizontalPager
             val pageBackStack = homeState.getStack(pageTab) ?: return@HorizontalPager
 
-            NavDisplay(
-                backStack = pageBackStack,
-                onBack = { homeState.pop(pageTab) },
-                transitionSpec = {
-                    slideInHorizontally(
-                        initialOffsetX = { it },
-                        animationSpec = tween(150)
-                    ) togetherWith slideOutHorizontally(
-                        targetOffsetX = { -it },
-                        animationSpec = tween(150)
+            when (usuario) {
+                is User.Estudiante -> {
+                    EstudianteNavContent(
+                        pageTab = pageTab,
+                        backStack = pageBackStack,
+                        usuario = usuario,
+                        estudianteState = estudianteState,
+                        appState = appState,
+                        homeState = homeState,
+                        onOpenDialog = onOpenDialog,
+                        estudianteViewModel = estudianteViewModel,
+                        profesorViewModel = profesorViewModel,
+                        appViewModel = appViewModel,
+                        onLogout = onLogout
                     )
-                },
-                popTransitionSpec = {
-                    slideInHorizontally(
-                        initialOffsetX = { -it },
-                        animationSpec = tween(150)
-                    ) togetherWith slideOutHorizontally(
-                        targetOffsetX = { it },
-                        animationSpec = tween(150)
-                    )
-                },
-                entryProvider = entryProvider {
-                    // Estudiante / Profesor
-                    entry<Routes.HomeRoutes.Materias> {
-                        val onAsignaturaClickProfesor = remember(pageTab) {
-                            { asignatura: Asignatura ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
-                            }
-                        }
-                        val onAsignaturaClickEstudiante = remember(pageTab, usuario.id) {
-                            { asignatura: Asignatura ->
-                                estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
-                                homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
-                            }
-                        }
-
-                        when (usuario) {
-                            is User.Profesor -> {
-                                AsignaturasProfesorPanel(
-                                    profesor = usuario,
-                                    paddingValues = PaddingValues(0.dp),
-                                    onAsignaturaClick = onAsignaturaClickProfesor,
-                                    onOpenDialog = onOpenDialog
-                                )
-                            }
-                            is User.Estudiante -> {
-                                AsignaturasEstudiantePanel(
-                                    asignaturas = estudianteState.asignaturas,
-                                    paddingValues = PaddingValues(0.dp),
-                                    onAsignaturaClick = onAsignaturaClickEstudiante
-                                )
-                            }
-                            else -> {
-                                // Admin o Incompleto no suelen ver esta pestaña o ven un placeholder
-                                PlaceholderPanel("No disponible para este rol")
-                            }
-                        }
-                    }
-                    entry<Routes.HomeRoutes.MateriaDetalle> { route ->
-                        when (usuario) {
-                            is User.Profesor -> {
-                                MateriaDetalleProfesorPanel(
-                                    asignatura = route.asignatura,
-                                    profesor = usuario,
-                                    onOpenDialog = onOpenDialog
-                                )
-                            }
-                            is User.Estudiante -> {
-                                MateriaDetalleEstudiantePanel(
-                                    asignatura = route.asignatura,
-                                    estudiante = usuario,
-                                    onOpenDialog = onOpenDialog,
-                                    onVerCalificaciones = { asignatura ->
-                                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
-                                    }
-                                )
-                            }
-                            else -> homeState.pop(pageTab)
-                        }
-                    }
-                    entry<Routes.HomeRoutes.Horarios> {
-                        when (usuario) {
-                            is User.Profesor -> {
-                                HorariosProfesorPanel(
-                                    paddingValues = PaddingValues(0.dp),
-                                    horarios = profesorState.horarios,
-                                    asignaturas = profesorState.asignaturas,
-                                    turno = usuario.turno // Ahora usa el turno real del profesor
-                                )
-                            }
-                            is User.Estudiante -> {
-                                HorariosEstudiantePanel(
-                                    paddingValues = PaddingValues(0.dp),
-                                    horarios = estudianteState.horarios,
-                                    asignaturas = estudianteState.asignaturas,
-                                    turno = usuario.turno,
-                                    isLoading = estudianteState.isLoading
-                                )
-                            }
-                            else -> PlaceholderPanel("Horarios no disponibles")
-                        }
-                    }
-                    entry<Routes.HomeRoutes.Calendario> {
-                        val tareas = when (usuario.rol) {
-                            "PROFESOR" -> profesorState.tareas
-                            "ESTUDIANTE" -> estudianteState.tareas
-                            else -> emptyList()
-                        }
-
-                        CalendarioPanel(
-                            usuarioActual = usuario,
-                            tareas = tareas,
-                            recordatorios = appState.recordatorios,
-                            paddingValues = PaddingValues(0.dp),
-                            onAddRecordatorio = { fechaSeleccionada ->
-                                onOpenDialog(
-                                    DialogState.AddRecordatorio(
-                                        initialDate = fechaSeleccionada,
-                                        onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                            val nuevo = Recordatorio(
-                                                id = UUID.randomUUID().toString(),
-                                                usuarioId = usuario.id,
-                                                titulo = titulo,
-                                                descripcion = descripcion,
-                                                fecha = fecha,
-                                                hora = hora,
-                                                tipo = tipo
-                                            )
-                                            appViewModel.agregarRecordatorio(nuevo)
-                                        }
-                                    )
-                                )
-                            },
-                            onUpdateRecordatorio = { recordatorio ->
-                                onOpenDialog(
-                                    DialogState.EditRecordatorio(
-                                        recordatorio = recordatorio,
-                                        onSave = { appViewModel.actualizarRecordatorio(it) }
-                                    )
-                                )
-                            },
-                            onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
-                            onDeleteTarea = { tarea ->
-                                if (usuario.rol == "PROFESOR") {
-                                    onOpenDialog(DialogState.Confirmation(
-                                        title = "Eliminar Tarea",
-                                        content = "¿Estás seguro de que deseas eliminar la tarea '${tarea.titulo}'? Esta acción es irreversible.",
-                                        onConfirm = { profesorViewModel.eliminarTarea(tarea) }
-                                    ))
-                                } else {
-                                    appViewModel.showSnackbar("Solo los profesores pueden eliminar tareas académicas.")
-                                }
-                            },
-                            onDownloadTarea = { tarea ->
-                                tarea.adjunto?.let { adjunto ->
-                                    if (usuario.rol == "PROFESOR") {
-                                        profesorViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
-                                    } else {
-                                        estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
-                                    }
-                                }
-                            },
-                            onTareaClick = { tarea ->
-                                if (usuario.rol == "ESTUDIANTE") {
-                                    // Para que el diálogo muestre si ya se entregó, necesitamos cargar la entrega
-                                    estudianteViewModel.cargarMiEntrega(tarea.id, usuario.id)
-
-                                    onOpenDialog(
-                                        DialogState.TareaDetalleEstudiante(
-                                            tarea = tarea,
-                                            estudianteId = usuario.id,
-                                            estudianteNombre = usuario.nombre,
-                                            onEntregar = { data, name, mime ->
-                                                estudianteViewModel.realizarEntrega(
-                                                    samf.gestorestudiantil.data.models.Entrega(
-                                                        tareaId = tarea.id,
-                                                        estudianteId = usuario.id,
-                                                        estudianteNombre = usuario.nombre,
-                                                        profesorId = tarea.profesorId,
-                                                        asignaturaId = tarea.asignaturaId
-                                                    ),
-                                                    data,
-                                                    name,
-                                                    mime,
-                                                    tarea.titulo
-                                                )
-                                            },
-                                            onEliminarEntrega = {
-                                                estudianteViewModel.state.value.miEntrega?.let { entrega ->
-                                                    onOpenDialog(DialogState.Confirmation(
-                                                        title = "Eliminar entrega",
-                                                        content = "¿Estás seguro de que deseas eliminar tu entrega?",
-                                                        onConfirm = { estudianteViewModel.eliminarEntrega(entrega) }
-                                                    ))
-                                                }
-                                            }
-                                        )
-                                    )
-                                }
-                            }
-                        )
-                    }
-                    // HomeScreen.kt — al navegar
-                    entry<Routes.HomeRoutes.Calificaciones> {
-                        when (usuario) {
-                            is User.Profesor -> {
-                                CalificacionesProfesorPanel(
-                                    profesor = usuario,
-                                    paddingValues = PaddingValues(0.dp),
-                                    onOpenDialog = onOpenDialog,
-                                    onAsignaturaClick = { asignatura ->
-                                        homeState.navigate(pageTab, Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
-                                    },
-                                    onEstudianteClick = { estudiante, asignatura ->
-                                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
-                                    }
-                                )
-                            }
-                            is User.Estudiante -> {
-                                CalificacionesEstudiantePanel(
-                                    asignaturas = estudianteState.asignaturas,
-                                    paddingValues = PaddingValues(0.dp),
-                                    onAsignaturaClick = { asignatura ->
-                                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
-                                    }
-                                )
-                            }
-                            else -> PlaceholderPanel("Calificaciones no disponibles")
-                        }
-                    }
-                    entry<Routes.HomeRoutes.EstudiantesAsignatura> { route ->
-                        LaunchedEffect(route.asignatura.id) {
-                            profesorViewModel.cargarEstudiantesPorAsignatura(route.asignatura)
-                        }
-
-                        val onEstudianteClick = remember(pageTab, route.asignatura) {
-                            { estudiante: User ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
-                            }
-                        }
-
-                        EstudiantesAsignaturaLista(
-                            asignatura = route.asignatura,
-                            estudiantes = profesorState.estudiantes,
-                            onEstudianteClick = onEstudianteClick,
-                            onOpenDialog = onOpenDialog,
-                        )
-                    }
-                    entry<Routes.HomeRoutes.CalificacionesEstudianteDetalle> { route ->
-                        CalificacionesDetalleEstudiante(
-                            estudiante = route.estudiante,
-                            asignatura = route.asignatura,
-                            onOpenDialog = onOpenDialog,
-                            viewModel = profesorViewModel
-                        )
-                    }
-                    entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
-                        // Cargar evaluaciones de la asignatura seleccionada para el estudiante actual
-                        LaunchedEffect(route.asignatura.id) {
-                            estudianteViewModel.cargarEvaluaciones(route.asignatura.id, usuario.id)
-                        }
-
-                        CalificacionesAsignaturaPanel(
-                            asignatura = route.asignatura,
-                            evaluaciones = estudianteState.evaluaciones,
-                            onOpenDialog = onOpenDialog
-                        )
-                    }
-                    entry<Routes.HomeRoutes.Recordatorios> {
-                        RecordatoriosEstudiantePanel(
-                            recordatorios = appState.recordatorios,
-                            paddingValues = PaddingValues(0.dp),
-                            onOpenDialog = onOpenDialog,
-                            onDelete = { appViewModel.eliminarRecordatorio(it) },
-                            onUpdate = { appViewModel.actualizarRecordatorio(it) }
-                        )
-                    }
-                    // Admin
-                    entry<Routes.HomeRoutes.Usuarios> {
-                        UsuariosAdminPanel(
-                            paddingValues = PaddingValues(0.dp),
-                            usuarioActual = usuario,
-                            onOpenDialog = onOpenDialog
-                        )
-                    }
-                    entry<Routes.HomeRoutes.Centros> {
-                        LaunchedEffect(Unit) {
-                            adminViewModel.cargarCentros()
-                        }
-
-                        CentrosListScreen(
-                            adminState = adminState,
-                            adminViewModel = adminViewModel,
-                            onCentroClick = { centro: Centro ->
-                                adminViewModel.cargarCursosPorCentro(centro.id)
-                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminTiposCurso(centro))
-                            },
-                            onEditCentro = { centro: Centro -> homeState.navigate(pageTab, Routes.HomeRoutes.EditCentro(centro)) }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.AdminTiposCurso> { route ->
-                        TiposCursoScreen(
-                            centro = route.centro,
-                            adminState = adminState,
-                            onTipoClick = { tipo: String ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminCursos(route.centro.id, tipo))
-                            }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.AdminCursos> { route ->
-                        CursosScreen(
-                            tipo = route.tipo,
-                            adminState = adminState,
-                            onCursoClick = { curso: Curso ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
-                            },
-                            onEditCurso = { curso: Curso ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.EditCurso(curso, route.centroId))
-                            },
-                        )
-                    }
-                    entry<Routes.HomeRoutes.AdminTurnos> { route ->
-                        TurnosScreen(
-                            curso = route.curso,
-                            onTurnoClick = { turno: String ->
-                                adminViewModel.cargarAsignaturasPorCurso(route.curso.id, turno)
-                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminCiclos(route.centroId, route.curso, turno))
-                            },
-                        )
-                    }
-                    entry<Routes.HomeRoutes.AdminCiclos> { route ->
-                        CiclosScreen(
-                            curso = route.curso,
-                            turno = route.turno,
-                            adminState = adminState,
-                            onVerHorario = { ciclo: String ->
-                                val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
-                                adminViewModel.cargarHorariosPorCursoYCiclo(route.curso.id, cicloNum, route.turno)
-                                homeState.navigate(pageTab, Routes.HomeRoutes.AdminHorarios(route.centroId, route.curso, route.turno, ciclo))
-                            },
-                            onEditAsignatura = { asignatura: Asignatura ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
-                            },
-                            onAsignaturaClick = { asignatura: Asignatura ->
-                                onOpenDialog(DialogState.AsignarProfesor(asignatura))
-                            },
-                            onAsignarTutor = { claseId, centroId ->
-                                onOpenDialog(DialogState.AsignarTutor(claseId, centroId))
-                            },
-                            onUserClick = { user ->
-                                onOpenDialog(DialogState.UserProfile(user))
-                            },
-                        )
-                    }
-                    entry<Routes.HomeRoutes.AdminAsignaturas> { route ->
-                        AsignaturasScreen(
-                            ciclo = route.ciclo,
-                            adminState = adminState,
-                            onAsignaturaClick = { asignatura: Asignatura ->
-                                onOpenDialog(DialogState.AsignarProfesor(asignatura))
-                            },
-                            onEditAsignatura = { asignatura: Asignatura ->
-                                homeState.navigate(pageTab, Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
-                            },
-                        )
-                    }
-                    entry<Routes.HomeRoutes.AdminHorarios> { route ->
-                        HorariosAdminScreen(
-                            curso = route.curso,
-                            ciclo = route.ciclo,
-                            turno = route.turno,
-                            adminState = adminState,
-                            onEditHorario = { horario: Horario ->
-                                onOpenDialog(
-                                    DialogState.EditHorario(
-                                        horario = horario,
-                                        asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == route.ciclo },
-                                        onSave = { adminViewModel.guardarHorario(it) },
-                                        onDelete = { h ->
-                                            onOpenDialog(DialogState.Confirmation(
-                                                title = "Eliminar Horario",
-                                                content = "¿Estás seguro de que deseas eliminar este horario?",
-                                                onConfirm = {
-                                                    adminViewModel.eliminarHorario(h.id)
-                                                    appViewModel.showSnackbar(
-                                                        message = "Horario eliminado",
-                                                        actionLabel = "Deshacer",
-                                                        onAction = { adminViewModel.guardarHorario(h) }
-                                                    )
-                                                }
-                                            ))
-                                        }
-                                    )
-                                )
-                            }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.EditCentro> { route ->
-                        EditCentroPanel(
-                            state = DialogState.EditCentro(
-                                centro = route.centro,
-                                onSave = { adminViewModel.guardarCentro(it) },
-                                onDelete = { centro ->
-                                    onOpenDialog(DialogState.Confirmation(
-                                        title = "Eliminar Centro",
-                                        content = "¿Estás seguro de que deseas eliminar el centro '${centro.nombre}'? Esta acción eliminará también sus cursos y asignaturas.",
-                                        onConfirm = {
-                                            adminViewModel.eliminarCentro(centro)
-                                            appViewModel.showSnackbar(
-                                                message = "Centro eliminado",
-                                                actionLabel = "Deshacer",
-                                                onAction = { adminViewModel.guardarCentro(centro) }
-                                            )
-                                        }
-                                    ))
-                                }
-                            ),
-                            onBack = { homeState.pop(pageTab) }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.EditCurso> { route ->
-                        EditCursoPanel(
-                            state = DialogState.EditCurso(
-                                curso = route.curso,
-                                centroId = route.centroId,
-                                onSave = { adminViewModel.guardarCurso(it) },
-                                onDelete = { curso ->
-                                    onOpenDialog(DialogState.Confirmation(
-                                        title = "Eliminar Curso",
-                                        content = "¿Estás seguro de que deseas eliminar el curso '${curso.acronimo}'? Se eliminarán todas sus asignaturas y horarios.",
-                                        onConfirm = {
-                                            adminViewModel.eliminarCurso(curso)
-                                            appViewModel.showSnackbar(
-                                                message = "Curso eliminado",
-                                                actionLabel = "Deshacer",
-                                                onAction = { adminViewModel.guardarCurso(curso) }
-                                            )
-                                        }
-                                    ))
-                                }
-                            ),
-                            onBack = { homeState.pop(pageTab) }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.EditAsignatura> { route ->
-                        EditAsignaturaPanel(
-                            state = DialogState.EditAsignatura(
-                                asignatura = route.asignatura,
-                                cursoId = route.cursoId,
-                                centroId = route.centroId,
-                                onSave = { adminViewModel.guardarAsignatura(it) },
-                                onDelete = { asignatura ->
-                                    onOpenDialog(DialogState.Confirmation(
-                                        title = "Eliminar Asignatura",
-                                        content = "¿Estás seguro de que deseas eliminar la asignatura '${asignatura.acronimo}'?",
-                                        onConfirm = {
-                                            adminViewModel.eliminarAsignatura(asignatura)
-                                            appViewModel.showSnackbar(
-                                                message = "Asignatura eliminada",
-                                                actionLabel = "Deshacer",
-                                                onAction = { adminViewModel.guardarAsignatura(asignatura) }
-                                            )
-                                        }
-                                    ))
-                                }
-                            ),
-                            onBack = { homeState.pop(pageTab) }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.EditUser> { route ->
-                        LaunchedEffect(route.user.centroId) {
-                            if (adminState.cursos.isEmpty()) {
-                                adminViewModel.cargarCursosPorCentro(route.user.centroId)
-                            }
-                        }
-
-                        EditUserPanel(
-                            state = DialogState.EditUser(
-                                user = route.user,
-                                cursos = adminState.cursos,
-                                onSave = { adminViewModel.guardarUsuario(it) }
-                            ),
-                            onBack = { homeState.pop(pageTab) }
-                        )
-                    }
-                    entry<Routes.HomeRoutes.Perfil> {
-                        ProfileScreen(
-                            usuario = usuario,
-                            onLogout = onLogout,
-                            onProfileUpdated = { }
-                        )
-                    }
                 }
-            )
+                is User.Profesor -> {
+                    ProfesorNavContent(
+                        pageTab = pageTab,
+                        backStack = pageBackStack,
+                        usuario = usuario,
+                        profesorState = profesorState,
+                        appState = appState,
+                        homeState = homeState,
+                        onOpenDialog = onOpenDialog,
+                        profesorViewModel = profesorViewModel,
+                        appViewModel = appViewModel,
+                        onLogout = onLogout
+                    )
+                }
+                is User.Admin -> {
+                    AdminNavContent(
+                        pageTab = pageTab,
+                        backStack = pageBackStack,
+                        usuario = usuario,
+                        adminState = adminState,
+                        appState = appState,
+                        homeState = homeState,
+                        onOpenDialog = onOpenDialog,
+                        adminViewModel = adminViewModel,
+                        appViewModel = appViewModel,
+                        onLogout = onLogout
+                    )
+                }
+                else -> PlaceholderPanel("Rol no reconocido")
+            }
         }
     }
 
-    key(dialogStack.size) {
-        DialogOrchestrator(
-            states = dialogStack,
-            onShowDialog = { dialogStack.add(it) },
-            onDismiss = { dialogStack.remove(it) }
-        )
-    }
+    DialogOrchestrator(
+        states = dialogStack.toList(),
+        onShowDialog = { dialogStack.add(it) },
+        onDismiss = { dialogStack.remove(it) }
+    )
 }
 
-// Composable de relleno para las pantallas que aún no están creadas
+@Composable
+private fun EstudianteNavContent(
+    pageTab: String,
+    backStack: List<Any>,
+    usuario: User.Estudiante,
+    estudianteState: EstudianteState,
+    appState: AppState,
+    homeState: HomeState,
+    onOpenDialog: (DialogState) -> Unit,
+    estudianteViewModel: EstudianteViewModel,
+    profesorViewModel: ProfesorViewModel,
+    appViewModel: AppViewModel,
+    onLogout: () -> Unit
+) {
+    NavDisplay(
+        backStack = backStack,
+        onBack = { homeState.pop(pageTab) },
+        transitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(150)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { -it },
+                animationSpec = tween(150)
+            )
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it },
+                animationSpec = tween(150)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(150)
+            )
+        },
+        entryProvider = entryProvider {
+            entry<Routes.HomeRoutes.Materias> {
+                val onAsignaturaClickEstudiante = remember(pageTab, usuario.id) {
+                    { asignatura: Asignatura ->
+                        estudianteViewModel.marcarAsignaturaComoLeida(usuario.id, asignatura.id)
+                        homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
+                    }
+                }
+                AsignaturasEstudiantePanel(
+                    asignaturas = estudianteState.asignaturas,
+                    paddingValues = PaddingValues(0.dp),
+                    onAsignaturaClick = onAsignaturaClickEstudiante
+                )
+            }
+            entry<Routes.HomeRoutes.MateriaDetalle> { route ->
+                MateriaDetalleEstudiantePanel(
+                    asignatura = route.asignatura,
+                    estudiante = usuario,
+                    onOpenDialog = onOpenDialog,
+                    onVerCalificaciones = { asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                    },
+                    viewModel = estudianteViewModel,
+                    profesorViewModel = profesorViewModel
+                )
+            }
+            entry<Routes.HomeRoutes.Horarios> {
+                HorariosEstudiantePanel(
+                    paddingValues = PaddingValues(0.dp),
+                    horarios = estudianteState.horarios,
+                    asignaturas = estudianteState.asignaturas,
+                    turno = usuario.turno,
+                    isLoading = estudianteState.isLoading
+                )
+            }
+            entry<Routes.HomeRoutes.Calendario> {
+                CalendarioPanel(
+                    usuarioActual = usuario,
+                    tareas = estudianteState.tareas,
+                    recordatorios = appState.recordatorios,
+                    paddingValues = PaddingValues(0.dp),
+                    onAddRecordatorio = { fechaSeleccionada ->
+                        onOpenDialog(
+                            DialogState.AddRecordatorio(
+                                initialDate = fechaSeleccionada,
+                                onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                    val nuevo = Recordatorio(
+                                        id = UUID.randomUUID().toString(),
+                                        usuarioId = usuario.id,
+                                        titulo = titulo,
+                                        descripcion = descripcion,
+                                        fecha = fecha,
+                                        hora = hora,
+                                        tipo = tipo
+                                    )
+                                    appViewModel.agregarRecordatorio(nuevo)
+                                }
+                            )
+                        )
+                    },
+                    onUpdateRecordatorio = { recordatorio ->
+                        onOpenDialog(
+                            DialogState.EditRecordatorio(
+                                recordatorio = recordatorio,
+                                onSave = { appViewModel.actualizarRecordatorio(it) }
+                            )
+                        )
+                    },
+                    onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
+                    onDeleteTarea = { _ ->
+                        appViewModel.showSnackbar("Solo los profesores pueden eliminar tareas académicas.")
+                    },
+                    onDownloadTarea = { tarea ->
+                        tarea.adjunto?.let { adjunto ->
+                            estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                        }
+                    },
+                    onTareaClick = { tarea ->
+                        estudianteViewModel.cargarMiEntrega(tarea.id, usuario.id)
+                        onOpenDialog(
+                            DialogState.TareaDetalleEstudiante(
+                                tarea = tarea,
+                                estudianteId = usuario.id,
+                                estudianteNombre = usuario.nombre,
+                                onEntregar = { data, name, mime ->
+                                    estudianteViewModel.realizarEntrega(
+                                        samf.gestorestudiantil.data.models.Entrega(
+                                            tareaId = tarea.id,
+                                            estudianteId = usuario.id,
+                                            estudianteNombre = usuario.nombre,
+                                            profesorId = tarea.profesorId,
+                                            asignaturaId = tarea.asignaturaId
+                                        ),
+                                        data,
+                                        name,
+                                        mime,
+                                        tarea.titulo
+                                    )
+                                },
+                                onEliminarEntrega = {
+                                    estudianteViewModel.state.value.miEntrega?.let { entrega ->
+                                        onOpenDialog(DialogState.Confirmation(
+                                            title = "Eliminar entrega",
+                                            content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                            onConfirm = { estudianteViewModel.eliminarEntrega(entrega) }
+                                        ))
+                                    }
+                                }
+                            )
+                        )
+                    }
+                )
+            }
+            entry<Routes.HomeRoutes.Calificaciones> {
+                CalificacionesEstudiantePanel(
+                    asignaturas = estudianteState.asignaturas,
+                    paddingValues = PaddingValues(0.dp),
+                    onAsignaturaClick = { asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                    }
+                )
+            }
+            entry<Routes.HomeRoutes.CalificacionesDetalle> { route ->
+                LaunchedEffect(route.asignatura.id) {
+                    estudianteViewModel.cargarEvaluaciones(route.asignatura.id, usuario.id)
+                }
+                CalificacionesAsignaturaPanel(
+                    asignatura = route.asignatura,
+                    evaluaciones = estudianteState.evaluaciones,
+                    onOpenDialog = onOpenDialog
+                )
+            }
+            entry<Routes.HomeRoutes.Recordatorios> {
+                RecordatoriosEstudiantePanel(
+                    recordatorios = appState.recordatorios,
+                    paddingValues = PaddingValues(0.dp),
+                    onOpenDialog = onOpenDialog,
+                    onDelete = { appViewModel.eliminarRecordatorio(it) },
+                    onUpdate = { appViewModel.actualizarRecordatorio(it) }
+                )
+            }
+            entry<Routes.HomeRoutes.Perfil> {
+                ProfileScreen(
+                    usuario = usuario,
+                    onLogout = onLogout,
+                    onProfileUpdated = { }
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun ProfesorNavContent(
+    pageTab: String,
+    backStack: List<Any>,
+    usuario: User.Profesor,
+    profesorState: ProfesorState,
+    appState: AppState,
+    homeState: HomeState,
+    onOpenDialog: (DialogState) -> Unit,
+    profesorViewModel: ProfesorViewModel,
+    appViewModel: AppViewModel,
+    onLogout: () -> Unit
+) {
+    NavDisplay(
+        backStack = backStack,
+        onBack = { homeState.pop(pageTab) },
+        transitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(150)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { -it },
+                animationSpec = tween(150)
+            )
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it },
+                animationSpec = tween(150)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(150)
+            )
+        },
+        entryProvider = entryProvider {
+            entry<Routes.HomeRoutes.Materias> {
+                val onAsignaturaClickProfesor = remember(pageTab) {
+                    { asignatura: Asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
+                    }
+                }
+                AsignaturasProfesorPanel(
+                    profesor = usuario,
+                    paddingValues = PaddingValues(0.dp),
+                    onAsignaturaClick = onAsignaturaClickProfesor,
+                    onOpenDialog = onOpenDialog,
+                    viewModel = profesorViewModel
+                )
+            }
+            entry<Routes.HomeRoutes.MateriaDetalle> { route ->
+                MateriaDetalleProfesorPanel(
+                    asignatura = route.asignatura,
+                    profesor = usuario,
+                    onOpenDialog = onOpenDialog,
+                    viewModel = profesorViewModel
+                )
+            }
+            entry<Routes.HomeRoutes.Horarios> {
+                HorariosProfesorPanel(
+                    paddingValues = PaddingValues(0.dp),
+                    horarios = profesorState.horarios,
+                    asignaturas = profesorState.asignaturas,
+                    turno = usuario.turno
+                )
+            }
+            entry<Routes.HomeRoutes.Calendario> {
+                CalendarioPanel(
+                    usuarioActual = usuario,
+                    tareas = profesorState.tareas,
+                    recordatorios = appState.recordatorios,
+                    paddingValues = PaddingValues(0.dp),
+                    onAddRecordatorio = { fechaSeleccionada ->
+                        onOpenDialog(
+                            DialogState.AddRecordatorio(
+                                initialDate = fechaSeleccionada,
+                                onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                    val nuevo = Recordatorio(
+                                        id = UUID.randomUUID().toString(),
+                                        usuarioId = usuario.id,
+                                        titulo = titulo,
+                                        descripcion = descripcion,
+                                        fecha = fecha,
+                                        hora = hora,
+                                        tipo = tipo
+                                    )
+                                    appViewModel.agregarRecordatorio(nuevo)
+                                }
+                            )
+                        )
+                    },
+                    onUpdateRecordatorio = { recordatorio ->
+                        onOpenDialog(
+                            DialogState.EditRecordatorio(
+                                recordatorio = recordatorio,
+                                onSave = { appViewModel.actualizarRecordatorio(it) }
+                            )
+                        )
+                    },
+                    onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
+                    onDeleteTarea = { tarea ->
+                        onOpenDialog(DialogState.Confirmation(
+                            title = "Eliminar Tarea",
+                            content = "¿Estás seguro de que deseas eliminar la tarea '${tarea.titulo}'? Esta acción es irreversible.",
+                            onConfirm = { profesorViewModel.eliminarTarea(tarea) }
+                        ))
+                    },
+                    onDownloadTarea = { tarea ->
+                        tarea.adjunto?.let { adjunto ->
+                            profesorViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                        }
+                    },
+                    onTareaClick = { /* Los profesores ven entregas desde MateriaDetalle */ }
+                )
+            }
+            entry<Routes.HomeRoutes.Calificaciones> {
+                CalificacionesProfesorPanel(
+                    paddingValues = PaddingValues(0.dp),
+                    onOpenDialog = onOpenDialog,
+                    onAsignaturaClick = { asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.EstudiantesAsignatura(asignatura))
+                    },
+                    onEstudianteClick = { estudiante, asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, asignatura))
+                    },
+                    viewModel = profesorViewModel
+                )
+            }
+            entry<Routes.HomeRoutes.EstudiantesAsignatura> { route ->
+                LaunchedEffect(route.asignatura.id) {
+                    profesorViewModel.cargarEstudiantesPorAsignatura(route.asignatura)
+                }
+                val onEstudianteClick = remember(pageTab, route.asignatura) {
+                    { estudiante: User ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.CalificacionesEstudianteDetalle(estudiante, route.asignatura))
+                    }
+                }
+                EstudiantesAsignaturaLista(
+                    asignatura = route.asignatura,
+                    estudiantes = profesorState.estudiantes,
+                    onEstudianteClick = onEstudianteClick,
+                    onOpenDialog = onOpenDialog,
+                )
+            }
+            entry<Routes.HomeRoutes.CalificacionesEstudianteDetalle> { route ->
+                CalificacionesDetalleEstudiante(
+                    estudiante = route.estudiante,
+                    asignatura = route.asignatura,
+                    onOpenDialog = onOpenDialog,
+                    viewModel = profesorViewModel
+                )
+            }
+            entry<Routes.HomeRoutes.Recordatorios> {
+                RecordatoriosEstudiantePanel(
+                    recordatorios = appState.recordatorios,
+                    paddingValues = PaddingValues(0.dp),
+                    onOpenDialog = onOpenDialog,
+                    onDelete = { appViewModel.eliminarRecordatorio(it) },
+                    onUpdate = { appViewModel.actualizarRecordatorio(it) }
+                )
+            }
+            entry<Routes.HomeRoutes.Perfil> {
+                ProfileScreen(
+                    usuario = usuario,
+                    onLogout = onLogout,
+                    onProfileUpdated = { }
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun AdminNavContent(
+    pageTab: String,
+    backStack: List<Any>,
+    usuario: User.Admin,
+    adminState: AdminState,
+    appState: AppState,
+    homeState: HomeState,
+    onOpenDialog: (DialogState) -> Unit,
+    adminViewModel: AdminViewModel,
+    appViewModel: AppViewModel,
+    onLogout: () -> Unit
+) {
+    NavDisplay(
+        backStack = backStack,
+        onBack = { homeState.pop(pageTab) },
+        transitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(150)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { -it },
+                animationSpec = tween(150)
+            )
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it },
+                animationSpec = tween(150)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(150)
+            )
+        },
+        entryProvider = entryProvider {
+            entry<Routes.HomeRoutes.Usuarios> {
+                UsuariosAdminPanel(
+                    paddingValues = PaddingValues(0.dp),
+                    usuarioActual = usuario,
+                    onOpenDialog = onOpenDialog
+                )
+            }
+            entry<Routes.HomeRoutes.Centros> {
+                LaunchedEffect(Unit) {
+                    adminViewModel.cargarCentros()
+                }
+                CentrosListScreen(
+                    adminState = adminState,
+                    adminViewModel = adminViewModel,
+                    onCentroClick = { centro: Centro ->
+                        adminViewModel.cargarCursosPorCentro(centro.id)
+                        homeState.navigate(pageTab, Routes.HomeRoutes.AdminTiposCurso(centro))
+                    },
+                    onEditCentro = { centro: Centro -> homeState.navigate(pageTab, Routes.HomeRoutes.EditCentro(centro)) }
+                )
+            }
+            entry<Routes.HomeRoutes.AdminTiposCurso> { route ->
+                TiposCursoScreen(
+                    centro = route.centro,
+                    adminState = adminState,
+                    onTipoClick = { tipo: String ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.AdminCursos(route.centro.id, tipo))
+                    }
+                )
+            }
+            entry<Routes.HomeRoutes.AdminCursos> { route ->
+                CursosScreen(
+                    tipo = route.tipo,
+                    adminState = adminState,
+                    onCursoClick = { curso: Curso ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.AdminTurnos(route.centroId, curso))
+                    },
+                    onEditCurso = { curso: Curso ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.EditCurso(curso, route.centroId))
+                    },
+                )
+            }
+            entry<Routes.HomeRoutes.AdminTurnos> { route ->
+                TurnosScreen(
+                    curso = route.curso,
+                    onTurnoClick = { turno: String ->
+                        adminViewModel.cargarAsignaturasPorCurso(route.curso.id, turno)
+                        homeState.navigate(pageTab, Routes.HomeRoutes.AdminCiclos(route.centroId, route.curso, turno))
+                    },
+                )
+            }
+            entry<Routes.HomeRoutes.AdminCiclos> { route ->
+                CiclosScreen(
+                    curso = route.curso,
+                    turno = route.turno,
+                    adminState = adminState,
+                    onVerHorario = { ciclo: String ->
+                        val cicloNum = ciclo.trim().firstOrNull()?.digitToIntOrNull() ?: 1
+                        adminViewModel.cargarHorariosPorCursoYCiclo(route.curso.id, cicloNum, route.turno)
+                        homeState.navigate(pageTab, Routes.HomeRoutes.AdminHorarios(route.centroId, route.curso, route.turno, ciclo))
+                    },
+                    onEditAsignatura = { asignatura: Asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                    },
+                    onAsignaturaClick = { asignatura: Asignatura ->
+                        onOpenDialog(DialogState.AsignarProfesor(asignatura))
+                    },
+                    onAsignarTutor = { claseId, centroId ->
+                        onOpenDialog(DialogState.AsignarTutor(claseId, centroId))
+                    },
+                    onUserClick = { user ->
+                        onOpenDialog(DialogState.UserProfile(user))
+                    },
+                )
+            }
+            entry<Routes.HomeRoutes.AdminAsignaturas> { route ->
+                AsignaturasScreen(
+                    ciclo = route.ciclo,
+                    adminState = adminState,
+                    onAsignaturaClick = { asignatura: Asignatura ->
+                        onOpenDialog(DialogState.AsignarProfesor(asignatura))
+                    },
+                    onEditAsignatura = { asignatura: Asignatura ->
+                        homeState.navigate(pageTab, Routes.HomeRoutes.EditAsignatura(asignatura, route.curso.id, route.centroId))
+                    },
+                )
+            }
+            entry<Routes.HomeRoutes.AdminHorarios> { route ->
+                HorariosAdminScreen(
+                    curso = route.curso,
+                    ciclo = route.ciclo,
+                    turno = route.turno,
+                    adminState = adminState,
+                    onEditHorario = { horario: Horario ->
+                        onOpenDialog(
+                            DialogState.EditHorario(
+                                horario = horario,
+                                asignaturasDisponibles = adminState.asignaturas.filter { it.ciclo == route.ciclo },
+                                onSave = { adminViewModel.guardarHorario(it) },
+                                onDelete = { h ->
+                                    onOpenDialog(DialogState.Confirmation(
+                                        title = "Eliminar Horario",
+                                        content = "¿Estás seguro de que deseas eliminar este horario?",
+                                        onConfirm = {
+                                            adminViewModel.eliminarHorario(h.id)
+                                            appViewModel.showSnackbar(
+                                                message = "Horario eliminado",
+                                                actionLabel = "Deshacer",
+                                                onAction = { adminViewModel.guardarHorario(h) }
+                                            )
+                                        }
+                                    ))
+                                }
+                            )
+                        )
+                    }
+                )
+            }
+            entry<Routes.HomeRoutes.EditCentro> { route ->
+                EditCentroPanel(
+                    state = DialogState.EditCentro(
+                        centro = route.centro,
+                        onSave = { adminViewModel.guardarCentro(it) },
+                        onDelete = { centro ->
+                            onOpenDialog(DialogState.Confirmation(
+                                title = "Eliminar Centro",
+                                content = "¿Estás seguro de que deseas eliminar el centro '${centro.nombre}'? Esta acción eliminará también sus cursos y asignaturas.",
+                                onConfirm = {
+                                    adminViewModel.eliminarCentro(centro)
+                                    appViewModel.showSnackbar(
+                                        message = "Centro eliminado",
+                                        actionLabel = "Deshacer",
+                                        onAction = { adminViewModel.guardarCentro(centro) }
+                                    )
+                                }
+                            ))
+                        }
+                    ),
+                    onBack = { homeState.pop(pageTab) }
+                )
+            }
+            entry<Routes.HomeRoutes.EditCurso> { route ->
+                EditCursoPanel(
+                    state = DialogState.EditCurso(
+                        curso = route.curso,
+                        centroId = route.centroId,
+                        onSave = { adminViewModel.guardarCurso(it) },
+                        onDelete = { curso ->
+                            onOpenDialog(DialogState.Confirmation(
+                                title = "Eliminar Curso",
+                                content = "¿Estás seguro de que deseas eliminar el curso '${curso.acronimo}'? Se eliminarán todas sus asignaturas y horarios.",
+                                onConfirm = {
+                                    adminViewModel.eliminarCurso(curso)
+                                    appViewModel.showSnackbar(
+                                        message = "Curso eliminado",
+                                        actionLabel = "Deshacer",
+                                        onAction = { adminViewModel.guardarCurso(curso) }
+                                    )
+                                }
+                            ))
+                        }
+                    ),
+                    onBack = { homeState.pop(pageTab) }
+                )
+            }
+            entry<Routes.HomeRoutes.EditAsignatura> { route ->
+                EditAsignaturaPanel(
+                    state = DialogState.EditAsignatura(
+                        asignatura = route.asignatura,
+                        cursoId = route.cursoId,
+                        centroId = route.centroId,
+                        onSave = { adminViewModel.guardarAsignatura(it) },
+                        onDelete = { asignatura ->
+                            onOpenDialog(DialogState.Confirmation(
+                                title = "Eliminar Asignatura",
+                                content = "¿Estás seguro de que deseas eliminar la asignatura '${asignatura.acronimo}'?",
+                                onConfirm = {
+                                    adminViewModel.eliminarAsignatura(asignatura)
+                                    appViewModel.showSnackbar(
+                                        message = "Asignatura eliminada",
+                                        actionLabel = "Deshacer",
+                                        onAction = { adminViewModel.guardarAsignatura(asignatura) }
+                                    )
+                                }
+                            ))
+                        }
+                    ),
+                    onBack = { homeState.pop(pageTab) }
+                )
+            }
+            entry<Routes.HomeRoutes.EditUser> { route ->
+                LaunchedEffect(route.user.centroId) {
+                    if (adminState.cursos.isEmpty()) {
+                        adminViewModel.cargarCursosPorCentro(route.user.centroId)
+                    }
+                }
+                EditUserPanel(
+                    state = DialogState.EditUser(
+                        user = route.user,
+                        cursos = adminState.cursos,
+                        onSave = { adminViewModel.guardarUsuario(it) }
+                    ),
+                    onBack = { homeState.pop(pageTab) }
+                )
+            }
+            entry<Routes.HomeRoutes.Calendario> {
+                CalendarioPanel(
+                    usuarioActual = usuario,
+                    tareas = emptyList(), // Admin no suele ver tareas académicas
+                    recordatorios = appState.recordatorios,
+                    paddingValues = PaddingValues(0.dp),
+                    onAddRecordatorio = { fechaSeleccionada ->
+                        onOpenDialog(
+                            DialogState.AddRecordatorio(
+                                initialDate = fechaSeleccionada,
+                                onSave = { titulo, descripcion, fecha, hora, tipo ->
+                                    val nuevo = Recordatorio(
+                                        id = UUID.randomUUID().toString(),
+                                        usuarioId = usuario.id,
+                                        titulo = titulo,
+                                        descripcion = descripcion,
+                                        fecha = fecha,
+                                        hora = hora,
+                                        tipo = tipo
+                                    )
+                                    appViewModel.agregarRecordatorio(nuevo)
+                                }
+                            )
+                        )
+                    },
+                    onUpdateRecordatorio = { recordatorio ->
+                        onOpenDialog(
+                            DialogState.EditRecordatorio(
+                                recordatorio = recordatorio,
+                                onSave = { appViewModel.actualizarRecordatorio(it) }
+                            )
+                        )
+                    },
+                    onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
+                    onDeleteTarea = { },
+                    onDownloadTarea = { },
+                    onTareaClick = { }
+                )
+            }
+            entry<Routes.HomeRoutes.Recordatorios> {
+                RecordatoriosEstudiantePanel(
+                    recordatorios = appState.recordatorios,
+                    paddingValues = PaddingValues(0.dp),
+                    onOpenDialog = onOpenDialog,
+                    onDelete = { appViewModel.eliminarRecordatorio(it) },
+                    onUpdate = { appViewModel.actualizarRecordatorio(it) }
+                )
+            }
+            entry<Routes.HomeRoutes.Perfil> {
+                ProfileScreen(
+                    usuario = usuario,
+                    onLogout = onLogout,
+                    onProfileUpdated = { }
+                )
+            }
+        }
+    )
+}
+
 @Composable
 fun PlaceholderPanel(titulo: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
