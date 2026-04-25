@@ -229,4 +229,9 @@ class ProfesorRepositoryImpl @Inject constructor(
             null
         }
     }
+
+    override suspend fun marcarAsignaturaLeida(usuarioId: String, asignaturaId: String, timestamp: Long) {
+        db.collection("usuarios").document(usuarioId)
+            .update("ultimaVezAsignaturas.$asignaturaId", timestamp).await()
+    }
 }

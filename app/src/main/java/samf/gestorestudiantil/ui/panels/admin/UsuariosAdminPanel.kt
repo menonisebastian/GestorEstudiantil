@@ -79,7 +79,14 @@ fun UsuariosAdminPanel(
     appViewModel: AppViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    var textoBusquedaRaw by rememberSaveable { mutableStateOf("") }
     var textoBusqueda by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(textoBusquedaRaw) {
+        kotlinx.coroutines.delay(300)
+        textoBusqueda = textoBusquedaRaw
+    }
+
     var filtroRol by rememberSaveable { mutableStateOf("") }
     var filtroCurso by rememberSaveable { mutableStateOf("") }
     var filtroCiclo by rememberSaveable { mutableStateOf("") }
@@ -233,8 +240,8 @@ fun UsuariosAdminPanel(
                     )
 
                     CustomSearchBar(
-                        textoBusqueda = textoBusqueda,
-                        onValueChange = { textoBusqueda = it },
+                        textoBusqueda = textoBusquedaRaw,
+                        onValueChange = { textoBusquedaRaw = it },
                         onFilterClick = {
                             onOpenDialog(
                                 DialogState.Filter(

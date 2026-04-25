@@ -29,9 +29,15 @@ class RecordatorioRepositoryImpl @Inject constructor(
     }
 
     override suspend fun guardarRecordatorio(recordatorio: Recordatorio) {
+        val finalRecordatorio = if (recordatorio.id.isEmpty()) {
+            recordatorio.copy(id = db.collection("recordatorios").document().id)
+        } else {
+            recordatorio
+        }
+
         db.collection("recordatorios")
-            .document(recordatorio.id)
-            .set(recordatorio)
+            .document(finalRecordatorio.id)
+            .set(finalRecordatorio)
             .await()
     }
 

@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import java.util.Locale
 import androidx.core.graphics.toColorInt
@@ -98,7 +100,14 @@ fun CentrosListScreen(
     onCentroClick: (Centro) -> Unit,
     onEditCentro: (Centro) -> Unit
 ) {
+    var searchTextRaw by remember { mutableStateOf("") }
     var searchText by remember { mutableStateOf("") }
+
+    LaunchedEffect(searchTextRaw) {
+        delay(300)
+        searchText = searchTextRaw
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (adminState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -151,7 +160,7 @@ fun CentrosListScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(text = stringResource(R.string.admin_management_centers), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
-                CustomSearchBar(textoBusqueda = searchText, onValueChange = { searchText = it }, onFilterClick = {})
+                CustomSearchBar(textoBusqueda = searchTextRaw, onValueChange = { searchTextRaw = it }, onFilterClick = {})
             }
         }
     }
@@ -391,7 +400,14 @@ fun AsignaturasScreen(
     onAsignaturaClick: (Asignatura) -> Unit,
     onEditAsignatura: (Asignatura) -> Unit,
 ) {
+    var searchTextRaw by remember { mutableStateOf("") }
     var searchText by remember { mutableStateOf("") }
+
+    LaunchedEffect(searchTextRaw) {
+        delay(300)
+        searchText = searchTextRaw
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         val filteredAsignaturas by remember(ciclo, searchText, adminState.asignaturas) {
             derivedStateOf {
@@ -426,7 +442,7 @@ fun AsignaturasScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(text = stringResource(R.string.admin_subjects_cycle, ciclo), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
-                CustomSearchBar(textoBusqueda = searchText, onValueChange = { searchText = it }, onFilterClick = {})
+                CustomSearchBar(textoBusqueda = searchTextRaw, onValueChange = { searchTextRaw = it }, onFilterClick = {})
             }
         }
     }

@@ -32,4 +32,5 @@ interface ProfesorRepository {
     fun getHorarios(profesorId: String): Flow<List<Horario>>
     suspend fun getProfesor(profesorId: String): User?
     suspend fun getEstudiante(estudianteId: String): User?
+    suspend fun marcarAsignaturaLeida(usuarioId: String, asignaturaId: String, timestamp: Long)
 }

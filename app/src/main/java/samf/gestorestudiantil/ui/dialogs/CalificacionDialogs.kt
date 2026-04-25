@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.data.enums.tipoEvaluacion
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.ui.components.CustomDropDownMenu
@@ -159,7 +160,7 @@ fun VerDetalleEvaluacionDialog(
     evaluacion: Evaluacion,
     onDismiss: () -> Unit
 ) {
-    val viewModel: ProfesorViewModel = viewModel()
+    val viewModel: ProfesorViewModel = hiltViewModel()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -338,7 +339,7 @@ fun AddEditCalificacionDialog(
                 }
 
                 evaluacion.adjunto?.let { adjunto ->
-                    val viewModel: ProfesorViewModel = viewModel()
+                    val viewModel: ProfesorViewModel = hiltViewModel()
                     OutlinedCard(
                         onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
                         modifier = Modifier.fillMaxWidth(),

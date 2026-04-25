@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.2] - 2026-04-25
+- **Estabilidad**: Corregida la duplicación de listeners de Firestore en `ProfesorViewModel` y `EstudianteViewModel` mediante la gestión estricta de ciclos de vida de Coroutines (cancelación de jobs previos).
+- **Arquitectura**: Completada la desvinculación de Firebase en la capa de UI; `marcarAsignaturaComoLeida` ahora se delega correctamente al `ProfesorRepository`.
+- **Rendimiento**: Implementado sistema de *debounce* (300ms) en las barras de búsqueda de Administración (Usuarios, Centros, Asignaturas) para reducir la carga de procesamiento durante el filtrado.
+- **Estabilidad**: Corregido bug de archivos huérfanos en Supabase; la edición de tareas con nuevos archivos ahora elimina automáticamente el adjunto anterior.
+- **Estabilidad**: Mejorada la generación de IDs en `RecordatorioRepositoryImpl`, permitiendo que Firestore asigne identificadores automáticos cuando el ID del modelo está vacío.
+- **Limpieza**: Migradas todas las llamadas de `viewModel()` a `hiltViewModel()` en los diálogos de calificaciones para asegurar la correcta inyección de dependencias y el scope del ViewModel.
+- **Limpieza**: Eliminadas referencias a la función deprecada `.capitalize()` de Kotlin, unificando el uso de la extensión de dominio `capitalize()`.
+
 ## [v0.7.1] - 2026-04-25
 - **UX**: Implementada la funcionalidad de "Deshacer" (Undo) en todas las acciones de eliminación críticas: Calificaciones, Tareas, Unidades, Publicaciones, Entregas y entidades de Administración (Usuarios, Centros, Cursos, Asignaturas, Horarios).
 - **UI**: Personalización avanzada del `Snackbar` global con una barra de progreso animada que indica el tiempo restante para deshacer la acción.

@@ -61,7 +61,6 @@ class ProfesorViewModel @Inject constructor(
     private val tareaRepository: TareaRepository,
     private val notificationRepository: NotificationRepository,
     private val userRepository: UserRepository,
-    private val db: FirebaseFirestore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -89,8 +88,11 @@ class ProfesorViewModel @Inject constructor(
     // ====================================================================
     // 0. GESTIÓN DE UNIDADES, POSTS Y TAREAS (PROFESORES)
     // ====================================================================
+    private var contenidoJob: Job? = null
+
     fun cargarContenidoAsignatura(asignaturaId: String) {
-        viewModelScope.launch {
+        contenidoJob?.cancel()
+        contenidoJob = viewModelScope.launch {
             launch {
                 profesorRepository.getUnidades(asignaturaId).collect { lista ->
                     _state.update { it.copy(unidades = lista) }
@@ -297,8 +299,11 @@ class ProfesorViewModel @Inject constructor(
     private val _entregas = MutableStateFlow<List<Entrega>>(emptyList())
     val entregas = _entregas.asStateFlow()
 
+    private var entregasPorTareaJob: Job? = null
+
     fun cargarEntregas(tareaId: String) {
-        viewModelScope.launch {
+        entregasPorTareaJob?.cancel()
+        entregasPorTareaJob = viewModelScope.launch {
             tareaRepository.getEntregasPorTarea(tareaId).collect { lista ->
                 _entregas.value = lista
             }
@@ -451,9 +456,8 @@ class ProfesorViewModel @Inject constructor(
                     s.copy(asignaturas = asignaturasActuales)
                 }
 
-                // 3. Persistimos en Firestore
-                db.collection("usuarios").document(usuarioId)
-                    .update("ultimaVezAsignaturas.$asignaturaId", now).await()
+                // 3. Persistimos en el repositorio
+                profesorRepository.marcarAsignaturaLeida(usuarioId, asignaturaId, now)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -463,12 +467,15 @@ class ProfesorViewModel @Inject constructor(
     // ====================================================================
     // 2. TODOS LOS ESTUDIANTES DE LOS CURSOS DONDE IMPARTE (tiempo real)
     // ====================================================================
+    private var misEstudiantesJob: Job? = null
+
     fun cargarTodosMisEstudiantes(asignaturas: List<Asignatura>) {
         if (asignaturas.isEmpty()) {
             _state.update { it.copy(todosMisEstudiantes = emptyList()) }
             return
         }
-        viewModelScope.launch {
+        misEstudiantesJob?.cancel()
+        misEstudiantesJob = viewModelScope.launch {
             val cursoIds = asignaturas.map { it.cursoId }.distinct()
             profesorRepository.getEstudiantesPorCursos(cursoIds).collect { lista ->
                 val filtrados = lista.filter { est ->
@@ -488,9 +495,12 @@ class ProfesorViewModel @Inject constructor(
     // ====================================================================
     // 3. ESTUDIANTES DE UNA ASIGNATURA CONCRETA (Ciclo y Turno específicos)
     // ====================================================================
+    private var estudiantesAsigJob: Job? = null
+
     fun cargarEstudiantesPorAsignatura(asignatura: Asignatura) {
         _state.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
+        estudiantesAsigJob?.cancel()
+        estudiantesAsigJob = viewModelScope.launch {
             try {
                 profesorRepository.getEstudiantesPorAsignatura(asignatura).collect { lista ->
                     _state.update { it.copy(isLoading = false, estudiantes = lista) }
@@ -504,8 +514,11 @@ class ProfesorViewModel @Inject constructor(
     // ====================================================================
     // 4. EVALUACIONES DE UN ALUMNO EN UNA ASIGNATURA (tiempo real)
     // ====================================================================
+    private var evaluacionesEstJob: Job? = null
+
     fun cargarEvaluacionesEstudiante(estudianteId: String, asignaturaId: String) {
-        viewModelScope.launch {
+        evaluacionesEstJob?.cancel()
+        evaluacionesEstJob = viewModelScope.launch {
             profesorRepository.getEvaluacionesEstudiante(estudianteId, asignaturaId).collect { lista ->
                 _state.update { it.copy(evaluaciones = lista) }
             }

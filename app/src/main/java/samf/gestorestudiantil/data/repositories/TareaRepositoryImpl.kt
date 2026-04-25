@@ -104,10 +104,9 @@ class TareaRepositoryImpl @Inject constructor(
 
     override suspend fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String?): String {
         var adjunto = tarea.adjunto
+        val previousAdjunto = tarea.adjunto
 
         if (fileData != null && fileName != null) {
-            // Borrar anterior si existe y es distinto path? 
-            // Para simplificar, subimos el nuevo.
             val path = "tareas/${tarea.id}/$fileName"
             val bucket = storage.from("gestor-estudiantil")
             bucket.upload(path, fileData) { 
@@ -133,6 +132,15 @@ class TareaRepositoryImpl @Inject constructor(
         val finalTarea = tarea.copy(adjunto = adjunto)
         try {
             db.collection("tareas").document(tarea.id).set(finalTarea).await()
+            
+            // Si el guardado en Firestore fue exitoso y subimos un archivo nuevo que es distinto al anterior, borramos el viejo
+            if (fileData != null && previousAdjunto != null && previousAdjunto.supabasePath != adjunto?.supabasePath) {
+                try {
+                    storage.from("gestor-estudiantil").delete(previousAdjunto.supabasePath)
+                } catch (deleteError: Exception) {
+                    deleteError.printStackTrace()
+                }
+            }
         } catch (e: Exception) {
             // Compensación: Si subimos un nuevo archivo pero falló el guardado en Firestore
             if (fileData != null && adjunto != null) {

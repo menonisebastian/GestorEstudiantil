@@ -248,8 +248,11 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
+    private var miEntregaJob: Job? = null
+
     fun cargarMiEntrega(tareaId: String, estudianteId: String) {
-        viewModelScope.launch {
+        miEntregaJob?.cancel()
+        miEntregaJob = viewModelScope.launch {
             tareaRepository.getEntregaEstudiante(tareaId, estudianteId).collect { entrega ->
                 _state.update { it.copy(miEntrega = entrega) }
             }

@@ -260,7 +260,7 @@ fun HomeScreen(
         }
     }
 
-    val onOpenDialog: (DialogState) -> Unit = remember {
+    val onOpenDialog: (DialogState) -> Unit = remember(dialogStack) {
         { newState: DialogState ->
 
             val shouldStack = newState is DialogState.AddRecordatorio || 
