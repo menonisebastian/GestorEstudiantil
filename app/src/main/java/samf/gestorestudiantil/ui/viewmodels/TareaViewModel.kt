@@ -33,8 +33,6 @@ class TareaViewModel @Inject constructor(
     private var tareaOriginal: Tarea? = null
 
     fun inicializarCon(tarea: Tarea?) {
-        if (tareaOriginal != null && tareaOriginal?.id == tarea?.id) return
-        
         tareaOriginal = tarea
         titulo = tarea?.titulo ?: ""
         descripcion = tarea?.descripcion ?: ""

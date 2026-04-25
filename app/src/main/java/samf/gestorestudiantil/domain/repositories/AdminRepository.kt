@@ -18,6 +18,7 @@ interface AdminRepository {
     fun getClasesPorCentro(centroId: String): Flow<List<Clase>>
     fun getCursosPorCentro(centroId: String): Flow<List<Curso>>
     fun getAsignaturasSinProfesor(turno: String): Flow<List<Asignatura>>
+    fun getAsignaturasPorProfesor(profesorId: String): Flow<List<Asignatura>>
     fun getAsignaturasPorCurso(cursoId: String, turno: String): Flow<List<Asignatura>>
     fun getHorarios(cursoId: String, cicloNum: Int, turno: String): Flow<List<Horario>>
 

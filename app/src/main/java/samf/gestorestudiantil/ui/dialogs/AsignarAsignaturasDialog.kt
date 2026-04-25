@@ -47,22 +47,12 @@ fun AsignarAsignaturasDialog(
     // Al abrir, cargamos las asignaturas del profesor y las que no tienen profesor
     LaunchedEffect(state.profesor.id) {
         adminViewModel.cargarAsignaturasSinProfesor("")
+        adminViewModel.cargarAsignaturasProfesor(state.profesor.id)
         // Aseguramos que tenemos cursos cargados para el filtro
         adminViewModel.cargarCursosPorCentro(state.profesor.centroId)
     }
 
-    var asignaturasProfesor by remember { mutableStateOf<List<samf.gestorestudiantil.data.models.Asignatura>>(emptyList()) }
-
-    // Obtenemos las asignaturas que ya tiene el profesor
-    LaunchedEffect(adminState.usuarios) {
-        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-        db.collection("asignaturas")
-            .whereEqualTo("profesorId", state.profesor.id)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                asignaturasProfesor = snapshot.toObjects(samf.gestorestudiantil.data.models.Asignatura::class.java)
-            }
-    }
+    val asignaturasProfesor = adminState.asignaturasProfesor
 
     val asignaturasDisponiblesFiltradas = remember(adminState.asignaturasDisponibles, cursoFiltro, turnoFiltro, cicloFiltro) {
         adminState.asignaturasDisponibles.filter { asig ->
@@ -151,8 +141,6 @@ fun AsignarAsignaturasDialog(
                                     }
                                     IconButton(onClick = { 
                                         adminViewModel.desasignarAsignatura(asig.id, state.profesor.id)
-                                        // Actualizar lista local para feedback inmediato
-                                        asignaturasProfesor = asignaturasProfesor.filter { it.id != asig.id }
                                     }, colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))) {
                                         Icon(Icons.Default.Remove, contentDescription = "Desasignar", tint = errorColor)
                                     }
@@ -187,8 +175,6 @@ fun AsignarAsignaturasDialog(
                                     }
                                     IconButton(onClick = { 
                                         adminViewModel.asignarAsignaturaAProfesor(asig.id, state.profesor.id)
-                                        // Actualizar lista local
-                                        asignaturasProfesor = asignaturasProfesor + asig
                                     }, colors = IconButtonDefaults.iconButtonColors(containerColor = primaryColor.copy(alpha = 0.1f))) {
                                         Icon(Icons.Default.Add, contentDescription = "Asignar", tint = primaryColor)
                                     }

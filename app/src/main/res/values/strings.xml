@@ -124,6 +124,7 @@
     <string name="label_accept">Aceptar</string>
     <string name="label_select_icon">Seleccionar Icono</string>
     <string name="label_close">Cerrar</string>
+    <string name="open_with">Abrir con...</string>
 
     <!-- Opciones de Selección -->
     <string name="option_ies">IES</string>

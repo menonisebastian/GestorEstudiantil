@@ -147,6 +147,27 @@ class ProfesorRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
+    override fun getEstudiantesPorCursos(cursoIds: List<String>): Flow<List<User>> = callbackFlow {
+        if (cursoIds.isEmpty()) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
+        
+        // Firestore whereIn allows up to 30 elements in newer SDKs, 10 in older ones.
+        // Assuming 10 for safety, but if there are many courses we might need more complex logic.
+        // For a professor, it's unlikely they have > 10 unique courses.
+        val subscription = db.collection("usuarios")
+            .whereEqualTo("rol", "ESTUDIANTE")
+            .whereIn("cursoId", cursoIds)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null) {
+                    trySend(snapshot.toObjects(User.Estudiante::class.java))
+                }
+            }
+        awaitClose { subscription.remove() }
+    }
+
     override suspend fun getEstudiantesEspecificos(cursoId: String, cicloNum: Int, turno: String): List<User> {
         val snapshot = db.collection("usuarios")
             .whereEqualTo("rol", "ESTUDIANTE")

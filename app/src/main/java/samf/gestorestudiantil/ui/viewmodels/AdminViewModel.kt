@@ -30,6 +30,7 @@ data class AdminState(
     val clases: List<Clase> = emptyList(),
     val cursos: List<Curso> = emptyList(),
     val asignaturas: List<Asignatura> = emptyList(),
+    val asignaturasProfesor: List<Asignatura> = emptyList(),
     val asignaturasDisponibles: List<Asignatura> = emptyList(),
     val horarios: List<Horario> = emptyList(),
     val errorMessage: String? = null
@@ -118,6 +119,14 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             adminRepository.getAsignaturasSinProfesor(turno).collect { lista ->
                 _adminState.value = _adminState.value.copy(asignaturasDisponibles = lista)
+            }
+        }
+    }
+
+    fun cargarAsignaturasProfesor(profesorId: String) {
+        viewModelScope.launch {
+            adminRepository.getAsignaturasPorProfesor(profesorId).collect { lista ->
+                _adminState.value = _adminState.value.copy(asignaturasProfesor = lista)
             }
         }
     }

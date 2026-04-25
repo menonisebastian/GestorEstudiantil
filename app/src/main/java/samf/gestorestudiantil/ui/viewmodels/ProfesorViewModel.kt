@@ -35,6 +35,8 @@ import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
+import samf.gestorestudiantil.domain.repositories.UserRepository
+import samf.gestorestudiantil.ui.utils.FileOpener
 import samf.gestorestudiantil.R
 import java.io.File
 import java.io.FileOutputStream
@@ -58,6 +60,7 @@ class ProfesorViewModel @Inject constructor(
     private val profesorRepository: ProfesorRepository,
     private val tareaRepository: TareaRepository,
     private val notificationRepository: NotificationRepository,
+    private val userRepository: UserRepository,
     private val db: FirebaseFirestore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -331,33 +334,7 @@ class ProfesorViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true) }
                 val bytes = tareaRepository.descargarArchivo(supabasePath)
-                val file = File(context.cacheDir, nombreArchivo)
-                FileOutputStream(file).use { it.write(bytes) }
-
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.provider",
-                    file
-                )
-
-                val mimeType = context.contentResolver.getType(uri) ?: when (file.extension.lowercase()) {
-                    "pdf" -> "application/pdf"
-                    "doc", "docx" -> "application/msword"
-                    "jpg", "jpeg" -> "image/jpeg"
-                    "png" -> "image/png"
-                    else -> "*/*"
-                }
-
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, mimeType)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-
-                val chooser = Intent.createChooser(intent, "Abrir con...")
-                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(chooser)
-
+                FileOpener.openFile(context, bytes, nombreArchivo)
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_file_read), Toast.LENGTH_SHORT).show()
@@ -411,20 +388,11 @@ class ProfesorViewModel @Inject constructor(
     private fun observarUsuario(usuarioId: String) {
         usuarioJob?.cancel()
         usuarioJob = viewModelScope.launch {
-            db.collection("usuarios").document(usuarioId)
-                .addSnapshotListener { snapshot, error ->
-                    if (error != null || snapshot == null) return@addSnapshotListener
-                    val rol = snapshot.getString("rol")
-                    val user = when (rol) {
-                        "ESTUDIANTE" -> snapshot.toObject(User.Estudiante::class.java)
-                        "PROFESOR" -> snapshot.toObject(User.Profesor::class.java)
-                        "ADMIN" -> snapshot.toObject(User.Admin::class.java)
-                        else -> snapshot.toObject(User.Incompleto::class.java)
-                    }
-                    if (user is User.Profesor) {
-                        actualizarTiemposLectura(user.ultimaVezAsignaturas)
-                    }
+            userRepository.getUserFlow(usuarioId).collect { user ->
+                if (user is User.Profesor) {
+                    actualizarTiemposLectura(user.ultimaVezAsignaturas)
                 }
+            }
         }
     }
 
@@ -501,12 +469,18 @@ class ProfesorViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            // Recolectamos estudiantes de todas las asignaturas y los combinamos
-            val flows = asignaturas.map { profesorRepository.getEstudiantesPorAsignatura(it) }
-            combine(flows) { arrays: Array<List<User>> ->
-                arrays.flatMap { it }.distinctBy { it.id }
-            }.collect { lista ->
-                _state.update { it.copy(todosMisEstudiantes = lista) }
+            val cursoIds = asignaturas.map { it.cursoId }.distinct()
+            profesorRepository.getEstudiantesPorCursos(cursoIds).collect { lista ->
+                val filtrados = lista.filter { est ->
+                    val estudiante = est as? User.Estudiante
+                    if (estudiante != null) {
+                        asignaturas.any { asig ->
+                            asig.cursoId == estudiante.cursoId && asig.turno == estudiante.turno && asig.cicloNum == estudiante.cicloNum
+                        }
+                    } else false
+                }.distinctBy { it.id }
+                
+                _state.update { it.copy(todosMisEstudiantes = filtrados) }
             }
         }
     }

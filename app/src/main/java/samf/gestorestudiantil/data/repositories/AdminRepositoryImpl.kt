@@ -150,6 +150,17 @@ class AdminRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
+    override fun getAsignaturasPorProfesor(profesorId: String): Flow<List<Asignatura>> = callbackFlow {
+        val subscription = db.collection("asignaturas")
+            .whereEqualTo("profesorId", profesorId)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null) {
+                    trySend(snapshot.toObjects(Asignatura::class.java))
+                }
+            }
+        awaitClose { subscription.remove() }
+    }
+
     override fun getAsignaturasPorCurso(cursoId: String, turno: String): Flow<List<Asignatura>> = callbackFlow {
         val subscription = db.collection("asignaturas")
             .whereEqualTo("cursoId", cursoId)

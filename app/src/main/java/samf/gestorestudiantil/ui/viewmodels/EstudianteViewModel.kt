@@ -30,6 +30,7 @@ import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
 import samf.gestorestudiantil.ui.utils.ErrorMapper
+import samf.gestorestudiantil.ui.utils.FileOpener
 import kotlinx.coroutines.FlowPreview
 import java.io.File
 import java.io.FileOutputStream
@@ -248,33 +249,7 @@ class EstudianteViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true) }
                 val bytes = tareaRepository.descargarArchivo(supabasePath)
-                val file = File(context.cacheDir, nombreArchivo)
-                FileOutputStream(file).use { it.write(bytes) }
-
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.provider",
-                    file
-                )
-
-                val mimeType = context.contentResolver.getType(uri) ?: when (file.extension.lowercase()) {
-                    "pdf" -> "application/pdf"
-                    "doc", "docx" -> "application/msword"
-                    "jpg", "jpeg" -> "image/jpeg"
-                    "png" -> "image/png"
-                    else -> "*/*"
-                }
-
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, mimeType)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-
-                val chooser = Intent.createChooser(intent, "Abrir con...")
-                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(chooser)
-
+                FileOpener.openFile(context, bytes, nombreArchivo)
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_open_file), Toast.LENGTH_SHORT).show()

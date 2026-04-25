@@ -8,7 +8,7 @@ fun DialogOrchestrator(
     onShowDialog: (DialogState) -> Unit,
     onDismiss: (DialogState) -> Unit
 ) {
-    states.forEach { state ->
+    states.lastOrNull()?.let { state ->
         val dismissAction = { onDismiss(state) }
         when (state) {
             is DialogState.None -> Unit

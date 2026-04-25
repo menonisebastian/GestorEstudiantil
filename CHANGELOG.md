@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.9] - 2026-04-25
+- **Arquitectura**: Eliminación de llamadas directas a Firestore en `AsignarAsignaturasDialog` delegando la carga al `AdminViewModel`, completando la separación de capas MVVM.
+- **Arquitectura**: Creación de `FileOpener` para centralizar la lógica de apertura de adjuntos, eliminando duplicidad de código en `ProfesorViewModel` y `EstudianteViewModel`.
+- **Rendimiento**: Optimización de `cargarTodosMisEstudiantes` en `ProfesorViewModel` mediante el uso de una única consulta `whereIn` en el repositorio, reduciendo el número de conexiones simultáneas a Firestore.
+- **Rendimiento**: Mejora de eficiencia en `DialogOrchestrator` limitando la composición al último diálogo de la pila, evitando sobrecarga visual y técnica.
+- **Estabilidad**: Solucionado memory leak en `ProfesorViewModel` migrando el listener de usuario al repositorio mediante `callbackFlow` con cierre seguro.
+- **Estabilidad**: Reforzada la redirección por notificaciones en `HomeScreen` vinculándola al estado de carga de las asignaturas para asegurar la navegación.
+- **Corrección**: Solucionado error de actualización de estado en `TareaViewModel` al reabrir el mismo elemento, garantizando que los cambios externos se reflejen en el formulario.
+
 ## [v0.6.8] - 2026-04-25
 - **Arquitectura**: Corrección de violación de MVVM mediante la creación de `NotificationRepository` y `NotificationRepositoryImpl`, centralizando la lógica de red de FCM y eliminando dependencias de `OkHttpClient` y generación de tokens OAuth2 de los ViewModels.
 - **Rendimiento**: Optimización del consumo de flujos de Firestore en `EstudianteViewModel` y `ProfesorViewModel` mediante el uso de `.debounce(300)` para agrupar actualizaciones rápidas de UI.

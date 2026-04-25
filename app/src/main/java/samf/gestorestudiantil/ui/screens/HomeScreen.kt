@@ -243,7 +243,7 @@ fun HomeScreen(
     }
 
     // ✅ Manejo de Redirección por Notificación Actualizado
-    LaunchedEffect(targetAsignaturaId) {
+    LaunchedEffect(targetAsignaturaId, profesorState.asignaturas, estudianteState.asignaturas) {
         if (targetAsignaturaId == null) return@LaunchedEffect
         
         val asignaturas = if (usuario.rol == "PROFESOR") 
