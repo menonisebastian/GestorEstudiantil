@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.panels.admin
 
+import androidx.compose.animation.core.tween
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -178,8 +179,16 @@ fun UsuariosAdminPanel(
                         }
                     }
                 } else {
-                    items(usuariosFiltrados) { usuario ->
+                    items(
+                        items = usuariosFiltrados,
+                        key = { it.id }
+                    ) { usuario ->
                         UsuarioCardAdmin(
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = tween(150),
+                                fadeOutSpec = tween(150),
+                                placementSpec = tween(150)
+                            ),
                             usuario = usuario,
                             isPending = selectedTabIndex == 1,
                             canDelete = usuario.id != usuarioActual.id,
@@ -336,6 +345,7 @@ fun UsuariosAdminPanel(
 
 @Composable
 fun UsuarioCardAdmin(
+    modifier: Modifier = Modifier,
     usuario: User,
     isPending: Boolean,
     canDelete: Boolean,
@@ -348,7 +358,7 @@ fun UsuarioCardAdmin(
 ) {
     val softRed = Color(0xFFD74132)
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

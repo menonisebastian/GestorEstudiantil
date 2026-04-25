@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.3] - 2026-04-25
+- **Estabilidad**: Corregido crash crítico en `AsignaturasEstudiantePanel` al filtrar listas; se eliminó la lógica de diseño manual que causaba inconsistencias de estado en Compose.
+- **UI/UX**: Implementadas animaciones de búsqueda optimizadas (150ms) en toda la aplicación (Usuarios, Centros, Asignaturas, Calificaciones y Recordatorios).
+- **Rendimiento**: Añadido sistema de *debounce* (300ms) en todas las barras de búsqueda globales para mejorar la fluidez y reducir la carga de procesamiento.
+- **UX**: Mejorada la búsqueda de asignaturas para profesores y estudiantes, permitiendo ahora filtrado por acrónimo (ej. "DAM", "AD", "PSP").
+- **Estabilidad**: Asegurada la integridad de las listas mediante el uso de claves únicas y estables (`key`) en todos los componentes `LazyColumn` y `LazyVerticalGrid`.
+
 ## [v0.7.2] - 2026-04-25
 - **Estabilidad**: Corregida la duplicación de listeners de Firestore en `ProfesorViewModel` y `EstudianteViewModel` mediante la gestión estricta de ciclos de vida de Coroutines (cancelación de jobs previos).
 - **Arquitectura**: Completada la desvinculación de Firebase en la capa de UI; `marcarAsignaturaComoLeida` ahora se delega correctamente al `ProfesorRepository`.
@@ -267,7 +274,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.3.9] - 2026-04-12
 - **Refactorización**: Rediseñado el diálogo de creación de tareas (`AddTareaDialog`) separando los campos de fecha y hora en una disposición vertical para mejorar la usabilidad.
-- **UI**: Implementados selectores nativos de fecha (`DatePicker`) y hora (`TimePicker`) con corrección de desfase por zona horaria (UTC a Local).
+- **UI**: Implementados selectores nativos de fecha (`DatePicker`) y hora (`TimePicker`) con la corrección de desfase por zona horaria (UTC a Local).
 - **Infraestructura**: Corregida la asignación de metadatos críticos (`profesorId`, `centroId`) al crear nuevas tareas desde el panel del profesor.
 - **Mejora**: Añadido manejo de errores y cierre seguro de flujos en la selección de archivos adjuntos.
 - **Estado**: **PENDIENTE** - La creación de tareas en Firestore aún no es funcional debido a errores de conectividad de red persistentes (`firestore.googleapis.com`) y validaciones de formato de fecha pendientes.
@@ -282,7 +289,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 ## [v0.3.7] - 2026-04-11
 - **Característica**: Añadido un selector de tema (Claro, Oscuro, Automático) en la pantalla de Perfil para una experiencia visual personalizada.
 - **Característica**: Implementado un interruptor local para habilitar/deshabilitar notificaciones push en el perfil de usuario.
-- **Infraestructura**: Migradas las configuraciones de usuario (tema y notificaciones) a `DataStore` para una persistencia local eficiente, reduciendo las operaciones de escritura en Firestore.
+- **Infraestructura**: Migradas las configuraciones de usuario (tema y notificaciones) a `DataStore` para una para una persistencia local eficiente, reduciendo las operaciones de escritura en Firestore.
 - **Refactorización**: Eliminado `notificationsEnabled` del modelo `User` para limpiar el esquema de la base de datos.
 - **Mejora**: Actualizado `MyFirebaseMessagingService` para respetar la preferencia de notificación local antes de mostrar alertas.
 

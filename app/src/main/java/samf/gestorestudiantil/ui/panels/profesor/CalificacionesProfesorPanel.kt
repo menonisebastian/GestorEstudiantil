@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.panels.profesor
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -46,7 +47,14 @@ fun CalificacionesProfesorPanel(
 ) {
     val state by viewModel.state.collectAsState()
 
+    var searchTextRaw by remember { mutableStateOf("") }
     var searchText by remember { mutableStateOf("") }
+
+    LaunchedEffect(searchTextRaw) {
+        kotlinx.coroutines.delay(300)
+        searchText = searchTextRaw
+    }
+
     var filtroCurso by remember { mutableStateOf("") }
     var filtroAsignatura by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -110,7 +118,10 @@ fun CalificacionesProfesorPanel(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 220.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
                     ) {
-                        items(filteredEstudiantes) { estudiante ->
+                        items(
+                            items = filteredEstudiantes,
+                            key = { it.id }
+                        ) { estudiante ->
                             val asignaturasSeleccionadas = filtroAsignatura.split(",").filter { it.isNotEmpty() }
                             val estudianteCursoId = (estudiante as? User.Estudiante)?.cursoId ?: ""
                             val asigDelProfesorParaEsteAlumno = if (asignaturasSeleccionadas.isNotEmpty()) {
@@ -120,6 +131,11 @@ fun CalificacionesProfesorPanel(
                             }
 
                             EstudianteCard(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = tween(150),
+                                    fadeOutSpec = tween(150),
+                                    placementSpec = tween(150)
+                                ),
                                 estudiante = estudiante,
                                 materia = asigDelProfesorParaEsteAlumno?.nombre ?: "Sin asignatura común",
                                 onImageClick = { onOpenDialog(DialogState.UserProfile(estudiante)) },
@@ -137,10 +153,22 @@ fun CalificacionesProfesorPanel(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 220.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
                     ) {
-                        items(filteredAsignaturas) { asignatura ->
-                            AsignaturaCard(asignatura, userRole = "PROFESOR", onClick = {
-                                onAsignaturaClick(asignatura)
-                            })
+                        items(
+                            items = filteredAsignaturas,
+                            key = { it.id.ifEmpty { it.idDocumento } }
+                        ) { asignatura ->
+                            AsignaturaCard(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = tween(150),
+                                    fadeOutSpec = tween(150),
+                                    placementSpec = tween(150)
+                                ),
+                                asignatura = asignatura, 
+                                userRole = "PROFESOR", 
+                                onClick = {
+                                    onAsignaturaClick(asignatura)
+                                }
+                            )
                         }
                     }
                 }
@@ -174,8 +202,8 @@ fun CalificacionesProfesorPanel(
                     )
 
                     CustomSearchBar(
-                        textoBusqueda = searchText,
-                        onValueChange = { searchText = it },
+                        textoBusqueda = searchTextRaw,
+                        onValueChange = { searchTextRaw = it },
                         onFilterClick = {
                             onOpenDialog(
                                 DialogState.Filter(
@@ -266,7 +294,13 @@ fun EstudiantesAsignaturaLista(
     onEstudianteClick: (User) -> Unit,
     onOpenDialog: (DialogState) -> Unit,
 ) {
+    var searchTextRaw by remember { mutableStateOf("") }
     var searchText by remember { mutableStateOf("") }
+
+    LaunchedEffect(searchTextRaw) {
+        kotlinx.coroutines.delay(300)
+        searchText = searchTextRaw
+    }
     
     val filteredEstudiantes by remember(estudiantes, searchText) {
         derivedStateOf {
@@ -286,8 +320,16 @@ fun EstudiantesAsignaturaLista(
             contentPadding = PaddingValues(top = 190.dp, bottom = 120.dp, start = 20.dp, end = 20.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(filteredEstudiantes) { estudiante ->
+            items(
+                items = filteredEstudiantes,
+                key = { it.id }
+            ) { estudiante ->
                 EstudianteCard(
+                    modifier = Modifier.animateItem(
+                        fadeInSpec = tween(150),
+                        fadeOutSpec = tween(150),
+                        placementSpec = tween(150)
+                    ),
                     estudiante = estudiante,
                     materia = asignatura.nombre,
                     onImageClick = { onOpenDialog(DialogState.UserProfile(estudiante)) },
@@ -332,8 +374,8 @@ fun EstudiantesAsignaturaLista(
                 }
 
                 CustomSearchBar(
-                    textoBusqueda = searchText,
-                    onValueChange = { searchText = it },
+                    textoBusqueda = searchTextRaw,
+                    onValueChange = { searchTextRaw = it },
                     onFilterClick = {}
                 )
             }
@@ -343,13 +385,14 @@ fun EstudiantesAsignaturaLista(
 
 @Composable
 fun EstudianteCard(
+    modifier: Modifier = Modifier,
     estudiante: User,
     materia: String,
     onImageClick: () -> Unit = {},
     onClick: (User) -> Unit
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick(estudiante) },
         colors = CardDefaults.cardColors(containerColor = surfaceColor),

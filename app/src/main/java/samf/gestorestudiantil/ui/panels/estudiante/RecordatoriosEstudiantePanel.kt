@@ -12,8 +12,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
@@ -39,18 +43,27 @@ fun RecordatoriosEstudiantePanel(
     onDelete: (Recordatorio) -> Unit,
     onUpdate: (Recordatorio) -> Unit
 ) {
+    var textoBusquedaRaw by remember { mutableStateOf("") }
     var textoBusqueda by remember { mutableStateOf("") }
+
+    LaunchedEffect(textoBusquedaRaw) {
+        delay(300)
+        textoBusqueda = textoBusquedaRaw
+    }
+
     var filtroTipo by remember { mutableStateOf("") }
 
-    val recordatoriosFiltrados = remember(textoBusqueda, filtroTipo, recordatorios) {
-        val tiposSeleccionados = filtroTipo.split(",").filter { it.isNotEmpty() }
-        recordatorios.filter {
-            val coincideTexto = it.titulo.contains(textoBusqueda, ignoreCase = true) ||
-                    it.descripcion.contains(textoBusqueda, ignoreCase = true)
-            val coincideTipo = if (tiposSeleccionados.isEmpty()) true else {
-                tiposSeleccionados.any { tipo -> it.tipo.name.equals(tipo, ignoreCase = true) }
+    val recordatoriosFiltrados by remember(textoBusqueda, filtroTipo, recordatorios) {
+        derivedStateOf {
+            val tiposSeleccionados = filtroTipo.split(",").filter { it.isNotEmpty() }
+            recordatorios.filter {
+                val coincideTexto = it.titulo.contains(textoBusqueda, ignoreCase = true) ||
+                        it.descripcion.contains(textoBusqueda, ignoreCase = true)
+                val coincideTipo = if (tiposSeleccionados.isEmpty()) true else {
+                    tiposSeleccionados.any { tipo -> it.tipo.name.equals(tipo, ignoreCase = true) }
+                }
+                coincideTexto && coincideTipo
             }
-            coincideTexto && coincideTipo
         }
     }
 
@@ -70,8 +83,16 @@ fun RecordatoriosEstudiantePanel(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(top = 160.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
             ) {
-                items(recordatoriosFiltrados) { recordatorio ->
+                items(
+                    items = recordatoriosFiltrados,
+                    key = { it.id }
+                ) { recordatorio ->
                     CustomNotificationCard(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(150),
+                            fadeOutSpec = tween(150),
+                            placementSpec = tween(150)
+                        ),
                         recordatorio = recordatorio,
                         onClick = {
                             onOpenDialog(
@@ -110,8 +131,8 @@ fun RecordatoriosEstudiantePanel(
                 )
 
                 CustomSearchBar(
-                    textoBusqueda = textoBusqueda,
-                    onValueChange = { textoBusqueda = it },
+                    textoBusqueda = textoBusquedaRaw,
+                    onValueChange = { textoBusquedaRaw = it },
                     onFilterClick = {
                         onOpenDialog(
                             DialogState.Filter(

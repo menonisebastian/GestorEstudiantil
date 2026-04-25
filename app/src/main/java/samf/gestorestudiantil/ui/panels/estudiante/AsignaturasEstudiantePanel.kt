@@ -1,16 +1,14 @@
 package samf.gestorestudiantil.ui.panels.estudiante
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.domain.toComposeColor
 import samf.gestorestudiantil.domain.toComposeIcon
@@ -43,12 +43,24 @@ fun AsignaturasEstudiantePanel(
     paddingValues: PaddingValues,
     onAsignaturaClick: (Asignatura) -> Unit
 ) {
-    var textoBusqueda by rememberSaveable { mutableStateOf("") }
+    var textoBusquedaRaw by rememberSaveable { mutableStateOf("") }
+    var textoBusqueda by remember { mutableStateOf("") }
+
+    LaunchedEffect(textoBusquedaRaw) {
+        delay(300)
+        textoBusqueda = textoBusquedaRaw
+    }
 
     val asignaturasFiltradas by remember(textoBusqueda, asignaturas) {
         derivedStateOf {
-            if (textoBusqueda.isBlank()) asignaturas
-            else asignaturas.filter { it.nombre.contains(textoBusqueda, ignoreCase = true) }
+            if (textoBusqueda.isBlank()) {
+                asignaturas
+            } else {
+                asignaturas.filter { 
+                    it.nombre.contains(textoBusqueda, ignoreCase = true) ||
+                    it.acronimo.contains(textoBusqueda, ignoreCase = true)
+                }
+            }
         }
     }
 
@@ -70,14 +82,18 @@ fun AsignaturasEstudiantePanel(
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 160.dp, bottom = 120.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                val totalItems = asignaturasFiltradas.size
-                val fullRows = totalItems / 3
-                val remainingItems = totalItems % 3
-
-                // Items que forman filas completas de 3
-                items(asignaturasFiltradas.take(fullRows * 3), key = { it.id }) { materia ->
+                // CORRECCIÓN CRÍTICA: Usamos un bloque simple de items sin lógica de centrado manual
+                // que causaba cierres por inconsistencia de estado al filtrar.
+                items(
+                    items = asignaturasFiltradas,
+                    key = { it.id.ifEmpty { it.idDocumento } }
+                ) { materia ->
                     CardItem(
-                        modifier = Modifier.animateItem(),
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(150),
+                            fadeOutSpec = tween(150),
+                            placementSpec = tween(150)
+                        ),
                         item = materia,
                         getIcono = { it.iconoName.toComposeIcon() },
                         getAcron = { it.acronimo },
@@ -88,66 +104,10 @@ fun AsignaturasEstudiantePanel(
                         onClick = { onAsignaturaClick(materia) }
                     )
                 }
-
-                // Manejo de la última fila si tiene 1 o 2 elementos
-                if (remainingItems > 0) {
-                    val lastRowItems = asignaturasFiltradas.takeLast(remainingItems)
-
-                    if (remainingItems == 1) {
-                        // Centrar 1 elemento: Espacio vacío (span 1) + Item (span 1) + Espacio vacío (span 1)
-                        item(span = { GridItemSpan(1) }) { Box(Modifier) }
-                        item(span = { GridItemSpan(1) }, key = { lastRowItems[0].id }) {
-                            CardItem(
-                                modifier = Modifier.animateItem(),
-                                item = lastRowItems[0],
-                                getIcono = { it.iconoName.toComposeIcon() },
-                                getAcron = { it.acronimo },
-                                getNombre = { it.nombre },
-                                getColorFondo = { it.colorFondoHex.toComposeColor() },
-                                getColorIcono = { it.colorIconoHex.toComposeColor() },
-                                notificaciones = lastRowItems[0].numNotificaciones,
-                                onClick = { onAsignaturaClick(lastRowItems[0]) }
-                            )
-                        }
-                    } else {
-                        // Centrar 2 elementos usando pesos para mantener el tamaño relativo (remainingItems es 2)
-                        item(span = { GridItemSpan(3) }) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                // Espacio flexible a la izquierda (1/6 del total para centrar 2 en 3 columnas)
-                                Spacer(modifier = Modifier.weight(0.5f))
-                                
-                                lastRowItems.forEachIndexed { index, materia ->
-                                    Box(modifier = Modifier
-                                        .weight(1f)
-                                        .animateItem()
-                                    ) {
-                                        CardItem(
-                                            item = materia,
-                                            getIcono = { it.iconoName.toComposeIcon() },
-                                            getAcron = { it.acronimo },
-                                            getNombre = { it.nombre },
-                                            getColorFondo = { it.colorFondoHex.toComposeColor() },
-                                            getColorIcono = { it.colorIconoHex.toComposeColor() },
-                                            notificaciones = materia.numNotificaciones,
-                                            onClick = { onAsignaturaClick(materia) }
-                                        )
-                                    }
-                                    if (index == 0) Spacer(Modifier.padding(horizontal = 6.dp))
-                                }
-
-                                // Espacio flexible a la derecha
-                                Spacer(modifier = Modifier.weight(0.5f))
-                            }
-                        }
-                    }
-                }
             }
         }
 
-        // BLOQUE 1: Cabezal Flotante (Título + Barra de Búsqueda)
+        // BLOQUE 1: Cabezal Flotante
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -168,8 +128,8 @@ fun AsignaturasEstudiantePanel(
                 )
 
                 CustomSearchBar(
-                    textoBusqueda = textoBusqueda,
-                    onValueChange = { textoBusqueda = it },
+                    textoBusqueda = textoBusquedaRaw,
+                    onValueChange = { textoBusquedaRaw = it },
                     onFilterClick = null
                 )
             }

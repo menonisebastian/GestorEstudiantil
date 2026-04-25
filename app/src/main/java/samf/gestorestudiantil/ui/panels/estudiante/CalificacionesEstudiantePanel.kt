@@ -75,7 +75,7 @@ fun CalificacionesEstudiantePanel(
                 items(filteredAsignaturas)
                 {
                     asignatura ->
-                    AsignaturaCard(asignatura, userRole = "ESTUDIANTE", onClick = {
+                    AsignaturaCard(modifier = Modifier,asignatura, userRole = "ESTUDIANTE", onClick = {
                         onAsignaturaClick(asignatura)
                     })
                 }

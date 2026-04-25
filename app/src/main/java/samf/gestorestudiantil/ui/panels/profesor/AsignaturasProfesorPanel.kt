@@ -1,16 +1,14 @@
 package samf.gestorestudiantil.ui.panels.profesor
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +22,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.toComposeColor
@@ -52,8 +52,14 @@ fun AsignaturasProfesorPanel(
     viewModel: ProfesorViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var textoBusquedaRaw by rememberSaveable { mutableStateOf("") }
     var textoBusqueda by remember { mutableStateOf("") }
     var currentFilters by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    LaunchedEffect(textoBusquedaRaw) {
+        delay(300)
+        textoBusqueda = textoBusquedaRaw
+    }
 
     LaunchedEffect(profesor.id) {
         viewModel.cargarAsignaturas(profesor.id)
@@ -62,7 +68,9 @@ fun AsignaturasProfesorPanel(
     val asignaturasFiltradas by remember(textoBusqueda, currentFilters, state.asignaturas) {
         derivedStateOf {
             state.asignaturas.filter { materia ->
-                val matchTexto = textoBusqueda.isBlank() || materia.nombre.contains(textoBusqueda, ignoreCase = true)
+                val matchTexto = textoBusqueda.isBlank() || 
+                                materia.nombre.contains(textoBusqueda, ignoreCase = true) ||
+                                materia.acronimo.contains(textoBusqueda, ignoreCase = true)
 
                 val filterCiclo = currentFilters["ciclo"]?.split(",")?.filter { it.isNotEmpty() }
                 val matchCiclo = filterCiclo == null || filterCiclo.contains(materia.cicloNum.toString())
@@ -83,7 +91,6 @@ fun AsignaturasProfesorPanel(
             .padding(paddingValues)
             .fillMaxSize()
     ) {
-// ... resto del código sin cambios hasta el CustomSearchBar
         // BLOQUE 2: Contenido Principal
         if (asignaturasFiltradas.isEmpty() && !state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -97,17 +104,20 @@ fun AsignaturasProfesorPanel(
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 160.dp, bottom = 120.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                val totalItems = asignaturasFiltradas.size
-                val fullRows = totalItems / 3
-                val remainingItems = totalItems % 3
-
-                // Items que forman filas completas de 3
-                items(asignaturasFiltradas.take(fullRows * 3)) { materia ->
+                items(
+                    items = asignaturasFiltradas,
+                    key = { it.id.ifEmpty { it.idDocumento } }
+                ) { materia ->
                     val cursoAcron = materia.cursoId.split("_").lastOrNull()?.uppercase() ?: ""
                     val turnoLetra = if (materia.turno.contains("matutino", ignoreCase = true)) "M" else "V"
                     val badge = "$cursoAcron$turnoLetra${materia.cicloNum}"
 
                     CardItem(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(150),
+                            fadeOutSpec = tween(150),
+                            placementSpec = tween(150)
+                        ),
                         item = materia,
                         getIcono = { it.iconoName.toComposeIcon() },
                         getAcron = { it.acronimo },
@@ -118,69 +128,6 @@ fun AsignaturasProfesorPanel(
                         badgeText = badge,
                         onClick = { onAsignaturaClick(materia) }
                     )
-                }
-
-                // Manejo de la última fila si tiene 1 o 2 elementos
-                if (remainingItems > 0) {
-                    val lastRowItems = asignaturasFiltradas.takeLast(remainingItems)
-
-                    if (remainingItems == 1) {
-                        // Centrar 1 elemento: Espacio vacío (span 1) + Item (span 1) + Espacio vacío (span 1)
-                        item(span = { GridItemSpan(1) }) { Box(Modifier) }
-                        item(span = { GridItemSpan(1) }) {
-                            val materia = lastRowItems[0]
-                            val cursoAcron = materia.cursoId.split("_").lastOrNull()?.uppercase() ?: ""
-                            val turnoLetra = if (materia.turno.contains("matutino", ignoreCase = true)) "M" else "V"
-                            val badge = "$cursoAcron$turnoLetra${materia.cicloNum}"
-
-                            CardItem(
-                                item = materia,
-                                getIcono = { it.iconoName.toComposeIcon() },
-                                getAcron = { it.acronimo },
-                                getNombre = { it.nombre },
-                                getColorFondo = { it.colorFondoHex.toComposeColor() },
-                                getColorIcono = { it.colorIconoHex.toComposeColor() },
-                                notificaciones = materia.numNotificaciones,
-                                badgeText = badge,
-                                onClick = { onAsignaturaClick(materia) }
-                            )
-                        }
-                    } else {
-                        // Centrar 2 elementos usando pesos para mantener el tamaño relativo
-                        item(span = { GridItemSpan(3) }) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                // Espacio flexible a la izquierda
-                                Spacer(modifier = Modifier.weight(0.5f))
-
-                                lastRowItems.forEachIndexed { index, materia ->
-                                    val cursoAcron = materia.cursoId.split("_").lastOrNull()?.uppercase() ?: ""
-                                    val turnoLetra = if (materia.turno.contains("matutino", ignoreCase = true)) "M" else "V"
-                                    val badge = "$cursoAcron$turnoLetra${materia.cicloNum}"
-
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        CardItem(
-                                            item = materia,
-                                            getIcono = { it.iconoName.toComposeIcon() },
-                                            getAcron = { it.acronimo },
-                                            getNombre = { it.nombre },
-                                            getColorFondo = { it.colorFondoHex.toComposeColor() },
-                                            getColorIcono = { it.colorIconoHex.toComposeColor() },
-                                            notificaciones = materia.numNotificaciones,
-                                            badgeText = badge,
-                                            onClick = { onAsignaturaClick(materia) }
-                                        )
-                                    }
-                                    if (index == 0) Spacer(Modifier.padding(horizontal = 6.dp))
-                                }
-
-                                // Espacio flexible a la derecha
-                                Spacer(modifier = Modifier.weight(0.5f))
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -206,8 +153,8 @@ fun AsignaturasProfesorPanel(
                 )
 
                 CustomSearchBar(
-                    textoBusqueda = textoBusqueda,
-                    onValueChange = { textoBusqueda = it },
+                    textoBusqueda = textoBusquedaRaw,
+                    onValueChange = { textoBusquedaRaw = it },
                     onFilterClick = {
                         val cursosDisponibles = state.asignaturas.map { it.cursoId.split("_").last().uppercase() }.distinct()
                         onOpenDialog(

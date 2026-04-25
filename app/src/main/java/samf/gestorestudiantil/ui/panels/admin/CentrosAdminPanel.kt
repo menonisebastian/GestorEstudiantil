@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.ui.panels.admin
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,7 +72,6 @@ import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminState
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
-import androidx.core.graphics.toColorInt
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -143,8 +143,20 @@ fun CentrosListScreen(
                     }
                 }
 
-                items(filteredCentros) { centro ->
-                    CentroCard(centro = centro, onClick = { onCentroClick(centro) }, onEdit = { onEditCentro(centro) })
+                items(
+                    items = filteredCentros,
+                    key = { it.id }
+                ) { centro ->
+                    CentroCard(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(150),
+                            fadeOutSpec = tween(150),
+                            placementSpec = tween(150)
+                        ),
+                        centro = centro, 
+                        onClick = { onCentroClick(centro) }, 
+                        onEdit = { onEditCentro(centro) }
+                    )
                 }
             }
         }
@@ -302,8 +314,16 @@ fun CiclosScreen(
                 contentPadding = PaddingValues(top = 220.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(asignaturasDelCiclo) { asignatura ->
+                items(
+                    items = asignaturasDelCiclo,
+                    key = { it.id.ifEmpty { it.idDocumento } }
+                ) { asignatura ->
                     AsignaturaCard(
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(150),
+                            fadeOutSpec = tween(150),
+                            placementSpec = tween(150)
+                        ),
                         asignatura = asignatura,
                         userRole = "ADMIN",
                         onClick = { onAsignaturaClick(asignatura) },
@@ -421,8 +441,16 @@ fun AsignaturasScreen(
             contentPadding = PaddingValues(top = 160.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(filteredAsignaturas) { asignatura ->
+            items(
+                items = filteredAsignaturas,
+                key = { it.id.ifEmpty { it.idDocumento } }
+            ) { asignatura ->
                 AsignaturaCard(
+                    modifier = Modifier.animateItem(
+                        fadeInSpec = tween(150),
+                        fadeOutSpec = tween(150),
+                        placementSpec = tween(150)
+                    ),
                     asignatura = asignatura,
                     userRole = "ADMIN",
                     onClick = { onAsignaturaClick(asignatura) },
@@ -511,9 +539,14 @@ fun HorariosAdminScreen(
 
 
 @Composable
-fun CentroCard(centro: Centro, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
+fun CentroCard(
+    modifier: Modifier = Modifier,
+    centro: Centro, 
+    onClick: () -> Unit, 
+    onEdit: (() -> Unit)? = null
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         onClick = onClick
     ) {

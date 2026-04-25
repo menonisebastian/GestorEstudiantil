@@ -344,6 +344,7 @@ fun ProfileImagePicker(
 
 @Composable
 fun CustomNotificationCard(
+    modifier: Modifier = Modifier,
     recordatorio: Recordatorio,
     onClick: () -> Unit = {},
     onDelete: () -> Unit = {},
@@ -355,7 +356,7 @@ fun CustomNotificationCard(
         .padding(end = 4.dp)
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() },
@@ -419,6 +420,7 @@ fun CustomNotificationCard(
 
 @Composable
 fun AsignaturaCard(
+    modifier: Modifier = Modifier,
     asignatura: Asignatura,
     userRole: String, // "ADMIN", "PROFESOR" o "ESTUDIANTE"
     onClick: () -> Unit,
@@ -433,7 +435,7 @@ fun AsignaturaCard(
     val fondoColor = asignatura.colorFondoHex.toComposeColor()
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = fondoColor),
         onClick = { onClick() }
     ) {
