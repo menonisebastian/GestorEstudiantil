@@ -346,11 +346,18 @@ class ProfesorViewModel @Inject constructor(
     private var usuarioJob: Job? = null
     private var tareasJob: Job? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
+    private var lastAsignaturasParams: String? = null
+    private var lastHorariosParams: String? = null
 
     fun cargarAsignaturas(profesorId: String, ultimaVez: Map<String, Long> = emptyMap()) {
+        if (profesorId == lastAsignaturasParams) return
+        lastAsignaturasParams = profesorId
+
         currentUltimaVez = ultimaVez
         observarUsuario(profesorId)
-        _state.update { it.copy(isLoading = true) }
+        if (_state.value.asignaturas.isEmpty()) {
+            _state.update { it.copy(isLoading = true) }
+        }
         viewModelScope.launch {
             profesorRepository.getAsignaturas(profesorId).collect { lista ->
                 _state.update { it.copy(isLoading = false, asignaturas = lista) }
@@ -576,7 +583,12 @@ class ProfesorViewModel @Inject constructor(
     // 6. HORARIOS DEL PROFESOR (tiempo real)
     // ====================================================================
     fun cargarHorariosProfesor(profesorId: String) {
-        _state.update { it.copy(isLoading = true) }
+        if (profesorId == lastHorariosParams) return
+        lastHorariosParams = profesorId
+
+        if (_state.value.horarios.isEmpty()) {
+            _state.update { it.copy(isLoading = true) }
+        }
         viewModelScope.launch {
             profesorRepository.getHorarios(profesorId).collect { lista ->
                 _state.update { it.copy(isLoading = false, horarios = lista) }

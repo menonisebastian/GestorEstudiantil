@@ -4,6 +4,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.7.0] - 2026-04-25
 - **Rendimiento**: Implementada carga perezosa (*lazy loading*) de datos en `HomeScreen` vinculada a la pestaña activa del `HorizontalPager`, optimizando el consumo de recursos y tiempo de arranque.
+- **Rendimiento**: Corregido parpadeo (*flickering*) en la lista de horarios y asignaturas mediante la implementación de comprobación de parámetros y carga condicional en los ViewModels.
 - **Rendimiento**: Optimizado `recalcularNotificaciones` en `ProfesorViewModel` mediante procesamiento por lotes (*chunking*) para evitar la saturación de lecturas en Firestore.
 - **Arquitectura**: Eliminadas dependencias directas de `FirebaseFirestore` en `ProfesorViewModel`, delegando la calificación de entregas al `TareaRepository` para cumplir con Clean Architecture.
 - **Arquitectura**: Corregida la instanciación de ViewModels en diálogos administrativos (`AsignarProfesor`, `AsignarTutor`) mediante `hiltViewModel()`, asegurando la consistencia del estado.

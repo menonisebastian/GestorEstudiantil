@@ -63,10 +63,18 @@ class EstudianteViewModel @Inject constructor(
     private var tareasJob: Job? = null
     private var horariosJob: Job? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
+    private var lastAsignaturasParams: String? = null
+    private var lastHorariosParams: String? = null
 
     fun cargarAsignaturas(cursoId: String, turno: String, cicloNum: Int, ultimaVezAsignaturas: Map<String, Long> = emptyMap()) {
+        val params = "$cursoId|$turno|$cicloNum"
+        if (params == lastAsignaturasParams) return
+        lastAsignaturasParams = params
+
         currentUltimaVez = ultimaVezAsignaturas
-        _state.update { it.copy(isLoading = true) }
+        if (_state.value.asignaturas.isEmpty()) {
+            _state.update { it.copy(isLoading = true) }
+        }
         
         asignaturasJob?.cancel()
         asignaturasJob = viewModelScope.launch {
@@ -162,7 +170,13 @@ class EstudianteViewModel @Inject constructor(
     }
 
     fun cargarHorarios(cursoId: String, turno: String, cicloNum: Int) {
-        _state.update { it.copy(isLoading = true) }
+        val params = "$cursoId|$turno|$cicloNum"
+        if (params == lastHorariosParams) return
+        lastHorariosParams = params
+
+        if (_state.value.horarios.isEmpty()) {
+            _state.update { it.copy(isLoading = true) }
+        }
         horariosJob?.cancel()
         horariosJob = viewModelScope.launch {
             estudianteRepository.getHorarios(cursoId, turno, cicloNum).collect { horarios ->
