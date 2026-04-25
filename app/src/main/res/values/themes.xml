@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.GestorEstudiantil" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_v2</item>
+        <item name="postSplashScreenTheme">@style/Theme.GestorEstudiantil</item>
+    </style>
 </resources>

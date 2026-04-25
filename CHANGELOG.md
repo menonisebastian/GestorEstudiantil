@@ -3,6 +3,8 @@
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.6.9] - 2026-04-25
+- **UI/UX**: Implementación de Splash Screen oficial mediante `androidx.core:core-splashscreen` con soporte nativo para modo claro y oscuro.
+- **UI/UX**: Optimización del escalado del logo en el Splash Screen mediante el uso de recursos `inset` adaptativos para evitar recortes del sistema.
 - **Arquitectura**: Eliminación de llamadas directas a Firestore en `AsignarAsignaturasDialog` delegando la carga al `AdminViewModel`, completando la separación de capas MVVM.
 - **Arquitectura**: Creación de `FileOpener` para centralizar la lógica de apertura de adjuntos, eliminando duplicidad de código en `ProfesorViewModel` y `EstudianteViewModel`.
 - **Rendimiento**: Optimización de `cargarTodosMisEstudiantes` en `ProfesorViewModel` mediante el uso de una única consulta `whereIn` en el repositorio, reduciendo el número de conexiones simultáneas a Firestore.

@@ -149,4 +149,5 @@ dependencies {
     }
 
     implementation(libs.calendar.compose)
+    implementation(libs.androidx.core.splashscreen)
 }
