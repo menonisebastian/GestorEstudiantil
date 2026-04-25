@@ -4,7 +4,7 @@
 
 Nexo+ es una plataforma académica integral diseñada para optimizar la comunicación y gestión entre estudiantes, profesores y administradores. Construida con un enfoque moderno y reactivo, la aplicación ofrece un ecosistema fluido para el control de asignaturas, evaluaciones, horarios y materiales didácticos, todo bajo una interfaz elegante con efectos visuales avanzados.
 
-## 🚀 Tecnologías y Arquitectura
+## ⚙️️️ Tecnologías y Arquitectura
 
 El proyecto implementa los estándares más exigentes del desarrollo Android actual:
 
