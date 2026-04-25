@@ -20,9 +20,12 @@ import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +47,61 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun EditUserDialog(
+    state: DialogState.EditUser,
+    onDismissRequest: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        containerColor = backgroundColor,
+        title = {
+            Text(
+                text = "Editar Usuario",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+        },
+        text = {
+            EditUserContent(
+                state = state,
+                onDismissRequest = onDismissRequest
+            )
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditUserBottomSheet(
+    state: DialogState.EditUser,
+    onDismissRequest: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Editar Usuario",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            EditUserContent(
+                state = state,
+                onDismissRequest = onDismissRequest
+            )
+        }
+    }
+}
+
+@Composable
+fun EditUserContent(
     state: DialogState.EditUser,
     onDismissRequest: () -> Unit
 ) {
@@ -87,106 +145,102 @@ fun EditUserDialog(
             val cursoObj = state.cursos.find { it.id == cursoId }
             if (cursoObj != null) {
                 val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                // Solo añadir ciclo si el curso tiene más de uno (o siempre, según prefieras)
-                // Aquí asumo que si existe ciclo, se añade
                 cursoInput = "${cursoObj.acronimo}${letraTurno}${ciclo}"
             }
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        containerColor = backgroundColor,
-        title = {
-            Text(
-                text = "Editar Usuario",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CustomTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = "Nombre Completo",
+            icon = Icons.Outlined.Person
+        )
+
+        CustomTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = "Email",
+            icon = Icons.Outlined.Email,
+            readOnly = true
+        )
+
+        CustomOptionsTextField(
+            texto = rol,
+            onValueChange = { rol = it },
+            opciones = roles,
+            label = "Rol",
+            icon = Icons.Outlined.Badge
+        )
+
+        if (rol == "ESTUDIANTE") {
+            val acronimosCursos = state.cursos.map { it.acronimo }
+            CustomOptionsTextField(
+                texto = state.cursos.find { it.id == cursoId }?.acronimo ?: "",
+                onValueChange = { acro ->
+                    cursoId = state.cursos.find { it.acronimo == acro }?.id ?: ""
+                },
+                opciones = acronimosCursos,
+                label = "Curso Base",
+                icon = Icons.Outlined.School
             )
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+
+            CustomOptionsTextField(
+                texto = ciclo.toString(),
+                onValueChange = { ciclo = it.toInt() },
+                opciones = ciclos,
+                label = "Ciclo",
+                icon = Icons.Outlined.Groups
+            )
+
+            CustomTextField(
+                value = cursoInput,
+                onValueChange = { cursoInput = it },
+                label = "Acrónimo Final (Curso)",
+                icon = Icons.Outlined.School,
+                readOnly = true // Se autogenera
+            )
+        }
+
+        if (rol == "ESTUDIANTE" || rol == "PROFESOR") {
+            CustomOptionsTextField(
+                texto = turno,
+                onValueChange = { turno = it },
+                opciones = turnos,
+                label = "Turno",
+                icon = Icons.Outlined.Schedule
+            )
+        }
+
+        if (rol == "PROFESOR") {
+            CustomOptionsTextField(
+                texto = departamento,
+                onValueChange = { departamento = it },
+                opciones = departamentos,
+                label = "Departamento",
+                icon = Icons.Outlined.School
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextButton(
+                onClick = onDismissRequest,
+                modifier = Modifier.weight(1f)
             ) {
-                CustomTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = "Nombre Completo",
-                    icon = Icons.Outlined.Person
-                )
-
-                CustomTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "Email",
-                    icon = Icons.Outlined.Email,
-                    readOnly = true
-                )
-
-                CustomOptionsTextField(
-                    texto = rol,
-                    onValueChange = { rol = it },
-                    opciones = roles,
-                    label = "Rol",
-                    icon = Icons.Outlined.Badge
-                )
-
-                if (rol == "ESTUDIANTE") {
-
-                    val acronimosCursos = state.cursos.map { it.acronimo }
-                    CustomOptionsTextField(
-                        texto = state.cursos.find { it.id == cursoId }?.acronimo ?: "",
-                        onValueChange = { acro ->
-                            cursoId = state.cursos.find { it.acronimo == acro }?.id ?: ""
-                        },
-                        opciones = acronimosCursos,
-                        label = "Curso Base",
-                        icon = Icons.Outlined.School
-                    )
-
-                    CustomOptionsTextField(
-                        texto = ciclo.toString(),
-                        onValueChange = { ciclo = it.toInt() },
-                        opciones = ciclos,
-                        label = "Ciclo",
-                        icon = Icons.Outlined.Groups
-                    )
-
-                    CustomTextField(
-                        value = cursoInput,
-                        onValueChange = { cursoInput = it },
-                        label = "Acrónimo Final (Curso)",
-                        icon = Icons.Outlined.School,
-                        readOnly = true // Se autogenera
-                    )
-                }
-
-                if (rol == "ESTUDIANTE" || rol == "PROFESOR") {
-                    CustomOptionsTextField(
-                        texto = turno,
-                        onValueChange = { turno = it },
-                        opciones = turnos,
-                        label = "Turno",
-                        icon = Icons.Outlined.Schedule
-                    )
-                }
-
-                if (rol == "PROFESOR") {
-                    CustomOptionsTextField(
-                        texto = departamento,
-                        onValueChange = { departamento = it },
-                        opciones = departamentos,
-                        label = "Departamento",
-                        icon = Icons.Outlined.School
-                    )
-                }
+                Text("Cancelar", color = textColor)
             }
-        },
-        confirmButton = {
+
             Button(
                 onClick = {
                     val updatedUser = when {
@@ -238,15 +292,11 @@ fun EditUserDialog(
                     state.onSave(updatedUser)
                     onDismissRequest()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
+                modifier = Modifier.weight(1f)
             ) {
-                Text("Guardar Cambios")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancelar", color = textColor)
+                Text("Guardar")
             }
         }
-    )
+    }
 }

@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.4] - 2026-04-26
+- **UI/UX**: Migración masiva de diálogos centrales a `ModalBottomSheet` para mejorar la usabilidad táctil y la consistencia visual en toda la aplicación.
+- **UI/UX**: Implementada la refactorización de `FilterByDialog`, `EditUserDialog`, `VerEntregasProfesorDialog`, `AsignarTutorDialog`, `AsignarProfesorDialog` y `AsignarAsignaturasDialog` al patrón de panel inferior.
+- **UI/UX**: Estandarizada la presencia del `dragHandle` en todos los BottomSheets para indicar interactividad de deslizamiento.
+- **Arquitectura**: Implementado el patrón `Content` en componentes de diálogo, permitiendo la reutilización de la lógica de UI tanto en diálogos tradicionales como en paneles inferiores.
+- **Estabilidad**: Corregido bug en el filtro de administración de usuarios donde las opciones aparecían vacías debido a una discrepancia en la resolución de tipos de recursos de string.
+
 ## [v0.7.3] - 2026-04-25
 - **Estabilidad**: Corregida duplicación del FAB en el panel de calendario del administrador; se eliminó la lógica redundante en `HomeScreen` ya que el panel gestiona su propio botón.
 - **UI/UX**: Unificada la posición vertical del FAB en toda la aplicación; ajustado el padding en `CalendarioPanel` (103dp) para alinear perfectamente con el FAB global del Scaffold.

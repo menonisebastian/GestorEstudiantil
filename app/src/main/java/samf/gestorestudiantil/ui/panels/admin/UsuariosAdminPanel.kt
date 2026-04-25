@@ -254,7 +254,7 @@ fun UsuariosAdminPanel(
                         onFilterClick = {
                             onOpenDialog(
                                 DialogState.Filter(
-                                    tipo = R.string.label_user.toString(),
+                                    tipo = "Usuario",
                                     currentFilters = mapOf(
                                         "rol" to filtroRol,
                                         "curso" to filtroCurso,

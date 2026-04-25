@@ -31,6 +31,61 @@ fun AsignarAsignaturasDialog(
     onDismissRequest: () -> Unit,
     adminViewModel: AdminViewModel = viewModel()
 ) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) { Text("Cerrar") }
+        },
+        containerColor = backgroundColor,
+        title = {
+            Text(text = "Asignaturas de ${state.profesor.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        },
+        text = {
+            AsignarAsignaturasContent(
+                state = state,
+                onDismissRequest = onDismissRequest,
+                adminViewModel = adminViewModel
+            )
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AsignarAsignaturasBottomSheet(
+    state: DialogState.AsignarAsignaturas,
+    onDismissRequest: () -> Unit,
+    adminViewModel: AdminViewModel = viewModel()
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Asignaturas de ${state.profesor.nombre}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            AsignarAsignaturasContent(
+                state = state,
+                onDismissRequest = onDismissRequest,
+                adminViewModel = adminViewModel
+            )
+        }
+    }
+}
+
+@Composable
+fun AsignarAsignaturasContent(
+    state: DialogState.AsignarAsignaturas,
+    onDismissRequest: () -> Unit,
+    adminViewModel: AdminViewModel = viewModel()
+) {
     val adminState by adminViewModel.adminState.collectAsState()
 
     // Filtros
@@ -69,121 +124,109 @@ fun AsignarAsignaturasDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = onDismissRequest) { Text("Cerrar") }
-        },
-        containerColor = backgroundColor,
-        title = {
-            Text(text = "Asignaturas de ${state.profesor.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column(modifier = Modifier.height(550.dp)) {
-                // Sección de Filtros
-                Text(
-                    "Filtrar disponibles",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = surfaceDimColor,
-                    modifier = Modifier.padding(bottom = 8.dp)
+    Column(modifier = Modifier.heightIn(max = 550.dp)) {
+        // Sección de Filtros
+        Text(
+            "Filtrar disponibles",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = surfaceDimColor,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(modifier = Modifier.weight(1f)) {
+                CustomOptionsTextField(
+                    texto = cursoFiltro,
+                    onValueChange = { cursoFiltro = it },
+                    opciones = cursosDisponibles,
+                    label = "Curso"
                 )
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomOptionsTextField(
-                            texto = cursoFiltro,
-                            onValueChange = { cursoFiltro = it },
-                            opciones = cursosDisponibles,
-                            label = "Curso"
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomOptionsTextField(
-                            texto = turnoFiltro,
-                            onValueChange = { turnoFiltro = it },
-                            opciones = turnosOpciones,
-                            label = "Turno"
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomOptionsTextField(
-                            texto = cicloFiltro,
-                            onValueChange = { cicloFiltro = it },
-                            opciones = ciclosDisponibles,
-                            label = "Ciclo"
-                        )
-                    }
-                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(modifier = Modifier.weight(1f)) {
+                CustomOptionsTextField(
+                    texto = turnoFiltro,
+                    onValueChange = { turnoFiltro = it },
+                    opciones = turnosOpciones,
+                    label = "Turno"
+                )
+            }
+            Box(modifier = Modifier.weight(1f)) {
+                CustomOptionsTextField(
+                    texto = cicloFiltro,
+                    onValueChange = { cicloFiltro = it },
+                    opciones = ciclosDisponibles,
+                    label = "Ciclo"
+                )
+            }
+        }
 
-                Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-                if (asignaturasProfesor.isNotEmpty()) {
-                    Text("Asignadas", fontWeight = FontWeight.Bold, color = primaryColor, modifier = Modifier.padding(vertical = 8.dp))
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                        items(asignaturasProfesor) { asig ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = primaryColor.copy(alpha = 0.1f)),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
-                                        val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
-                                        Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = primaryColor)
-                                        Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
-                                    }
-                                    IconButton(onClick = { 
-                                        adminViewModel.desasignarAsignatura(asig.id, state.profesor.id)
-                                    }, colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))) {
-                                        Icon(Icons.Default.Remove, contentDescription = "Desasignar", tint = errorColor)
-                                    }
-                                }
+        if (asignaturasProfesor.isNotEmpty()) {
+            Text("Asignadas", fontWeight = FontWeight.Bold, color = primaryColor, modifier = Modifier.padding(vertical = 8.dp))
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+                items(asignaturasProfesor) { asig ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = primaryColor.copy(alpha = 0.1f)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
+                                val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
+                                Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = primaryColor)
+                                Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
+                            }
+                            IconButton(onClick = { 
+                                adminViewModel.desasignarAsignatura(asig.id, state.profesor.id)
+                            }, colors = IconButtonDefaults.iconButtonColors(containerColor = errorColor.copy(alpha = 0.1f))) {
+                                Icon(Icons.Default.Remove, contentDescription = "Desasignar", tint = errorColor)
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-                Text("Disponibles (${asignaturasDisponiblesFiltradas.size})", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
-                
-                if (adminState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = primaryColor)
-                } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                        items(asignaturasDisponiblesFiltradas) { asig ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = tertiaryColor.copy(alpha = 0.1f)),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
-                                        val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
-                                        Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = tertiaryColor)
-                                        Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
-                                    }
-                                    IconButton(onClick = { 
-                                        adminViewModel.asignarAsignaturaAProfesor(asig.id, state.profesor.id)
-                                    }, colors = IconButtonDefaults.iconButtonColors(containerColor = primaryColor.copy(alpha = 0.1f))) {
-                                        Icon(Icons.Default.Add, contentDescription = "Asignar", tint = primaryColor)
-                                    }
-                                }
+        Text("Disponibles (${asignaturasDisponiblesFiltradas.size})", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
+        
+        if (adminState.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = primaryColor)
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+                items(asignaturasDisponiblesFiltradas) { asig ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = tertiaryColor.copy(alpha = 0.1f)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
+                                val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
+                                Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = tertiaryColor)
+                                Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
+                            }
+                            IconButton(onClick = { 
+                                adminViewModel.asignarAsignaturaAProfesor(asig.id, state.profesor.id)
+                            }, colors = IconButtonDefaults.iconButtonColors(containerColor = primaryColor.copy(alpha = 0.1f))) {
+                                Icon(Icons.Default.Add, contentDescription = "Asignar", tint = primaryColor)
                             }
                         }
                     }
                 }
             }
         }
-    )
+    }
 }

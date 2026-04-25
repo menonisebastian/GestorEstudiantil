@@ -31,22 +31,6 @@ fun AsignarTutorDialog(
     onDismissRequest: () -> Unit,
     adminViewModel: AdminViewModel = hiltViewModel()
 ) {
-    val adminState by adminViewModel.adminState.collectAsState()
-    
-    // Obtenemos los profesores del centro actual
-    val profesores = remember(adminState.usuarios) {
-        adminState.usuarios.filterIsInstance<User.Profesor>()
-    }
-
-    // Buscamos si ya hay un tutor asignado
-    val tutorActual = remember(profesores, state.claseId) {
-        // En una implementación real, buscaríamos en la entidad Clase
-        // Por ahora, asumimos que podemos obtenerlo si el ViewModel tiene esa info o si lo pasamos en el state
-        // Para simplificar, buscaremos en los profesores si alguno tiene asignado este claseId como tutor (si esa lógica existe)
-        // Pero lo ideal es que el DialogState.AsignarTutor tuviera el tutorId actual si existe.
-        null // TODO: Implementar búsqueda de tutor actual si es necesario
-    }
-
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -57,38 +41,88 @@ fun AsignarTutorDialog(
             Text(text = "Asignar Tutor", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textColor)
         },
         text = {
-            Column(modifier = Modifier.height(400.dp)) {
-                Text("Seleccionar Profesor:", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
-                
-                if (profesores.isEmpty()) {
-                    Text("No hay profesores registrados en este centro", color = errorColor, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
-                }
+            AsignarTutorContent(
+                state = state,
+                onDismissRequest = onDismissRequest,
+                adminViewModel = adminViewModel
+            )
+        }
+    )
+}
 
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(profesores) { profe ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = surfaceColor),
-                            onClick = {
-                                adminViewModel.asignarTutorAClase(state.claseId, profe.id)
-                                onDismissRequest()
-                            }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(profe.nombre, fontWeight = FontWeight.Bold, color = textColor)
-                                    Text(profe.email, fontSize = 10.sp, color = surfaceDimColor)
-                                }
-                                Icon(Icons.Default.Add, contentDescription = "Asignar", tint = tertiaryColor)
-                            }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AsignarTutorBottomSheet(
+    state: DialogState.AsignarTutor,
+    onDismissRequest: () -> Unit,
+    adminViewModel: AdminViewModel = hiltViewModel()
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Asignar Tutor",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            AsignarTutorContent(
+                state = state,
+                onDismissRequest = onDismissRequest,
+                adminViewModel = adminViewModel
+            )
+        }
+    }
+}
+
+@Composable
+fun AsignarTutorContent(
+    state: DialogState.AsignarTutor,
+    onDismissRequest: () -> Unit,
+    adminViewModel: AdminViewModel = hiltViewModel()
+) {
+    val adminState by adminViewModel.adminState.collectAsState()
+    
+    // Obtenemos los profesores del centro actual
+    val profesores = remember(adminState.usuarios) {
+        adminState.usuarios.filterIsInstance<User.Profesor>()
+    }
+
+    Column(modifier = Modifier.heightIn(max = 400.dp)) {
+        Text("Seleccionar Profesor:", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
+        
+        if (profesores.isEmpty()) {
+            Text("No hay profesores registrados en este centro", color = errorColor, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+        }
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(profesores) { profe ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = surfaceColor),
+                    onClick = {
+                        adminViewModel.asignarTutorAClase(state.claseId, profe.id)
+                        onDismissRequest()
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(profe.nombre, fontWeight = FontWeight.Bold, color = textColor)
+                            Text(profe.email, fontSize = 10.sp, color = surfaceDimColor)
                         }
+                        Icon(Icons.Default.Add, contentDescription = "Asignar", tint = tertiaryColor)
                     }
                 }
             }
         }
-    )
+    }
 }

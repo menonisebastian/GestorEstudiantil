@@ -37,7 +37,7 @@ fun DialogOrchestrator(
             }
 
             is DialogState.Filter -> {
-                FilterByDialog(
+                FilterByBottomSheet(
                     state = state,
                     onDismissRequest = dismissAction
                 )
@@ -51,21 +51,21 @@ fun DialogOrchestrator(
             }
 
             is DialogState.AsignarAsignaturas -> {
-                AsignarAsignaturasDialog(
+                AsignarAsignaturasBottomSheet(
                     state = state,
                     onDismissRequest = dismissAction
                 )
             }
 
             is DialogState.AsignarProfesor -> {
-                AsignarProfesorDialog(
+                AsignarProfesorBottomSheet(
                     state = state,
                     onDismissRequest = dismissAction
                 )
             }
 
             is DialogState.AsignarTutor -> {
-                AsignarTutorDialog(
+                AsignarTutorBottomSheet(
                     state = state,
                     onDismissRequest = dismissAction
                 )
@@ -93,7 +93,7 @@ fun DialogOrchestrator(
             }
 
             is DialogState.EditUser -> {
-                EditUserDialog(
+                EditUserBottomSheet(
                     state = state,
                     onDismissRequest = dismissAction
                 )
@@ -142,7 +142,7 @@ fun DialogOrchestrator(
             }
 
             is DialogState.VerEntregasProfesor -> {
-                VerEntregasProfesorDialog(
+                VerEntregasProfesorBottomSheet(
                     state = state,
                     onDismissRequest = dismissAction,
                     onOpenDialog = onShowDialog

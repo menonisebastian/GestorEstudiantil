@@ -32,6 +32,59 @@ fun VerEntregasProfesorDialog(
     onDismissRequest: () -> Unit,
     onOpenDialog: (DialogState) -> Unit
 ) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        containerColor = backgroundColor,
+        title = { Text("Entregas: ${state.tarea.titulo}") },
+        text = {
+            VerEntregasProfesorContent(
+                state = state,
+                onDismissRequest = onDismissRequest,
+                onOpenDialog = onOpenDialog
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) { Text("Cerrar") }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VerEntregasProfesorBottomSheet(
+    state: DialogState.VerEntregasProfesor,
+    onDismissRequest: () -> Unit,
+    onOpenDialog: (DialogState) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Entregas: ${state.tarea.titulo}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            VerEntregasProfesorContent(
+                state = state,
+                onDismissRequest = onDismissRequest,
+                onOpenDialog = onOpenDialog
+            )
+        }
+    }
+}
+
+@Composable
+fun VerEntregasProfesorContent(
+    state: DialogState.VerEntregasProfesor,
+    onDismissRequest: () -> Unit,
+    onOpenDialog: (DialogState) -> Unit
+) {
     val viewModel: ProfesorViewModel = viewModel()
     val entregas by viewModel.entregas.collectAsState()
 
@@ -39,53 +92,43 @@ fun VerEntregasProfesorDialog(
         viewModel.cargarEntregas(state.tarea.id)
     }
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        containerColor = backgroundColor,
-        title = { Text("Entregas: ${state.tarea.titulo}") },
-        text = {
-            Box(modifier = Modifier.heightIn(max = 400.dp)) {
-                if (entregas.isEmpty()) {
-                    Text("No hay entregas todavía.", modifier = Modifier.padding(16.dp), color = surfaceDimColor)
-                } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(entregas) { entrega ->
-                            EntregaItem(
-                                entrega = entrega,
-                                onCalificar = {
-                                    onOpenDialog(
-                                        DialogState.AddEditCalificacion(
-                                            evaluacion = Evaluacion(
-                                                id = entrega.id,
-                                                nombre = state.tarea.titulo,
-                                                nota = entrega.calificacion?.toDouble() ?: 0.0,
-                                                estudianteId = entrega.estudianteId,
-                                                asignaturaId = entrega.asignaturaId,
-                                                comentario = entrega.comentarioProfesor,
-                                                adjunto = entrega.adjunto,
-                                                tipoEvaluacion = tipoEvaluacion.Tarea
-                                            ),
-                                            onSave = { evaluacion ->
-                                                state.onCalificar(evaluacion)
-                                            }
-                                        )
-                                    )
-                                },
-                                onDescargar = {
-                                    entrega.adjunto.let { 
-                                        viewModel.descargarArchivo(it.supabasePath, it.nombreArchivo)
+    Box(modifier = Modifier.heightIn(max = 400.dp)) {
+        if (entregas.isEmpty()) {
+            Text("No hay entregas todavía.", modifier = Modifier.padding(16.dp), color = surfaceDimColor)
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(entregas) { entrega ->
+                    EntregaItem(
+                        entrega = entrega,
+                        onCalificar = {
+                            onOpenDialog(
+                                DialogState.AddEditCalificacion(
+                                    evaluacion = Evaluacion(
+                                        id = entrega.id,
+                                        nombre = state.tarea.titulo,
+                                        nota = entrega.calificacion?.toDouble() ?: 0.0,
+                                        estudianteId = entrega.estudianteId,
+                                        asignaturaId = entrega.asignaturaId,
+                                        comentario = entrega.comentarioProfesor,
+                                        adjunto = entrega.adjunto,
+                                        tipoEvaluacion = tipoEvaluacion.Tarea
+                                    ),
+                                    onSave = { evaluacion ->
+                                        state.onCalificar(evaluacion)
                                     }
-                                }
+                                )
                             )
+                        },
+                        onDescargar = {
+                            entrega.adjunto.let { 
+                                viewModel.descargarArchivo(it.supabasePath, it.nombreArchivo)
+                            }
                         }
-                    }
+                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismissRequest) { Text("Cerrar") }
         }
-    )
+    }
 }
 
 @Composable
