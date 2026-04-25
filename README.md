@@ -19,7 +19,7 @@ El proyecto implementa los estándares más exigentes del desarrollo Android act
     *   **[Cloudinary](https://cloudinary.com/):** Optimización y almacenamiento dinámico de imágenes de perfil.
 *   **Persistencia Local:** DataStore (Preferencias de usuario como temas y notificaciones).
 *   **UI Avanzada:** 
-    *   **Haze:** Efectos de desenfoque dinámico (*glassmorphism*) en la navegación.
+    *   **Floating Pills:** Elementos flotantes dinámicos con transparencia (*glassmorphism*) en la navegación.
     *   **Coil:** Carga eficiente de imágenes asíncronas.
     *   **AnimatedContent/Visibility:** Transiciones fluidas en toda la aplicación.
 
