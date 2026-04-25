@@ -183,22 +183,42 @@ fun HomeScreen(
                 }
             )
         )
+    }
 
+    // Lazy load data based on the active tab
+    LaunchedEffect(pagerState.currentPage, usuario.id) {
+        val activeTab = tabs.getOrNull(pagerState.currentPage)
         when (usuario) {
             is User.Estudiante -> {
                 if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
-                    estudianteViewModel.cargarAsignaturas(
-                        usuario.cursoId,
-                        usuario.turno,
-                        usuario.cicloNum,
-                        usuario.ultimaVezAsignaturas
-                    )
-                    estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
+                    when (activeTab) {
+                        "Asignaturas" -> {
+                            estudianteViewModel.cargarAsignaturas(
+                                usuario.cursoId,
+                                usuario.turno,
+                                usuario.cicloNum,
+                                usuario.ultimaVezAsignaturas
+                            )
+                        }
+                        "Horarios" -> {
+                            estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
+                        }
+                        // Calendario, Perfil etc might have their own loading triggers or are loaded elsewhere
+                    }
                 }
             }
             is User.Profesor -> {
-                profesorViewModel.cargarAsignaturas(usuario.id, usuario.ultimaVezAsignaturas)
-                profesorViewModel.cargarHorariosProfesor(usuario.id)
+                when (activeTab) {
+                    "Asignaturas" -> {
+                        profesorViewModel.cargarAsignaturas(usuario.id, usuario.ultimaVezAsignaturas)
+                    }
+                    "Horarios" -> {
+                        profesorViewModel.cargarHorariosProfesor(usuario.id)
+                    }
+                    "Calificaciones" -> {
+                        // This might load when navigating into it if it's more complex
+                    }
+                }
             }
             else -> {}
         }
@@ -237,7 +257,14 @@ fun HomeScreen(
 
     val onOpenDialog: (DialogState) -> Unit = remember {
         { newState: DialogState ->
-            dialogStack.clear()
+            // Allow stacking for Date/Time pickers or specific confirmations
+            val shouldStack = newState is DialogState.AddRecordatorio || 
+                             newState is DialogState.EditRecordatorio ||
+                             newState is DialogState.Confirmation
+            
+            if (!shouldStack) {
+                dialogStack.clear()
+            }
             dialogStack.add(newState)
         }
     }

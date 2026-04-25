@@ -12,11 +12,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import samf.gestorestudiantil.data.models.Tarea
+import samf.gestorestudiantil.domain.repositories.TareaRepository
 import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class TareaViewModel @Inject constructor(
+    private val tareaRepository: TareaRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 

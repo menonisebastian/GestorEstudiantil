@@ -2,6 +2,18 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.0] - 2026-04-25
+- **Rendimiento**: Implementada carga perezosa (*lazy loading*) de datos en `HomeScreen` vinculada a la pestaña activa del `HorizontalPager`, optimizando el consumo de recursos y tiempo de arranque.
+- **Rendimiento**: Optimizado `recalcularNotificaciones` en `ProfesorViewModel` mediante procesamiento por lotes (*chunking*) para evitar la saturación de lecturas en Firestore.
+- **Arquitectura**: Eliminadas dependencias directas de `FirebaseFirestore` en `ProfesorViewModel`, delegando la calificación de entregas al `TareaRepository` para cumplir con Clean Architecture.
+- **Arquitectura**: Corregida la instanciación de ViewModels en diálogos administrativos (`AsignarProfesor`, `AsignarTutor`) mediante `hiltViewModel()`, asegurando la consistencia del estado.
+- **Estabilidad**: Implementada lógica de compensación en `TareaRepositoryImpl`: los archivos subidos a Supabase se eliminan automáticamente si falla la escritura posterior en Firestore, evitando archivos huérfanos.
+- **Estabilidad**: Mejorado el manejo de errores en `RecordatorioRepositoryImpl` para cerrar flujos reactivos ante fallos de permisos o conectividad en Firestore.
+- **Estabilidad**: Corregida limitación de `whereIn` en `ProfesorRepositoryImpl` asegurando compatibilidad con los límites de la SDK de Firebase.
+- **Notificaciones**: Finalizada la implementación de `BootReceiver` para estudiantes, garantizando la reprogramación de alertas de tareas tras el reinicio del dispositivo.
+- **Notificaciones**: Asegurada compatibilidad con Android 12+ en `NotificationScheduler` mediante la verificación de permisos para alarmas exactas.
+- **UX**: Refactorizado el orquestador de diálogos para permitir el apilamiento de selectores de fecha/hora sobre diálogos de edición sin pérdida de estado.
+
 ## [v0.6.9] - 2026-04-25
 - **UI/UX**: Implementación de Splash Screen oficial mediante `androidx.core:core-splashscreen` con soporte nativo para modo claro y oscuro.
 - **UI/UX**: Optimización del escalado del logo en el Splash Screen mediante el uso de recursos `inset` adaptativos para evitar recortes del sistema.

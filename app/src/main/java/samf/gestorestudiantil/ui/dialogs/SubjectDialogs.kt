@@ -17,6 +17,7 @@ import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 
 @Composable
 fun AddUnidadDialog(
@@ -259,7 +260,13 @@ fun AddPostDialog(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Visible para estudiantes")
-                    Switch(checked = visible, onCheckedChange = null)
+                    Switch(checked = visible, onCheckedChange = null,
+                        colors = SwitchDefaults.colors(
+                        checkedThumbColor = whiteColor,
+                        checkedTrackColor = primaryColor,
+                        uncheckedThumbColor = surfaceDimColor,
+                        uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                    ))
                 }
             }
         },

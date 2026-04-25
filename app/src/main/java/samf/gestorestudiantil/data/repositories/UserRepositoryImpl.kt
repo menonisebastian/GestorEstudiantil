@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Inject
 
@@ -84,5 +85,16 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateName(uid: String, name: String) {
         db.collection("usuarios").document(uid).update("nombre", name).await()
+    }
+
+    override suspend fun getClaseDeEstudiante(estudiante: User.Estudiante): Clase? {
+        val snapshot = db.collection("clases")
+            .whereEqualTo("cursoGlobalId", estudiante.cursoId)
+            .whereEqualTo("turno", estudiante.turno.lowercase().trim())
+            .whereEqualTo("cicloNum", estudiante.cicloNum)
+            .get()
+            .await()
+        
+        return snapshot.documents.firstOrNull()?.toObject(Clase::class.java)
     }
 }

@@ -46,9 +46,13 @@ class BootReceiver : BroadcastReceiver() {
                     // Reschedule Tareas if student
                     val user = userRepository.getUser(userId)
                     if (user is User.Estudiante) {
-                        // For students, we'd need their asignatura IDs to fetch tasks.
-                        // This might be more complex depending on how getTareasPorAsignaturas works.
-                        // For now, let's at least handle recordatorios which are easier.
+                        val clase = userRepository.getClaseDeEstudiante(user)
+                        val asignaturaIds = clase?.asignaturasIds ?: emptyList()
+                        if (asignaturaIds.isNotEmpty()) {
+                            tareaRepository.getTareasPorAsignaturas(asignaturaIds).first().forEach { tarea ->
+                                NotificationScheduler.scheduleTareaNotification(context, tarea)
+                            }
+                        }
                     }
                 }
             }

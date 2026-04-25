@@ -23,6 +23,7 @@ import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.TareaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -139,7 +140,16 @@ fun AddTareaDialog(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("Visible para estudiantes")
-                    Switch(checked = viewModel.visible, onCheckedChange = { viewModel.visible = it })
+                    Switch(
+                        checked = viewModel.visible,
+                        onCheckedChange = { viewModel.visible = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = whiteColor,
+                            checkedTrackColor = primaryColor,
+                            uncheckedThumbColor = surfaceDimColor,
+                            uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                        )
+                    )
                 }
             }
         },

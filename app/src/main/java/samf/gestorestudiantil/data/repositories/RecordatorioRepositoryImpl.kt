@@ -16,7 +16,11 @@ class RecordatorioRepositoryImpl @Inject constructor(
     override fun getRecordatorios(usuarioId: String): Flow<List<Recordatorio>> = callbackFlow {
         val subscription = db.collection("recordatorios")
             .whereEqualTo("usuarioId", usuarioId)
-            .addSnapshotListener { snapshot, _ ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Recordatorio::class.java))
                 }

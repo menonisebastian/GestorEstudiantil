@@ -314,14 +314,7 @@ class ProfesorViewModel @Inject constructor(
     fun calificarEntrega(entregaId: String, nota: Float, comentario: String?) {
         viewModelScope.launch {
             try {
-                val entregaRef = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                    .collection("entregas").document(entregaId)
-                
-                entregaRef.update(
-                    "calificacion", nota,
-                    "comentarioProfesor", comentario
-                ).await()
-                
+                tareaRepository.calificarEntrega(entregaId, nota, comentario)
                 Toast.makeText(context, context.getString(R.string.success_save), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
@@ -418,17 +411,23 @@ class ProfesorViewModel @Inject constructor(
         recalcularJob?.cancel()
         recalcularJob = viewModelScope.launch {
             try {
-                // Usamos coroutineScope para lanzar las tareas en paralelo de forma estructurada
-                val nuevasAsignaturas = coroutineScope {
-                    asignaturas.map { asignatura ->
-                        async {
-                            val lastRead = ultimaVez[asignatura.id] ?: 0L
-                            val count = profesorRepository.getCountNuevasEntregas(asignatura.id, lastRead)
-                            asignatura.copy(numNotificaciones = count)
-                        }
-                    }.map { it.await() }
+                // Procesar asignaturas en bloques de 5 para no saturar Firestore
+                val todasProcesadas = mutableListOf<Asignatura>()
+                asignaturas.chunked(5).forEach { bloque ->
+                    val resultadosBloque = coroutineScope {
+                        bloque.map { asignatura ->
+                            async {
+                                val lastRead = ultimaVez[asignatura.id] ?: 0L
+                                val count = profesorRepository.getCountNuevasEntregas(asignatura.id, lastRead)
+                                asignatura.copy(numNotificaciones = count)
+                            }
+                        }.map { it.await() }
+                    }
+                    todasProcesadas.addAll(resultadosBloque)
+                    // Pequeño delay opcional entre bloques si fuera necesario, 
+                    // pero chunked + coroutineScope ya ayuda significativamente
                 }
-                _state.update { it.copy(asignaturas = nuevasAsignaturas) }
+                _state.update { it.copy(asignaturas = todasProcesadas) }
             } catch (e: Exception) {
                 e.printStackTrace()
             }

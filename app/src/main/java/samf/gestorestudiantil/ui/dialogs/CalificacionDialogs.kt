@@ -329,8 +329,10 @@ fun AddEditCalificacionDialog(
                         checked = visible,
                         onCheckedChange = { visible = it },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = primaryColor,
-                            checkedTrackColor = primaryColor.copy(alpha = 0.5f)
+                            checkedThumbColor = whiteColor,
+                            checkedTrackColor = primaryColor,
+                            uncheckedThumbColor = surfaceDimColor,
+                            uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
                         )
                     )
                 }

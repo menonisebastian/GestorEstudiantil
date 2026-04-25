@@ -86,7 +86,19 @@ class TareaRepositoryImpl @Inject constructor(
         }
 
         val finalTarea = tarea.copy(id = tareaId, adjunto = adjunto)
-        db.collection("tareas").document(tareaId).set(finalTarea).await()
+        try {
+            db.collection("tareas").document(tareaId).set(finalTarea).await()
+        } catch (e: Exception) {
+            // Compensación: Si falla Firestore, borramos de Supabase
+            adjunto?.let {
+                try {
+                    storage.from("gestor-estudiantil").delete(it.supabasePath)
+                } catch (deleteError: Exception) {
+                    deleteError.printStackTrace()
+                }
+            }
+            throw e
+        }
         return tareaId
     }
 
@@ -119,7 +131,19 @@ class TareaRepositoryImpl @Inject constructor(
         }
 
         val finalTarea = tarea.copy(adjunto = adjunto)
-        db.collection("tareas").document(tarea.id).set(finalTarea).await()
+        try {
+            db.collection("tareas").document(tarea.id).set(finalTarea).await()
+        } catch (e: Exception) {
+            // Compensación: Si subimos un nuevo archivo pero falló el guardado en Firestore
+            if (fileData != null && adjunto != null) {
+                try {
+                    storage.from("gestor-estudiantil").delete(adjunto.supabasePath)
+                } catch (deleteError: Exception) {
+                    deleteError.printStackTrace()
+                }
+            }
+            throw e
+        }
         return tarea.id
     }
 
@@ -186,7 +210,17 @@ class TareaRepositoryImpl @Inject constructor(
         )
 
         val finalEntrega = entrega.copy(id = entregaId, adjunto = adjunto)
-        db.collection("entregas").document(entregaId).set(finalEntrega).await()
+        try {
+            db.collection("entregas").document(entregaId).set(finalEntrega).await()
+        } catch (e: Exception) {
+            // Compensación
+            try {
+                storage.from("gestor-estudiantil").delete(adjunto.supabasePath)
+            } catch (deleteError: Exception) {
+                deleteError.printStackTrace()
+            }
+            throw e
+        }
     }
 
     override suspend fun eliminarEntrega(entrega: Entrega) {
@@ -196,6 +230,13 @@ class TareaRepositoryImpl @Inject constructor(
             e.printStackTrace()
         }
         db.collection("entregas").document(entrega.id).delete().await()
+    }
+
+    override suspend fun calificarEntrega(entregaId: String, nota: Float, comentario: String?) {
+        db.collection("entregas").document(entregaId).update(
+            "calificacion", nota,
+            "comentarioProfesor", comentario
+        ).await()
     }
 
     override suspend fun getUrlFirmada(supabasePath: String): String {

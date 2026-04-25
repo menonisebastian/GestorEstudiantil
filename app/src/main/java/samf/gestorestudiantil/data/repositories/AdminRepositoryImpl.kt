@@ -384,7 +384,13 @@ class AdminRepositoryImpl @Inject constructor(
                         operationCount++
 
                         if (operationCount >= 400) {
-                            batch.commit().await()
+                            try {
+                                batch.commit().await()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                // Opcional: Relanzar o manejar según política de reintentos
+                                throw e
+                            }
                             batch = db.batch()
                             operationCount = 0
                         }
@@ -394,7 +400,12 @@ class AdminRepositoryImpl @Inject constructor(
         }
 
         if (operationCount > 0) {
-            batch.commit().await()
+            try {
+                batch.commit().await()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                throw e
+            }
         }
     }
 

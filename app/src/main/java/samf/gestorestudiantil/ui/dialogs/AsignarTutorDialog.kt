@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
@@ -29,7 +29,7 @@ import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 fun AsignarTutorDialog(
     state: DialogState.AsignarTutor,
     onDismissRequest: () -> Unit,
-    adminViewModel: AdminViewModel = viewModel()
+    adminViewModel: AdminViewModel = hiltViewModel()
 ) {
     val adminState by adminViewModel.adminState.collectAsState()
     
