@@ -242,7 +242,6 @@ class ProfesorViewModel @Inject constructor(
             try {
                 tareaRepository.crearTarea(tarea, fileData, fileName, mimeType)
                 
-                // Buscar el acrónimo de la asignatura para la notificación
                 val asignatura = _state.value.asignaturas.find { it.id == tarea.asignaturaId }
                 val acronimo = asignatura?.acronimo ?: ""
                 val nombreProf = _profesor.value?.nombre ?: "El Profesor"
@@ -361,11 +360,9 @@ class ProfesorViewModel @Inject constructor(
             profesorRepository.getAsignaturas(profesorId).collect { lista ->
                 _state.update { it.copy(isLoading = false, asignaturas = lista) }
                 val ids = lista.map { it.id }
-                // Suscribir al profesor a sus asignaturas para recibir entregas
                 lista.forEach { asignatura ->
                     FirebaseMessaging.getInstance().subscribeToTopic("asignatura_${asignatura.id}_profesores")
                 }
-                // Al cargar asignaturas, necesitamos conocer a todos los estudiantes de esos cursos para la pestaña global
                 cargarTodosMisEstudiantes(lista)
                 
                 observarCambiosEnEntregas(ids)
@@ -430,8 +427,6 @@ class ProfesorViewModel @Inject constructor(
                         }.map { it.await() }
                     }
                     todasProcesadas.addAll(resultadosBloque)
-                    // Pequeño delay opcional entre bloques si fuera necesario, 
-                    // pero chunked + coroutineScope ya ayuda significativamente
                 }
                 _state.update { it.copy(asignaturas = todasProcesadas) }
             } catch (e: Exception) {
@@ -444,11 +439,9 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             try {
-                // 1. Actualización local inmediata del mapa de tiempos
                 val nuevasUltimaVez = currentUltimaVez.toMutableMap().apply { put(asignaturaId, now) }
                 currentUltimaVez = nuevasUltimaVez
 
-                // 2. Forzamos el badge a 0 localmente para feedback instantáneo
                 _state.update { s ->
                     val asignaturasActuales = s.asignaturas.map {
                         if (it.id == asignaturaId) it.copy(numNotificaciones = 0) else it
@@ -456,7 +449,6 @@ class ProfesorViewModel @Inject constructor(
                     s.copy(asignaturas = asignaturasActuales)
                 }
 
-                // 3. Persistimos en el repositorio
                 profesorRepository.marcarAsignaturaLeida(usuarioId, asignaturaId, now)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -535,7 +527,6 @@ class ProfesorViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.success_save), Toast.LENGTH_SHORT).show()
                 }
-                // Enviar notificación al estudiante
                 enviarNotificacionCalificacion(evaluacion)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }

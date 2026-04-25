@@ -22,7 +22,6 @@ class TareaViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    // Estado del Formulario
     var titulo by mutableStateOf("")
     var descripcion by mutableStateOf("")
     var visible by mutableStateOf(true)

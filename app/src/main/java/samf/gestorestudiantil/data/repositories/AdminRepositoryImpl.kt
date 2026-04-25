@@ -49,10 +49,8 @@ class AdminRepositoryImpl @Inject constructor(
         val userRef = db.collection("usuarios").document(usuarioId)
         val userSnap = userRef.get().await()
 
-        // Actualizamos el estado a ACTIVO
         userRef.update("estado", "ACTIVO").await()
 
-        // Si es estudiante, lo añadimos a su clase correspondiente
         if (userSnap.getString("rol") == "ESTUDIANTE") {
             val cursoId = userSnap.getString("cursoId") ?: ""
             val turno = userSnap.getString("turno") ?: ""
@@ -64,7 +62,6 @@ class AdminRepositoryImpl @Inject constructor(
                 .whereEqualTo("cicloNum", cicloNum)
                 .get().await()
 
-            // arrayUnion evita duplicados automáticamente
             for (doc in clasesQuery.documents) {
                 doc.reference.update("estudiantesIds", FieldValue.arrayUnion(usuarioId))
             }
@@ -75,7 +72,6 @@ class AdminRepositoryImpl @Inject constructor(
         val userRef = db.collection("usuarios").document(usuarioId)
         val userSnap = userRef.get().await()
 
-        // Si era un estudiante, lo sacamos de la clase antes de eliminarlo
         if (userSnap.getString("rol") == "ESTUDIANTE") {
             val cursoId = userSnap.getString("cursoId") ?: ""
             val turno = userSnap.getString("turno") ?: ""
@@ -87,13 +83,11 @@ class AdminRepositoryImpl @Inject constructor(
                 .whereEqualTo("cicloNum", cicloNum)
                 .get().await()
 
-            // arrayRemove saca ese ID específico de la lista
             for (doc in clasesQuery.documents) {
                 doc.reference.update("estudiantesIds", FieldValue.arrayRemove(usuarioId))
             }
         }
 
-        // Finalmente eliminamos el usuario
         userRef.delete().await()
     }
 
@@ -190,14 +184,12 @@ class AdminRepositoryImpl @Inject constructor(
         val userDoc = db.collection("usuarios").document(profesorId).get().await()
         val nombreProfesor = userDoc.getString("nombre") ?: context.getString(R.string.label_unknown_professor)
 
-        // 1. Actualizar la asignatura
         val updates = mapOf(
             "profesorId" to profesorId,
             "profesorNombre" to nombreProfesor
         )
         db.collection("asignaturas").document(asignaturaId).update(updates).await()
         
-        // 2. Actualizar todos los slots de horario que referencian esta asignatura
         val horariosSnapshot = db.collection("horarios")
             .whereEqualTo("asignaturaId", asignaturaId)
             .get().await()
@@ -215,14 +207,12 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override suspend fun desasignarAsignatura(asignaturaId: String, profesorId: String) {
-        // 1. Limpiar la asignatura
         val updates = mapOf(
             "profesorId" to "",
             "profesorNombre" to ""
         )
         db.collection("asignaturas").document(asignaturaId).update(updates).await()
 
-        // 2. Limpiar todos los slots de horario que referencian esta asignatura
         val horariosSnapshot = db.collection("horarios")
             .whereEqualTo("asignaturaId", asignaturaId)
             .get().await()
@@ -252,7 +242,6 @@ class AdminRepositoryImpl @Inject constructor(
 
         val listaIdsAsignaturas = asignaturas.map { it.id }
 
-        // Actualizamos el perfil del profesor con ambos campos
         db.collection("usuarios").document(profesorId)
             .update(
                 mapOf(
@@ -294,7 +283,6 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun guardarHorario(horario: Horario) {
         horario.turno = horario.turno.lowercase().trim()
         
-        // Antes de guardar, aseguramos que el profesor esté sincronizado desde la asignatura
         if (horario.asignaturaId.isNotEmpty()) {
             val asigDoc = db.collection("asignaturas").document(horario.asignaturaId).get().await()
             if (asigDoc.exists()) {
@@ -388,7 +376,6 @@ class AdminRepositoryImpl @Inject constructor(
                                 batch.commit().await()
                             } catch (e: Exception) {
                                 e.printStackTrace()
-                                // Opcional: Relanzar o manejar según política de reintentos
                                 throw e
                             }
                             batch = db.batch()
@@ -416,8 +403,6 @@ class AdminRepositoryImpl @Inject constructor(
 
         val batch = db.batch()
 
-        // 1. Actualizar cursos sumando el tamaño de los arrays 'estudiantesIds'
-        // de todas las clases que pertenecen a ese curso
         cursosSnapshot.documents.forEach { cursoDoc ->
             val cursoId = cursoDoc.id
             var numEstudiantes = 0
@@ -431,7 +416,6 @@ class AdminRepositoryImpl @Inject constructor(
             batch.update(cursoDoc.reference, "numEstudiantes", numEstudiantes)
         }
 
-        // 2. Actualizar asignaturas buscando la clase correspondiente
         asignaturasSnapshot.documents.forEach { asigDoc ->
             val cursoId = asigDoc.getString("cursoId") ?: ""
             val turno = asigDoc.getString("turno") ?: ""
@@ -461,7 +445,6 @@ class AdminRepositoryImpl @Inject constructor(
             .await()
             .toObjects(Curso::class.java)
 
-        // 1. CAMBIO CLAVE: Obtenemos '.documents' crudos, sin pasarlos por toObjects()
         val estudiantesSnapshots = db.collection("usuarios")
             .whereEqualTo("centroId", centroId)
             .whereEqualTo("rol", "ESTUDIANTE")
@@ -485,18 +468,15 @@ class AdminRepositoryImpl @Inject constructor(
             val letraTurno = turnoMayuscula.first().uppercaseChar()
             val idClase = "${acronimoReal}${letraTurno}${cicloNum}"
 
-            // 2. CAMBIO CLAVE: Leemos los campos exactos de la base de datos a mano
             val idsEstudiantes = estudiantesSnapshots.filter { doc ->
-                // Extraemos los valores ignorando la clase User
                 val docCursoId = doc.getString("cursoId") ?: ""
                 val docTurno = doc.getString("turno") ?: ""
                 val docCicloNum = doc.getLong("cicloNum")?.toInt() ?: -1
 
-                // Filtramos asegurando mayúsculas vs mayúsculas
                 docCursoId == cursoId &&
                         docTurno.uppercase() == turnoMayuscula &&
                         docCicloNum == cicloNum
-            }.map { it.id } // Sacamos el ID literal del documento
+            }.map { it.id }
 
             val claseRef = db.collection("clases").document(idClase)
 
@@ -507,7 +487,7 @@ class AdminRepositoryImpl @Inject constructor(
                 cicloNum = cicloNum,
                 turno = listaMaterias.first().turno,
                 tutorId = null,
-                estudiantesIds = idsEstudiantes, // ¡Esta vez estará lleno con los IDs correctos!
+                estudiantesIds = idsEstudiantes,
                 asignaturasIds = listaMaterias.map { it.id }
             )
 

@@ -21,14 +21,12 @@ class ProfesorRepositoryImpl @Inject constructor(
 ) : ProfesorRepository {
 
     suspend fun getAlumnosDeMiClase(claseId: String): List<User.Estudiante> {
-        // 1. Obtenemos el documento de la clase para sacar los IDs
         val claseDoc = db.collection("clases").document(claseId).get().await()
         val clase = claseDoc.toObject(Clase::class.java) ?: return emptyList()
 
         val ids = clase.estudiantesIds
         if (ids.isEmpty()) return emptyList()
 
-        // 2. Traemos a los estudiantes exactos usando el operador 'in'
         // Nota: Firestore permite buscar hasta 10 IDs de golpe con 'in'.
         // Si la clase tiene más de 10 alumnos, hay que dividir la lista en bloques (chunks).
         val estudiantes = mutableListOf<User.Estudiante>()

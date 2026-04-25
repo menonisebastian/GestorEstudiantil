@@ -83,7 +83,6 @@ class AuthViewModel @Inject constructor(
                             user = user
                         )
                     } else {
-                        // Si el usuario existe en Auth pero no en Firestore o no tiene rol
                         _authState.value = _authState.value.copy(
                             isCheckingSession = false,
                             isLoading = false,
@@ -208,7 +207,6 @@ class AuthViewModel @Inject constructor(
 
     private suspend fun handleGithubGoogleCollision(activity: Activity, email: String) {
         try {
-            // 1. Hacemos sign-in con Google (el usuario verá el selector de cuenta)
             val credentialManager = androidx.credentials.CredentialManager.create(activity)
             val token = activity.getString(samf.gestorestudiantil.R.string.id_token)
             val googleToken = samf.gestorestudiantil.domain.signInWithGoogle(
@@ -225,14 +223,9 @@ class AuthViewModel @Inject constructor(
                 return
             }
 
-            // 2. Sign-in con Google para autenticar al usuario
             authRepository.signInWithGoogle(googleToken)
 
-            // 3. Ahora que el usuario está autenticado con Google, vinculamos GitHub
             authRepository.linkGithubAfterReauth(activity, "")
-
-            // El listener de authState maneja la navegación automáticamente
-
         } catch (e: Exception) {
             _authState.value = _authState.value.copy(
                 isLoading = false,
@@ -257,13 +250,10 @@ class AuthViewModel @Inject constructor(
         _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
-                // Guardamos el resultado del UseCase (el nuevo usuario)
                 val newUser = completeGoogleSetupUseCase(
                     password, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, name, email, imgUrl, departamento
                 )
 
-                // SOLUCIÓN: Actualizar explícitamente el estado para detener el círculo de carga
-                // y disparar la navegación en el LaunchedEffect de la UI
                 _authState.value = _authState.value.copy(
                     isLoading = false,
                     isSuccess = true,

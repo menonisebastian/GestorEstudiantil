@@ -69,7 +69,6 @@ class TareaRepositoryImpl @Inject constructor(
                 try {
                     mimeType?.let { contentType = ContentType.parse(it) }
                 } catch (e: Exception) {
-                    // Si falla el parseo, dejamos que Supabase decida o asignamos uno genérico
                     contentType = ContentType.Application.OctetStream
                 }
             }
@@ -133,7 +132,6 @@ class TareaRepositoryImpl @Inject constructor(
         try {
             db.collection("tareas").document(tarea.id).set(finalTarea).await()
             
-            // Si el guardado en Firestore fue exitoso y subimos un archivo nuevo que es distinto al anterior, borramos el viejo
             if (fileData != null && previousAdjunto != null && previousAdjunto.supabasePath != adjunto?.supabasePath) {
                 try {
                     storage.from("gestor-estudiantil").delete(previousAdjunto.supabasePath)
@@ -156,7 +154,6 @@ class TareaRepositoryImpl @Inject constructor(
     }
 
     override suspend fun eliminarTarea(tarea: Tarea) {
-        // Eliminar adjunto de Supabase
         tarea.adjunto?.let {
             try {
                 storage.from("gestor-estudiantil").delete(it.supabasePath)
@@ -164,7 +161,6 @@ class TareaRepositoryImpl @Inject constructor(
                 e.printStackTrace()
             }
         }
-        // Eliminar de Firestore
         db.collection("tareas").document(tarea.id).delete().await()
     }
 
@@ -202,7 +198,6 @@ class TareaRepositoryImpl @Inject constructor(
             try {
                 mimeType?.let { contentType = ContentType.parse(it) }
             } catch (e: Exception) {
-                // Si falla el parseo, dejamos que Supabase decida o asignamos uno genérico
                 contentType = ContentType.Application.OctetStream
             }
         }

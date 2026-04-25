@@ -28,7 +28,6 @@ class RegisterUserUseCase @Inject constructor(
         cursoNombre: String, turno: String, ciclo: Int, imgUrl: String,
         departamento: String = ""
     ): User {
-        // 1. LÓGICA DE NEGOCIO: Determinar rol, estado y área
         var finalRol = rolSeleccionado
         var estadoInicial = "ACTIVO"
         var cursoGenerado = ""
@@ -45,10 +44,8 @@ class RegisterUserUseCase @Inject constructor(
             }
         }
 
-        // 2. CREACIÓN EN AUTH
         val uid = authRepository.registerUser(email, pass)
 
-        // 3. CREAR OBJETO USUARIO
         val newUser: User = when (finalRol) {
             "ESTUDIANTE" -> User.Estudiante(
                 id = uid, nombre = name, email = email, centroId = centroId,
@@ -67,10 +64,8 @@ class RegisterUserUseCase @Inject constructor(
             else -> throw IllegalArgumentException("Rol no válido")
         }
 
-        // 4. GUARDAR USUARIO
         userRepository.saveUser(newUser)
 
-        // 5. NOTIFICAR AL ADMIN
         notificarAdminNuevoRegistro(newUser)
 
         return newUser

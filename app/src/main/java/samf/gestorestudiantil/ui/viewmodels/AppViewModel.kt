@@ -24,7 +24,6 @@ data class SnackbarEvent(
     val onAction: (() -> Unit)? = null
 )
 
-// Clase simple para representar al usuario actual en la UI
 data class CurrentUserUiState(
     val id: String = "",
     val name: String = "",
@@ -56,7 +55,6 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    // Función para cargar al usuario al iniciar sesión
     fun setCurrentUser(user: CurrentUserUiState) {
         _state.update { it.copy(currentUser = user) }
         cargarRecordatorios(user.id)

@@ -40,7 +40,6 @@ fun AppNavigation(
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
     
-    // 1. DETERMINAR RUTA RAÍZ DECLARATIVAMENTE
     val rootRoute = when {
         authState.isCheckingSession -> null
         authState.user == null && !authState.requireGooglePasswordSetup -> Routes.Auth
@@ -49,15 +48,12 @@ fun AppNavigation(
         else -> Routes.Home
     }
 
-    // 2. BACKSTACK DINÁMICO
     val backStack = remember { mutableStateListOf<Any>() }
 
-    // 3. ACTUALIZAR BACKSTACK CUANDO CAMBIA LA RUTA RAÍZ O EL ESTADO CRÍTICO
     LaunchedEffect(rootRoute) {
         if (rootRoute != null) {
             val currentRoot = backStack.firstOrNull()
             
-            // Si el root cambió (ej.: Login/Logout/Estado), reseteamos el stack
             if (currentRoot != rootRoute) {
                 backStack.clear()
                 backStack.add(rootRoute)
@@ -65,7 +61,6 @@ fun AppNavigation(
         }
     }
 
-    // 4. PANTALLA DE CARGA MIENTRAS SE DETERMINA EL DESTINO
     if (rootRoute == null || backStack.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize().background(backgroundColor),
@@ -78,7 +73,6 @@ fun AppNavigation(
 
     val currentUser = authState.user
 
-    // 5. NAV DISPLAY
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
@@ -107,8 +101,8 @@ fun AppNavigation(
                 AuthScreen(
                     authViewModel = authViewModel,
                     darkTheme = darkTheme,
-                    onAuthSuccess = { /* El listener maneja esto */ },
-                    onRequireGoogleSetup = { /* El listener maneja esto */ },
+                    onAuthSuccess = { },
+                    onRequireGoogleSetup = { },
                     onNavigateToRegisterStep2 = { name, email, pass, imgUrl ->
                         backStack.add(Routes.RegisterStep2(name, email, pass, imgUrl))
                     },
@@ -121,7 +115,6 @@ fun AppNavigation(
                     authViewModel = authViewModel,
                     onBack = { backStack.removeLastOrNull() },
                     onNavigateToHome = {
-                        // El listener de sesión en el ViewModel manejará el cambio
                     }
                 )
             }
@@ -153,7 +146,6 @@ fun AppNavigation(
                     passwordValue = route.password,
                     onBack = { backStack.removeLastOrNull() },
                     onSetupComplete = { _ ->
-                        // El listener de sesión en el ViewModel manejará el cambio
                     }
                 )
             }

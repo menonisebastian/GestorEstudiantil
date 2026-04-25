@@ -105,12 +105,10 @@ fun AuthScreen(
     val token = stringResource(R.string.id_token)
     val credentialManager = remember { CredentialManager.create(context) }
 
-    // ✅ Back stack interno de AuthScreen
     val authBackStack = remember {
         mutableStateListOf<Any>(Routes.AuthRoutes.Login)
     }
 
-    // ✅ Pager → authBackStack
     LaunchedEffect(pagerState.currentPage) {
         val newRoute = authTabToRoute(tabs[pagerState.currentPage])
         val currentTop = authBackStack.lastOrNull()
@@ -120,7 +118,6 @@ fun AuthScreen(
         }
     }
 
-    // ✅ authBackStack → Pager
     LaunchedEffect(authBackStack.toList()) {
         val topRoute = authBackStack.lastOrNull() ?: return@LaunchedEffect
         val targetTab = authRouteToTab(topRoute)

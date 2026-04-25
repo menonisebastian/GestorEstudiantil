@@ -94,7 +94,6 @@ class EstudianteViewModel @Inject constructor(
         tareasJob = viewModelScope.launch {
             tareaRepository.getTareasPorAsignaturas(asignaturaIds).collect { tareas ->
                 _state.update { it.copy(tareas = tareas) }
-                // Programar notificaciones para las tareas que tengan fecha límite futura
                 tareas.forEach { tarea ->
                     NotificationScheduler.scheduleTareaNotification(context, tarea)
                 }
@@ -198,7 +197,6 @@ class EstudianteViewModel @Inject constructor(
             try {
                 tareaRepository.realizarEntrega(entrega, fileData, fileName, mimeType)
                 
-                // Enviar notificación al profesor
                 enviarNotificacionAlProfesor(entrega, acronimoAsignatura)
 
                 withContext(Dispatchers.Main) {

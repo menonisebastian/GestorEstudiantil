@@ -18,10 +18,8 @@ class EstudianteRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore
 ) : EstudianteRepository {
 
-    // Importante: Importar FieldPath y Filter si usas Firestore
     fun getMiClase(estudianteId: String): Flow<Clase?> {
         return db.collection("clases")
-            // Buscamos la clase cuyo array contiene el ID de este estudiante
             .whereArrayContains("estudiantesIds", estudianteId)
             .snapshots()
             .map { snapshot ->

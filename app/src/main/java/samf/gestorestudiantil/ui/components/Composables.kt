@@ -263,7 +263,7 @@ fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
 }
 
 // =========================================================
-// COMPONENTE: SELECCIONAR Y SUBIR LA FOTO DE PERFIL
+// GESTIÓN DE FOTO DE PERFIL
 // =========================================================
 @Composable
 fun ProfileImagePicker(
@@ -300,7 +300,6 @@ fun ProfileImagePicker(
             .clickable(enabled = !isUploading) { photoPickerLauncher.launch("image/*") },
         contentAlignment = Alignment.Center
     ) {
-        // Fondo / Imagen del usuario
         AccImg(
             userName = userName,
             imgUrl = currentPhotoUrl,
@@ -308,7 +307,6 @@ fun ProfileImagePicker(
             onClick = { if (!isUploading) photoPickerLauncher.launch("image/*") }
         )
 
-        // Icono de Lápiz / Edición
         if (!isUploading) {
             Box(
                 modifier = Modifier
@@ -323,7 +321,6 @@ fun ProfileImagePicker(
             }
         }
 
-        // Capa oscura de carga
         if (isUploading) {
             Box(
                 modifier = Modifier
@@ -451,9 +448,8 @@ fun AsignaturaCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Indicador de Turno
                     val turnoSigla = if (asignatura.turno.lowercase().contains("matutino")) "M" else "V"
-                    val turnoColor = if (turnoSigla == "M") Color(0xFFF59E0B) else Color(0xFF6366F1) // Ámbar vs Indigo
+                    val turnoColor = if (turnoSigla == "M") Color(0xFFF59E0B) else Color(0xFF6366F1)
 
                     Surface(
                         color = turnoColor.copy(alpha = 0.1f),
@@ -473,7 +469,6 @@ fun AsignaturaCard(
                     val nombreAMostrar = if (userRole == "ESTUDIANTE") {
                         asignatura.profesorNombre.ifEmpty { "Sin asignar" }
                     } else {
-                        // Para el profesor, mostramos el curso al que pertenece la asignatura
                         val turnoSiglaProf = if (asignatura.turno.lowercase().contains("matutino")) "M" else "V"
                         val cursoAcronimoProf = asignatura.cursoId.substringAfterLast("_").uppercase()
                         "$cursoAcronimoProf $turnoSiglaProf${asignatura.cicloNum}"
@@ -489,7 +484,6 @@ fun AsignaturaCard(
                     Icon(Icons.Outlined.AccessTime, "Horas", tint = surfaceDimColor, modifier = iconModifier)
                     Text(text = "${asignatura.horasSemanales}h", color = surfaceDimColor, fontSize = 10.sp)
 
-                    // SOLO VISIBLE PARA ADMIN O PROFESOR
                     if (userRole != "ESTUDIANTE") {
                         Spacer(modifier = Modifier.width(16.dp))
 
@@ -663,18 +657,16 @@ fun CustomPasswordTextField(state: TextFieldState, isLast: Boolean? = false) {
         state = state,
         shape = RoundedCornerShape(16.dp),
         label = { Text("Contraseña") },
-        // Alternamos entre texto visible y ofuscado
         textObfuscationMode = if (isPasswordVisible) {
             TextObfuscationMode.Visible
         } else {
-            TextObfuscationMode.RevealLastTyped // O TextObfuscationMode.Hidden
+            TextObfuscationMode.RevealLastTyped
         },
         leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = null, tint = surfaceDimColor) },
         trailingIcon = {
-            if (state.text.isNotEmpty()) { // Solo dibuja si hay texto
+            if (state.text.isNotEmpty()) {
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                     Icon(
-                        // Corregido lógicamente: si no es visible, el icono debe invitar a "ver" (Visibility)
                         imageVector = if (!isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = if (!isPasswordVisible) "Mostrar contraseña" else "Ocultar contraseña"
                     )
@@ -718,7 +710,6 @@ fun CustomOptionsTextField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    // ExposedDropdownMenuBox gestiona el estado de expansión y el ancho del menú
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
@@ -726,11 +717,10 @@ fun CustomOptionsTextField(
     ) {
         TextField(
             value = texto,
-            onValueChange = {}, // ReadOnly, el cambio se hace vía menú
+            onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             modifier = Modifier
-                // Updated: Specify the anchor type and enabled state
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
                 .fillMaxWidth()
                 .height(56.dp),
@@ -749,7 +739,6 @@ fun CustomOptionsTextField(
                 { Icon(it, contentDescription = null, tint = Color.Gray) }
             },
             trailingIcon = {
-                // Este componente rota la flecha automáticamente según el estado 'expanded'
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             }
         )
@@ -757,7 +746,7 @@ fun CustomOptionsTextField(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = surfaceColor, // Corregido para usar surfaceColor y ser consistente
+            containerColor = surfaceColor,
             shape = RoundedCornerShape(20.dp)
         ) {
             opciones.forEach { opcion ->
@@ -770,7 +759,6 @@ fun CustomOptionsTextField(
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
 
-                // Mantenemos tu divisor visual
                 if (opcion != opciones.last()) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 12.dp),
@@ -875,7 +863,6 @@ fun CustomSearchBar(
     )
 }
 
-// ============ TEXTFIELD DE FECHA ============ //
 @Composable
 fun CustomDateField(
     value: String,
@@ -1150,7 +1137,6 @@ fun AccImg(userName: String = "", imgUrl: String = "", onClick: () -> Unit = {},
     }
 }
 
-// ============ BOTONES LOGOS ============ //
 @Composable
 fun SocialMediaButton(
     iconRes: Int,
@@ -1173,7 +1159,6 @@ fun SocialMediaButton(
     }
 }
 
-// ============ BOTONES LOGOS ============ //
 @Composable
 fun IconLogo(
     width: Dp
@@ -1187,7 +1172,6 @@ fun IconLogo(
     )
 }
 
-// ============ BOTONES LOGOS ============ //
 @Composable
 fun TitleLogo(
     width: Dp
@@ -1210,14 +1194,12 @@ fun TextDivider(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Línea izquierda
         HorizontalDivider(
             modifier = Modifier.weight(1f),
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.outlineVariant
         )
 
-        // Texto central
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -1226,7 +1208,6 @@ fun TextDivider(
             color = surfaceDimColor
         )
 
-        // Línea derecha
         HorizontalDivider(
             modifier = Modifier.weight(1f),
             thickness = 1.dp,

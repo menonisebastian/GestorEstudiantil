@@ -24,10 +24,8 @@ class CompleteGoogleSetupUseCase @Inject constructor(
         imgUrl: String,
         departamento: String = "Sin asignar"
     ): User {
-        // 1. Actualizar contraseña
         authRepository.updatePassword(password)
 
-        // 2. Lógica de Roles y Estados
         var finalRol = rolSeleccionado
         var estadoInicial = "ACTIVO"
         var cursoGenerado = ""
@@ -46,12 +44,10 @@ class CompleteGoogleSetupUseCase @Inject constructor(
 
         val uid = authRepository.getCurrentUserUid() ?: throw Exception("Usuario no autenticado")
 
-        // 3. Asegurar datos de perfil si vienen vacíos (pueden venir de AuthState.user que es nulo en el primer login de Google)
         val finalName = if (name.isBlank()) authRepository.getCurrentUserName() ?: "Usuario Google" else name
         val finalEmail = if (email.isBlank()) authRepository.getCurrentUserEmail() ?: "" else email
         val finalImgUrl = if (imgUrl.isBlank()) authRepository.getCurrentUserPhotoUrl() ?: "" else imgUrl
 
-        // 4. Crear objeto Usuario
         val newUser: User = when (finalRol) {
             "ESTUDIANTE" -> User.Estudiante(
                 id = uid, nombre = finalName, email = finalEmail, centroId = centroId,
@@ -70,10 +66,8 @@ class CompleteGoogleSetupUseCase @Inject constructor(
             else -> throw IllegalArgumentException("Rol no válido")
         }
 
-        // 5. Guardar en Firestore
         userRepository.saveUser(newUser)
 
-        // 6. Incrementar contadores si es estudiante
         if (finalRol == "ESTUDIANTE" && cursoId.isNotEmpty()) {
             courseRepository.incrementStudentCount(cursoId, turno, ciclo)
         }

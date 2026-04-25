@@ -174,9 +174,7 @@ fun HomeScreen(
     val adminState by adminViewModel.adminState.collectAsState()
 
 
-    // Cargar datos al entrar o cuando cambien los datos clave del usuario
     LaunchedEffect(usuario.id) {
-        // Cargar usuario en AppViewModel para disparar carga de recordatorios
         appViewModel.setCurrentUser(
             CurrentUserUiState(
                 id = usuario.id,
@@ -208,7 +206,6 @@ fun HomeScreen(
                         "Horarios" -> {
                             estudianteViewModel.cargarHorarios(usuario.cursoId, usuario.turno, usuario.cicloNum)
                         }
-                        // Calendario, Perfil etc might have their own loading triggers or are loaded elsewhere
                     }
                 }
             }
@@ -220,20 +217,16 @@ fun HomeScreen(
                     "Horarios" -> {
                         profesorViewModel.cargarHorariosProfesor(usuario.id)
                     }
-                    "Calificaciones" -> {
-                        // This might load when navigating into it if it's more complex
-                    }
                 }
             }
             else -> {}
         }
     }
 
-    // Sincronizar tiempos de lectura cuando el usuario cambie en tiempo real (vía AppNavigation listener)
     LaunchedEffect(usuario.id, usuario.rol) {
         when (usuario) {
             is User.Estudiante -> {
-                estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas) // Ajustar si es necesario
+                estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
             }
             is User.Profesor -> {
                 profesorViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
@@ -242,7 +235,6 @@ fun HomeScreen(
         }
     }
 
-    // Gestión de diálogos (Pila para permitir pickers sobre otros diálogos)
     val dialogStack = remember { mutableStateListOf<DialogState>() }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -274,7 +266,6 @@ fun HomeScreen(
         }
     }
 
-    // ✅ Manejo de Redirección por Notificación Actualizado
     LaunchedEffect(targetAsignaturaId, profesorState.asignaturas, estudianteState.asignaturas) {
         if (targetAsignaturaId == null) return@LaunchedEffect
         
@@ -285,7 +276,6 @@ fun HomeScreen(
         if (asignatura != null) {
             val tabIndex = tabs.indexOf("Asignaturas")
             if (tabIndex != -1) {
-                // Nos movemos al tab y agregamos la ruta
                 pagerState.animateScrollToPage(tabIndex)
                 homeState.navigate("Asignaturas", Routes.HomeRoutes.MateriaDetalle(asignatura))
                 onNotificationHandled()
@@ -294,7 +284,6 @@ fun HomeScreen(
     }
 
     val context = LocalContext.current
-    // ✅ Manejo del botón Atrás global Actualizado
     BackHandler {
         if (currentStack != null && currentStack.size > 1) {
             homeState.pop(currentTab)
@@ -309,7 +298,7 @@ fun HomeScreen(
         containerColor = backgroundColor,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
-                val durationMillis = 4000L // SnackbarDuration.Short aproximado
+                val durationMillis = 4000L
                 val progress = remember { Animatable(1f) }
 
                 LaunchedEffect(data) {
@@ -445,7 +434,6 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            // ✅ FAB Centralizado y Contextual
             when {
                 (currentRoute is Routes.HomeRoutes.Recordatorios || (currentTab == "Calendario" && usuario.rol == "ADMIN")) -> {
                     CustomFAB(
@@ -503,7 +491,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
                 .consumeWindowInsets(paddingValues),
-            userScrollEnabled = canScrollPager // <-- Se desactiva si hay una pantalla hija abierta
+            userScrollEnabled = canScrollPager
         ) { page ->
             val pageTab = tabs.getOrNull(page) ?: return@HorizontalPager
             val pageBackStack = homeState.getStack(pageTab) ?: return@HorizontalPager
