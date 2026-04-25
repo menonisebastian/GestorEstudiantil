@@ -38,7 +38,7 @@ El proyecto implementa los estándares más exigentes del desarrollo Android act
 *   **Evaluación 360°:** Calificación de entregas, asignación de notas y envío de feedback personalizado.
 *   **Notificaciones Directas:** Envío de avisos importantes a los estudiantes mediante integración con FCM.
 
-### 🛠️ Para el Administrador
+### ️🧑🏻‍💻 Para el Administrador
 *   **Control Institucional:** Configuración jerárquica de Centros, Cursos, Ciclos y Asignaturas.
 *   **Gestión de Usuarios:** Aprobación de cuentas, edición de perfiles y asignación de tutores/profesores.
 *   **Automatización de Datos:** Semillado masivo de la base de datos mediante archivos JSONL y gestión atómica de horarios.
