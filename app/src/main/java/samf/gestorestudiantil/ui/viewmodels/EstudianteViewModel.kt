@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,22 +26,13 @@ import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.domain.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
+import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
 import samf.gestorestudiantil.ui.utils.ErrorMapper
-import com.google.auth.oauth2.GoogleCredentials
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import org.json.JSONObject
+import kotlinx.coroutines.FlowPreview
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 data class EstudianteState(
@@ -57,6 +49,7 @@ data class EstudianteState(
 class EstudianteViewModel @Inject constructor(
     private val estudianteRepository: EstudianteRepository,
     private val tareaRepository: TareaRepository,
+    private val notificationRepository: NotificationRepository,
     private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -106,12 +99,15 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
+    @OptIn(FlowPreview::class)
     private fun observarCambiosEnPostsYTareas(asignaturaIds: List<String>) {
         postsJob?.cancel()
         postsJob = viewModelScope.launch {
-            estudianteRepository.observePostsAndTareasChanges(asignaturaIds).collect {
-                recalcularNotificaciones(_state.value.asignaturas, currentUltimaVez)
-            }
+            estudianteRepository.observePostsAndTareasChanges(asignaturaIds)
+                .debounce(300)
+                .collect {
+                    recalcularNotificaciones(_state.value.asignaturas, currentUltimaVez)
+                }
         }
     }
 
@@ -206,69 +202,20 @@ class EstudianteViewModel @Inject constructor(
     }
 
     private fun enviarNotificacionAlProfesor(entrega: Entrega, acronimo: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                val accessToken = getAccessToken(context) ?: return@launch
-                val client = OkHttpClient.Builder()
-                    .connectTimeout(10, TimeUnit.SECONDS)
-                    .writeTimeout(10, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .build()
-
                 val topic = "asignatura_${entrega.asignaturaId}_profesores"
                 val title = "Nueva Entrega: $acronimo"
                 val body = "${entrega.estudianteNombre} ha entregado una tarea."
+                val data = mapOf(
+                    "target_asignatura_id" to entrega.asignaturaId,
+                    "type" to "entrega"
+                )
 
-                val json = JSONObject().apply {
-                    put("message", JSONObject().apply {
-                        put("topic", topic)
-                        put("notification", JSONObject().apply {
-                            put("title", title)
-                            put("body", body)
-                        })
-                        put("data", JSONObject().apply {
-                            put("target_asignatura_id", entrega.asignaturaId)
-                            put("type", "entrega")
-                        })
-                    })
-                }
-
-                val requestBody = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
-                val request = Request.Builder()
-                    .url("https://fcm.googleapis.com/v1/projects/gestorinstituto-tfg/messages:send")
-                    .post(requestBody)
-                    .addHeader("Authorization", "Bearer $accessToken")
-                    .build()
-
-                client.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        e.printStackTrace()
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        response.use {
-                            if (!response.isSuccessful) {
-                                println("Error enviando notificación: ${response.body?.string()}")
-                            }
-                        }
-                    }
-                })
+                notificationRepository.sendTopicNotification(topic, title, body, data)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    private fun getAccessToken(context: Context): String? {
-        return try {
-            val inputStream = context.assets.open("service-account.json")
-            val googleCredentials = GoogleCredentials.fromStream(inputStream)
-                .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
-            googleCredentials.refreshIfExpired()
-            googleCredentials.accessToken.tokenValue
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
         }
     }
 

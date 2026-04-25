@@ -22,6 +22,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +43,7 @@ fun AsignaturasEstudiantePanel(
     paddingValues: PaddingValues,
     onAsignaturaClick: (Asignatura) -> Unit
 ) {
-    var textoBusqueda by remember { mutableStateOf("") }
+    var textoBusqueda by rememberSaveable { mutableStateOf("") }
 
     val asignaturasFiltradas by remember(textoBusqueda, asignaturas) {
         derivedStateOf {
@@ -74,8 +75,9 @@ fun AsignaturasEstudiantePanel(
                 val remainingItems = totalItems % 3
 
                 // Items que forman filas completas de 3
-                items(asignaturasFiltradas.take(fullRows * 3)) { materia ->
+                items(asignaturasFiltradas.take(fullRows * 3), key = { it.id }) { materia ->
                     CardItem(
+                        modifier = Modifier.animateItem(),
                         item = materia,
                         getIcono = { it.iconoName.toComposeIcon() },
                         getAcron = { it.acronimo },
@@ -94,8 +96,9 @@ fun AsignaturasEstudiantePanel(
                     if (remainingItems == 1) {
                         // Centrar 1 elemento: Espacio vacío (span 1) + Item (span 1) + Espacio vacío (span 1)
                         item(span = { GridItemSpan(1) }) { Box(Modifier) }
-                        item(span = { GridItemSpan(1) }) {
+                        item(span = { GridItemSpan(1) }, key = { lastRowItems[0].id }) {
                             CardItem(
+                                modifier = Modifier.animateItem(),
                                 item = lastRowItems[0],
                                 getIcono = { it.iconoName.toComposeIcon() },
                                 getAcron = { it.acronimo },
@@ -117,7 +120,10 @@ fun AsignaturasEstudiantePanel(
                                 Spacer(modifier = Modifier.weight(0.5f))
                                 
                                 lastRowItems.forEachIndexed { index, materia ->
-                                    Box(modifier = Modifier.weight(1f)) {
+                                    Box(modifier = Modifier
+                                        .weight(1f)
+                                        .animateItem()
+                                    ) {
                                         CardItem(
                                             item = materia,
                                             getIcono = { it.iconoName.toComposeIcon() },

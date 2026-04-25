@@ -8,6 +8,7 @@ import samf.gestorestudiantil.data.repositories.AdminRepositoryImpl
 import samf.gestorestudiantil.data.repositories.AuthRepositoryImpl
 import samf.gestorestudiantil.data.repositories.CourseRepositoryImpl
 import samf.gestorestudiantil.data.repositories.EstudianteRepositoryImpl
+import samf.gestorestudiantil.data.repositories.NotificationRepositoryImpl
 import samf.gestorestudiantil.data.repositories.ProfesorRepositoryImpl
 import samf.gestorestudiantil.data.repositories.RecordatorioRepositoryImpl
 import samf.gestorestudiantil.data.repositories.TareaRepositoryImpl
@@ -16,6 +17,7 @@ import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.domain.repositories.AuthRepository
 import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
+import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
@@ -73,4 +75,10 @@ abstract class RepositoryModule {
     abstract fun bindTareaRepository(
         tareaRepositoryImpl: TareaRepositoryImpl
     ): TareaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(
+        notificationRepositoryImpl: NotificationRepositoryImpl
+    ): NotificationRepository
 }

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun <T> CardItem(
+    modifier: Modifier = Modifier,
     item: T,
     getIcono: (T) -> ImageVector,
     getColorFondo: (T) -> Color,
@@ -30,7 +31,7 @@ fun <T> CardItem(
     badgeText: String? = null,
     onClick: () -> Unit = {}
 ) {
-    Box(modifier = Modifier.padding(top = 4.dp, end = 4.dp)) {
+    Box(modifier = modifier.padding(top = 4.dp, end = 4.dp)) {
         Card(
             modifier = Modifier
                 .width(120.dp)

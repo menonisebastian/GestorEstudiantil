@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.6.8] - 2026-04-25
+- **Arquitectura**: Corrección de violación de MVVM mediante la creación de `NotificationRepository` y `NotificationRepositoryImpl`, centralizando la lógica de red de FCM y eliminando dependencias de `OkHttpClient` y generación de tokens OAuth2 de los ViewModels.
+- **Rendimiento**: Optimización del consumo de flujos de Firestore en `EstudianteViewModel` y `ProfesorViewModel` mediante el uso de `.debounce(300)` para agrupar actualizaciones rápidas de UI.
+- **UI/UX**: Mejora de la persistencia de estado en `AsignaturasEstudiantePanel` cambiando `remember` por `rememberSaveable` en la barra de búsqueda, permitiendo que el texto sobreviva a rotaciones de pantalla.
+- **UI/UX**: Implementación de animaciones suaves de reordenación en la rejilla de asignaturas mediante `Modifier.animateItem()`.
+- **Refactorización**: Actualización de `CardItem` para soportar parámetros de `Modifier`, permitiendo animaciones externas.
+- **DI**: Incorporación de `NetworkModule` para proveer una instancia única de `OkHttpClient` mediante Hilt.
+
 ## [v0.6.7] - 2026-04-22
 - **Rendimiento**: Optimización mayor de `HomeScreen` mediante la extracción de la lógica de navegación pesada a componentes `@Composable` especializados (`EstudianteNavContent`, `ProfesorNavContent`, `AdminNavContent`), mejorando la fluidez del `HorizontalPager`.
 - **Rendimiento**: Implementación de inyección de ViewModels compartidos en paneles hijos para evitar re-instanciaciones y cargas de datos redundantes.

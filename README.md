@@ -55,7 +55,7 @@ app/src/main/java/samf/gestorestudiantil/
 │   ├── screens/       # Pantallas de flujo principal (Auth, Home, Perfil)
 │   ├── theme/         # Sistema de diseño, colores y tipografía
 │   └── viewmodels/    # Lógica de presentación y gestión de estados (StateFlow)
-├── di/                # Módulos de Hilt (FirebaseModule, RepositoryModule)
+├── di/                # Módulos de Hilt (FirebaseModule, RepositoryModule, NetworkModule)
 └── utils/             # Utilidades, ErrorMapper y formateadores
 ```
 
