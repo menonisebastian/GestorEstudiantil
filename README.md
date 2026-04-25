@@ -1,4 +1,6 @@
-# 🎓 Nexo+
+<p style="text-align: center;">
+  <img src="https://res.cloudinary.com/dywawleqm/image/upload/v1777109979/newlogoplus_a2mzt0.png" alt="Nexo+ Logo" width="400">
+</p>
 
 Nexo+ es una plataforma académica integral diseñada para optimizar la comunicación y gestión entre estudiantes, profesores y administradores. Construida con un enfoque moderno y reactivo, la aplicación ofrece un ecosistema fluido para el control de asignaturas, evaluaciones, horarios y materiales didácticos, todo bajo una interfaz elegante con efectos visuales avanzados.
 
