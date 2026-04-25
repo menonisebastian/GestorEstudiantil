@@ -3,7 +3,10 @@
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.7.3] - 2026-04-25
+- **Estabilidad**: Corregida duplicación del FAB en el panel de calendario del administrador; se eliminó la lógica redundante en `HomeScreen` ya que el panel gestiona su propio botón.
+- **UI/UX**: Unificada la posición vertical del FAB en toda la aplicación; ajustado el padding en `CalendarioPanel` (103dp) para alinear perfectamente con el FAB global del Scaffold.
 - **Estabilidad**: Corregido crash crítico en `AsignaturasEstudiantePanel` al filtrar listas; se eliminó la lógica de diseño manual que causaba inconsistencias de estado en Compose.
+- **Estabilidad**: Implementada limpieza de notificaciones al cerrar sesión; se asegura el borrado del token FCM en Firestore y la invalidación del token en el dispositivo (incluyendo desuscripción de topics) en `AuthViewModel`.
 - **UI/UX**: Implementadas animaciones de búsqueda optimizadas (150ms) en toda la aplicación (Usuarios, Centros, Asignaturas, Calificaciones y Recordatorios).
 - **Rendimiento**: Añadido sistema de *debounce* (300ms) en todas las barras de búsqueda globales para mejorar la fluidez y reducir la carga de procesamiento.
 - **UX**: Mejorada la búsqueda de asignaturas para profesores y estudiantes, permitiendo ahora filtrado por acrónimo (ej. "DAM", "AD", "PSP").

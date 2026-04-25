@@ -435,7 +435,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             when {
-                (currentRoute is Routes.HomeRoutes.Recordatorios || (currentTab == "Calendario" && usuario.rol == "ADMIN")) -> {
+                currentRoute is Routes.HomeRoutes.Recordatorios -> {
                     CustomFAB(
                         onClick = {
                             onOpenDialog(

@@ -274,7 +274,7 @@ fun CalendarioPanel(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 100.dp)
+                    .padding(end = 16.dp, bottom = 103.dp)
             ) {
                 CustomFAB(
                     onClick = { onAddRecordatorio(selectedDate?.toString() ?: LocalDate.now().toString()) },
