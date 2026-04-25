@@ -24,7 +24,6 @@ import com.cloudinary.android.callback.UploadCallback
 // =========================================================
 // FUNCIÓN UNIVERSAL DE CLOUDINARY
 // =========================================================
-// Modifica la función en C:/Users/medic/AndroidStudioProjects/GestorEstudiantil/app/src/main/java/samf/gestorestudiantil/domain/MappersUI.kt
 
 fun uploadToCloudinary(
     uri: Uri,
@@ -46,7 +45,6 @@ fun uploadToCloudinary(
         override fun onSuccess(requestId: String, resultData: Map<*, *>) {
             val secureUrl = resultData["secure_url"] as String
 
-            // AGREGAMOS ESTO: Un timestamp para romper la caché visual en el dispositivo
             val antiCacheUrl = "$secureUrl?v=${System.currentTimeMillis()}"
 
             onSuccess(antiCacheUrl)

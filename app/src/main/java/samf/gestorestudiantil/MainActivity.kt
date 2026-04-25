@@ -87,5 +87,22 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview()
 {
+    /*
+
+    app/src/main/java/samf/gestorestudiantil/
+    ├── data/              # Modelos, Repositorios (Impl) y Servicios (Firebase/Supabase)
+    ├── domain/            # Casos de Uso, Interfaces de Repositorios y Mappers
+    ├── ui/
+    │   ├── components/    # Librería de componentes UI reutilizables
+    │   ├── dialogs/       # Orquestador de diálogos basado en estados
+    │   ├── navigation/    # Configuración de Navigation 3 y HomeState
+    │   ├── panels/        # Interfaces especializadas por rol (Admin/Profe/Estudiante)
+    │   ├── screens/       # Pantallas de flujo principal (Auth, Home, Perfil)
+    │   ├── theme/         # Sistema de diseño, colores y tipografía
+    │   └── viewmodels/    # Lógica de presentación y gestión de estados (StateFlow)
+    ├── di/                # Módulos de Hilt (FirebaseModule, RepositoryModule, NetworkModule)
+    └── utils/             # Utilidades, ErrorMapper y formateadores
+
+    * */
 
 }

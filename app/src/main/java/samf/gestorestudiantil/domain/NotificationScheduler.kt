@@ -81,7 +81,6 @@ object NotificationScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Programar para el mismo día de la fecha límite, por ejemplo a las 8:00 AM
         val calendar = Calendar.getInstance()
         calendar.time = tarea.fechaLimiteEntrega.toDate()
         calendar.set(Calendar.HOUR_OF_DAY, 8)

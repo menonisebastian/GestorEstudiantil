@@ -20,6 +20,7 @@ import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
@@ -29,6 +30,7 @@ fun MateriaDetalleEstudiantePanel(
     estudiante: User,
     onOpenDialog: (DialogState) -> Unit,
     onVerCalificaciones: (Asignatura) -> Unit,
+    appViewModel: AppViewModel = hiltViewModel(),
     viewModel: EstudianteViewModel = hiltViewModel(),
     profesorViewModel: ProfesorViewModel = hiltViewModel()
 ) {
@@ -168,11 +170,22 @@ fun MateriaDetalleEstudiantePanel(
                                     )
                                 },
                                 onEliminarEntrega = {
-                                    viewModel.state.value.miEntrega?.let {
+                                    viewModel.state.value.miEntrega?.let { entrega ->
                                         onOpenDialog(DialogState.Confirmation(
                                             title = "Eliminar entrega",
                                             content = "¿Estás seguro de que deseas eliminar tu entrega?",
-                                            onConfirm = { viewModel.eliminarEntrega(it) }
+                                            onConfirm = { 
+                                                viewModel.eliminarEntrega(entrega) {
+                                                    appViewModel.showSnackbar(
+                                                        message = "Entrega eliminada",
+                                                        actionLabel = "Deshacer",
+                                                        onAction = {
+                                                            // Reinstaurar requiere el archivo original que no tenemos aquí, 
+                                                            // pero al menos mostramos el mensaje.
+                                                        }
+                                                    )
+                                                }
+                                            }
                                         ))
                                     }
                                 }

@@ -81,10 +81,11 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun rechazarOEliminarUsuario(usuario: User) {
+    fun rechazarOEliminarUsuario(usuario: User, onUndo: () -> Unit) {
         viewModelScope.launch {
             try {
                 adminRepository.eliminarUsuario(usuario.id)
+                onUndo()
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
@@ -184,10 +185,11 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarCentro(centro: Centro) {
+    fun eliminarCentro(centro: Centro, onUndo: () -> Unit) {
         viewModelScope.launch {
             try { 
                 adminRepository.eliminarCentro(centro.id)
+                onUndo()
             }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
@@ -200,10 +202,11 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarCurso(curso: Curso) {
+    fun eliminarCurso(curso: Curso, onUndo: () -> Unit) {
         viewModelScope.launch {
             try { 
                 adminRepository.eliminarCurso(curso.id)
+                onUndo()
             }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
@@ -216,10 +219,11 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarAsignatura(asignatura: Asignatura) {
+    fun eliminarAsignatura(asignatura: Asignatura, onUndo: () -> Unit) {
         viewModelScope.launch {
             try { 
                 adminRepository.eliminarAsignatura(asignatura.id)
+                onUndo()
             }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
@@ -232,9 +236,12 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun eliminarHorario(horarioId: String) {
+    fun eliminarHorario(horario: Horario, onUndo: () -> Unit) {
         viewModelScope.launch {
-            try { adminRepository.eliminarHorario(horarioId) }
+            try { 
+                adminRepository.eliminarHorario(horario.id)
+                onUndo()
+            }
             catch (e: Exception) { _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e)) }
         }
     }

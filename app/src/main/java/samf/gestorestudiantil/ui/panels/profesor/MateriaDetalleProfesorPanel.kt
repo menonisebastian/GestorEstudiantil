@@ -179,19 +179,20 @@ fun MateriaDetalleProfesorPanel(
                                 title = "Eliminar Unidad",
                                 content = "¿Estás seguro de que deseas eliminar esta unidad y todo su contenido?",
                                 onConfirm = { 
-                                    viewModel.eliminarUnidad(unidad.id)
-                                    appViewModel.showSnackbar(
-                                        message = "Unidad eliminada",
-                                        actionLabel = "Deshacer",
-                                        onAction = {
-                                            viewModel.crearUnidad(
-                                                asignaturaId = asignatura.id,
-                                                nombre = unidad.nombre,
-                                                descripcion = unidad.descripcion,
-                                                visible = unidad.visible
-                                            )
-                                        }
-                                    )
+                                    viewModel.eliminarUnidad(unidad) {
+                                        appViewModel.showSnackbar(
+                                            message = "Unidad eliminada",
+                                            actionLabel = "Deshacer",
+                                            onAction = {
+                                                viewModel.crearUnidad(
+                                                    asignaturaId = asignatura.id,
+                                                    nombre = unidad.nombre,
+                                                    descripcion = unidad.descripcion,
+                                                    visible = unidad.visible
+                                                )
+                                            }
+                                        )
+                                    }
                                 }
                             )
                         )
@@ -217,22 +218,23 @@ fun MateriaDetalleProfesorPanel(
                                 title = "Eliminar Publicación",
                                 content = "¿Estás seguro de que deseas eliminar esta publicación?",
                                 onConfirm = { 
-                                    viewModel.eliminarPost(post.id)
-                                    appViewModel.showSnackbar(
-                                        message = "Publicación eliminada",
-                                        actionLabel = "Deshacer",
-                                        onAction = {
-                                            viewModel.crearPost(
-                                                asignaturaId = post.asignaturaId,
-                                                unidadId = post.unidadId,
-                                                titulo = post.titulo,
-                                                contenido = post.contenido,
-                                                autorId = post.autorId,
-                                                autorNombre = post.autorNombre,
-                                                visible = post.visible
-                                            )
-                                        }
-                                    )
+                                    viewModel.eliminarPost(post) {
+                                        appViewModel.showSnackbar(
+                                            message = "Publicación eliminada",
+                                            actionLabel = "Deshacer",
+                                            onAction = {
+                                                viewModel.crearPost(
+                                                    asignaturaId = post.asignaturaId,
+                                                    unidadId = post.unidadId,
+                                                    titulo = post.titulo,
+                                                    contenido = post.contenido,
+                                                    autorId = post.autorId,
+                                                    autorNombre = post.autorNombre,
+                                                    visible = post.visible
+                                                )
+                                            }
+                                        )
+                                    }
                                 }
                             )
                         )
@@ -255,14 +257,15 @@ fun MateriaDetalleProfesorPanel(
                                 title = "Eliminar Tarea",
                                 content = "¿Estás seguro de que deseas eliminar esta tarea y todas sus entregas?",
                                 onConfirm = { 
-                                    viewModel.eliminarTarea(tarea)
-                                    appViewModel.showSnackbar(
-                                        message = "Tarea eliminada",
-                                        actionLabel = "Deshacer",
-                                        onAction = {
-                                            viewModel.crearTarea(tarea, null, null, null)
-                                        }
-                                    )
+                                    viewModel.eliminarTarea(tarea) {
+                                        appViewModel.showSnackbar(
+                                            message = "Tarea eliminada",
+                                            actionLabel = "Deshacer",
+                                            onAction = {
+                                                viewModel.crearTarea(tarea, null, null, null)
+                                            }
+                                        )
+                                    }
                                 }
                             )
                         )

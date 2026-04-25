@@ -32,6 +32,7 @@ import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -380,6 +381,7 @@ fun CalificacionesDetalleEstudiante(
     estudiante: User,
     asignatura: Asignatura,
     onOpenDialog: (DialogState) -> Unit,
+    appViewModel: AppViewModel = hiltViewModel(),
     viewModel: ProfesorViewModel
 ) {
     val state by viewModel.state.collectAsState()
@@ -410,7 +412,21 @@ fun CalificacionesDetalleEstudiante(
                                 )
                             )
                         },
-                        onDelete = { viewModel.eliminarEvaluacion(eval) },
+                        onDelete = {
+                            onOpenDialog(DialogState.Confirmation(
+                                title = "Eliminar calificación",
+                                content = "¿Estás seguro de que deseas eliminar esta calificación?",
+                                onConfirm = {
+                                    viewModel.eliminarEvaluacion(eval) {
+                                        appViewModel.showSnackbar(
+                                            message = "Calificación eliminada",
+                                            actionLabel = "Deshacer",
+                                            onAction = { viewModel.guardarEvaluacion(eval) }
+                                        )
+                                    }
+                                }
+                            ))
+                        },
                         onToggleVisibility = {
                             viewModel.guardarEvaluacion(eval.copy(visible = !eval.visible))
                         },

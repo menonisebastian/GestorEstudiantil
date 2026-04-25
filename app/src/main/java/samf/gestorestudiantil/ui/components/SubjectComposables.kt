@@ -44,7 +44,7 @@ fun UnidadCard(
     onAddPost: (() -> Unit)? = null, // null if student
     onAddTarea: (() -> Unit)? = null,
     onEditUnidad: (() -> Unit)? = null,
-    onDeleteUnidad: (() -> Unit)? = null,
+    onDeleteUnidad: ((Unidad) -> Unit)? = null,
     onEditPost: ((Post) -> Unit)? = null,
     onDeletePost: ((Post) -> Unit)? = null,
     onEditTarea: ((Tarea) -> Unit)? = null,
@@ -117,11 +117,11 @@ fun UnidadCard(
                                         iconTint = primaryColor
                                     )
                                 },
-                                onDeleteUnidad?.let {
+                                onDeleteUnidad?.let { deleteFn ->
                                     MenuItem(
                                         text = "Eliminar Unidad",
                                         icon = Icons.Default.Delete,
-                                        onClick = it,
+                                        onClick = { deleteFn(unidad) },
                                         iconTint = errorColor,
                                         isDestructive = true
                                     )

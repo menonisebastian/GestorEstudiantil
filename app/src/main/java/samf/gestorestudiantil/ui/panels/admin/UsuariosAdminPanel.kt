@@ -183,14 +183,15 @@ fun UsuariosAdminPanel(
                                         title = R.string.admin_delete_user_title.toString(),
                                         content = R.string.admin_delete_user_confirm.toString() + " ${usuario.nombre}?",
                                         onConfirm = {
-                                            adminViewModel.rechazarOEliminarUsuario(usuario)
-                                            appViewModel.showSnackbar(
-                                                message = R.string.admin_user_deleted.toString(),
-                                                actionLabel = R.string.label_undo.toString(),
-                                                onAction = {
-                                                    adminViewModel.guardarUsuario(usuario)
-                                                }
-                                            )
+                                            adminViewModel.rechazarOEliminarUsuario(usuario) {
+                                                appViewModel.showSnackbar(
+                                                    message = "Usuario eliminado",
+                                                    actionLabel = "Deshacer",
+                                                    onAction = {
+                                                        adminViewModel.guardarUsuario(usuario)
+                                                    }
+                                                )
+                                            }
                                         }
                                     )
                                 )

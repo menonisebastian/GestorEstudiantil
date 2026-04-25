@@ -234,13 +234,11 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
-    fun eliminarEntrega(entrega: Entrega) {
+    fun eliminarEntrega(entrega: Entrega, onUndo: () -> Unit) {
         viewModelScope.launch {
             try {
                 tareaRepository.eliminarEntrega(entrega)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_delivery_deleted), Toast.LENGTH_SHORT).show()
-                }
+                onUndo()
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_delivery)) }
                 withContext(Dispatchers.Main) {

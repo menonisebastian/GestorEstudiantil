@@ -146,13 +146,11 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun eliminarUnidad(unidadId: String) {
+    fun eliminarUnidad(unidad: Unidad, onUndo: () -> Unit) {
         viewModelScope.launch {
             try {
-                profesorRepository.eliminarUnidad(unidadId)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.success_delete, Toast.LENGTH_SHORT).show()
-                }
+                profesorRepository.eliminarUnidad(unidad.id)
+                onUndo()
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, R.string.error_delete_item, Toast.LENGTH_LONG).show()
@@ -220,13 +218,11 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun eliminarPost(postId: String) {
+    fun eliminarPost(post: Post, onUndo: () -> Unit) {
         viewModelScope.launch {
             try {
-                profesorRepository.eliminarPost(postId)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_delete), Toast.LENGTH_SHORT).show()
-                }
+                profesorRepository.eliminarPost(post.id)
+                onUndo()
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
@@ -284,13 +280,11 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun eliminarTarea(tarea: Tarea) {
+    fun eliminarTarea(tarea: Tarea, onUndo: () -> Unit) {
         viewModelScope.launch {
             try {
                 tareaRepository.eliminarTarea(tarea)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_delete), Toast.LENGTH_SHORT).show()
-                }
+                onUndo()
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
                 withContext(Dispatchers.Main) {
@@ -563,13 +557,11 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun eliminarEvaluacion(evaluacion: Evaluacion) {
+    fun eliminarEvaluacion(evaluacion: Evaluacion, onUndo: () -> Unit) {
         viewModelScope.launch {
             try {
                 profesorRepository.eliminarEvaluacion(evaluacion.id)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_delete), Toast.LENGTH_SHORT).show()
-                }
+                onUndo()
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
                 withContext(Dispatchers.Main) {

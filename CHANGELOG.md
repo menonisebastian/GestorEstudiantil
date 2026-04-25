@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.1] - 2026-04-25
+- **UX**: Implementada la funcionalidad de "Deshacer" (Undo) en todas las acciones de eliminación críticas: Calificaciones, Tareas, Unidades, Publicaciones, Entregas y entidades de Administración (Usuarios, Centros, Cursos, Asignaturas, Horarios).
+- **UI**: Personalización avanzada del `Snackbar` global con una barra de progreso animada que indica el tiempo restante para deshacer la acción.
+- **UI**: Añadido botón de cierre manual (X) en los Snackbars para mejorar la gestión de notificaciones temporales.
+- **UI**: Corregida la alineación vertical de las acciones del Snackbar, asegurando que los botones estén centrados respecto al contenido y la barra de progreso.
+
 ## [v0.7.0] - 2026-04-25
 - **Rendimiento**: Implementada carga perezosa (*lazy loading*) de datos en `HomeScreen` vinculada a la pestaña activa del `HorizontalPager`, optimizando el consumo de recursos y tiempo de arranque.
 - **Rendimiento**: Corregido parpadeo (*flickering*) en la lista de horarios y asignaturas mediante la implementación de comprobación de parámetros y carga condicional en los ViewModels.

@@ -76,7 +76,8 @@ class RegisterUserUseCase @Inject constructor(
         return newUser
     }
 
-    private suspend fun notificarAdminNuevoRegistro(nuevoUsuario: User) {
+    private suspend fun notificarAdminNuevoRegistro(nuevoUsuario: User)
+    {
         withContext(Dispatchers.IO) {
             try {
                 val admins = userRepository.getAdminsInCenter(nuevoUsuario.centroId)

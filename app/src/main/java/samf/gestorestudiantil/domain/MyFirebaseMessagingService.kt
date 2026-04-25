@@ -1,9 +1,8 @@
-package samf.gestorestudiantil
+package samf.gestorestudiantil.domain
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -15,6 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import samf.gestorestudiantil.MainActivity
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.repositories.SettingsRepository
 import javax.inject.Inject
 import kotlin.random.Random
@@ -48,7 +49,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private fun showNotification(title: String?, message: String?, data: Map<String, String>) {
         val asignaturaId = data["target_asignatura_id"] // Coincide con lo enviado desde ProfesorViewModel
-        
+
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             // Pasamos el ID de la asignatura para que MainActivity sepa a dónde ir
@@ -68,12 +69,16 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Nuevos Posts", NotificationManager.IMPORTANCE_DEFAULT)
+            val channel = NotificationChannel(
+                channelId,
+                "Nuevos Posts",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
             manager.createNotificationChannel(channel)
         }
-        manager.notify(Random.nextInt(), notificationBuilder.build())
+        manager.notify(Random.Default.nextInt(), notificationBuilder.build())
     }
 
     override fun onNewToken(token: String) {
