@@ -643,6 +643,14 @@ private fun EstudianteNavContent(
                                             }
                                         ))
                                     }
+                                },
+                                onAttachmentClick = { path, name ->
+                                    onOpenDialog(DialogState.AttachmentOptions(
+                                        supabasePath = path,
+                                        fileName = name,
+                                        onOpen = { p, n -> estudianteViewModel.descargarArchivo(p, n, isDirectDownload = false) },
+                                        onDownload = { p, n -> estudianteViewModel.descargarArchivo(p, n, isDirectDownload = true) }
+                                    ))
                                 }
                             )
                         )
@@ -656,7 +664,12 @@ private fun EstudianteNavContent(
                     onTareaClick = onTareaClickEstudiante,
                     onDownloadTarea = { tarea ->
                         tarea.adjunto?.let { adjunto ->
-                            estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                            onOpenDialog(DialogState.AttachmentOptions(
+                                supabasePath = adjunto.supabasePath,
+                                fileName = adjunto.nombreArchivo,
+                                onOpen = { path, name -> estudianteViewModel.descargarArchivo(path, name, isDirectDownload = false) },
+                                onDownload = { path, name -> estudianteViewModel.descargarArchivo(path, name, isDirectDownload = true) }
+                            ))
                         }
                     }
                 )
@@ -712,7 +725,12 @@ private fun EstudianteNavContent(
                     },
                     onDownloadTarea = { tarea ->
                         tarea.adjunto?.let { adjunto ->
-                            estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                            onOpenDialog(DialogState.AttachmentOptions(
+                                supabasePath = adjunto.supabasePath,
+                                fileName = adjunto.nombreArchivo,
+                                onOpen = { path, name -> estudianteViewModel.descargarArchivo(path, name, isDirectDownload = false) },
+                                onDownload = { path, name -> estudianteViewModel.descargarArchivo(path, name, isDirectDownload = true) }
+                            ))
                         }
                     },
                     onTareaClick = { tarea ->
@@ -757,6 +775,14 @@ private fun EstudianteNavContent(
                                             }
                                         ))
                                     }
+                                },
+                                onAttachmentClick = { path, name ->
+                                    onOpenDialog(DialogState.AttachmentOptions(
+                                        supabasePath = path,
+                                        fileName = name,
+                                        onOpen = { p, n -> estudianteViewModel.descargarArchivo(p, n, isDirectDownload = false) },
+                                        onDownload = { p, n -> estudianteViewModel.descargarArchivo(p, n, isDirectDownload = true) }
+                                    ))
                                 }
                             )
                         )
@@ -923,7 +949,12 @@ private fun ProfesorNavContent(
                     },
                     onDownloadTarea = { tarea ->
                         tarea.adjunto?.let { adjunto ->
-                            profesorViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                            onOpenDialog(DialogState.AttachmentOptions(
+                                supabasePath = adjunto.supabasePath,
+                                fileName = adjunto.nombreArchivo,
+                                onOpen = { path, name -> profesorViewModel.descargarArchivo(path, name, isDirectDownload = false) },
+                                onDownload = { path, name -> profesorViewModel.descargarArchivo(path, name, isDirectDownload = true) }
+                            ))
                         }
                     },
                     onTareaClick = { /* Los profesores ven entregas desde MateriaDetalle */ }

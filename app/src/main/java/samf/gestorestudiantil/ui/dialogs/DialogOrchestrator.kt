@@ -166,16 +166,22 @@ fun DialogOrchestrator(
 
                 is DialogState.VerDetalleEvaluacion -> {
                     VerDetalleEvaluacionBottomSheet(
-                        evaluacion = state.evaluacion,
+                        state = state,
                         onDismiss = dismissAction
                     )
                 }
 
                 is DialogState.AddEditCalificacion -> {
                     AddEditCalificacionBottomSheet(
-                        evaluacion = state.evaluacion,
+                        state = state,
                         onDismiss = dismissAction,
-                        onSave = state.onSave
+                    )
+                }
+
+                is DialogState.AttachmentOptions -> {
+                    AttachmentOptionsBottomSheet(
+                        state = state,
+                        onDismissRequest = dismissAction
                     )
                 }
 

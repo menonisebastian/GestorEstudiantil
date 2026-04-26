@@ -451,7 +451,15 @@ fun CalificacionesDetalleEstudiante(
                             onOpenDialog(
                                 DialogState.AddEditCalificacion(
                                     evaluacion = eval,
-                                    onSave = { viewModel.guardarEvaluacion(it) }
+                                    onSave = { viewModel.guardarEvaluacion(it) },
+                                    onAttachmentClick = { path, name ->
+                                        onOpenDialog(DialogState.AttachmentOptions(
+                                            supabasePath = path,
+                                            fileName = name,
+                                            onOpen = { p, n -> viewModel.descargarArchivo(p, n, isDirectDownload = false) },
+                                            onDownload = { p, n -> viewModel.descargarArchivo(p, n, isDirectDownload = true) }
+                                        ))
+                                    }
                                 )
                             )
                         },
@@ -474,7 +482,14 @@ fun CalificacionesDetalleEstudiante(
                             viewModel.guardarEvaluacion(eval.copy(visible = !eval.visible))
                         },
                         onDownload = eval.adjunto?.let { adjunto ->
-                            { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) }
+                            { 
+                                onOpenDialog(DialogState.AttachmentOptions(
+                                    supabasePath = adjunto.supabasePath,
+                                    fileName = adjunto.nombreArchivo,
+                                    onOpen = { path, name -> viewModel.descargarArchivo(path, name, isDirectDownload = false) },
+                                    onDownload = { path, name -> viewModel.descargarArchivo(path, name, isDirectDownload = true) }
+                                ))
+                            }
                         }
                     )
                 }
@@ -532,12 +547,20 @@ fun CalificacionesDetalleEstudiante(
 
         CustomFAB(
             onClick = {
-                onOpenDialog(
-                    DialogState.AddEditCalificacion(
-                        evaluacion = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id),
-                        onSave = { viewModel.guardarEvaluacion(it) }
-                    )
+            onOpenDialog(
+                DialogState.AddEditCalificacion(
+                    evaluacion = Evaluacion(estudianteId = estudiante.id, asignaturaId = asignatura.id),
+                    onSave = { viewModel.guardarEvaluacion(it) },
+                    onAttachmentClick = { path, name ->
+                        onOpenDialog(DialogState.AttachmentOptions(
+                            supabasePath = path,
+                            fileName = name,
+                            onOpen = { p, n -> viewModel.descargarArchivo(p, n, isDirectDownload = false) },
+                            onDownload = { p, n -> viewModel.descargarArchivo(p, n, isDirectDownload = true) }
+                        ))
+                    }
                 )
+            )
             },
             text = "Añadir",
             modifier = Modifier

@@ -6,6 +6,9 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 - **Estabilidad**: Implementada la persistencia del estado de navegación mediante `rememberSaveable` y `kotlinx.serialization`, asegurando que la posición del usuario se mantenga tras cambios de configuración (rotación, modo oscuro).
 - **Corrección**: Resuelto crash crítico `SerializationException` al abrir la aplicación mediante la implementación de interfaces selladas (`sealed interface`) y serialización polimórfica en las rutas de navegación.
 - **Arquitectura**: Robustecida la restauración de backstacks en `HomeState` y `AppNavigation` con manejo de excepciones para prevenir fallos por datos de estado incompatibles.
+- **UI/UX**: Implementado `ModalBottomSheet` para archivos adjuntos con un diseño minimalista, ofreciendo opciones para abrir directamente o descargar.
+- **Funcionalidad**: Añadida lógica de descarga de archivos a la carpeta pública de Descargas usando `MediaStore`.
+- **UI/UX**: Actualizado el icono de adjuntos en `CustomNotificationCard` a un clip (`AttachFile`) para mayor consistencia visual.
 
 ## [v0.7.4] - 2026-04-26
 - **UI/UX**: Implementado el dashboard de **"Próximas entregas"** para estudiantes; una tarjeta expandible que muestra las tareas con vencimiento en los próximos 7 días con un badge de conteo dinámico.

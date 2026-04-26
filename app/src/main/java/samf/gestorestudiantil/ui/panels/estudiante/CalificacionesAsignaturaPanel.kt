@@ -38,6 +38,8 @@ import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
+import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
+
 @Composable
 fun CalificacionesAsignaturaPanel(
     asignatura: Asignatura,
@@ -45,6 +47,7 @@ fun CalificacionesAsignaturaPanel(
     onOpenDialog: (DialogState) -> Unit
 ) {
     val profesorViewModel: ProfesorViewModel = hiltViewModel()
+    val estudianteViewModel: EstudianteViewModel = hiltViewModel()
     val profesor by profesorViewModel.profesor.collectAsState()
 
     LaunchedEffect(asignatura.profesorId) {
@@ -65,7 +68,19 @@ fun CalificacionesAsignaturaPanel(
             contentPadding = PaddingValues(top = 90.dp, bottom = 140.dp)
         ) {
             items(evaluaciones) { modulo ->
-                EvaluacionCard(modulo, onClick = { onOpenDialog(DialogState.VerDetalleEvaluacion(modulo)) })
+                EvaluacionCard(modulo, onClick = { 
+                    onOpenDialog(DialogState.VerDetalleEvaluacion(
+                        evaluacion = modulo,
+                        onAttachmentClick = { path, name ->
+                            onOpenDialog(DialogState.AttachmentOptions(
+                                supabasePath = path,
+                                fileName = name,
+                                onOpen = { p, n -> estudianteViewModel.descargarArchivo(p, n, isDirectDownload = false) },
+                                onDownload = { p, n -> estudianteViewModel.descargarArchivo(p, n, isDirectDownload = true) }
+                            ))
+                        }
+                    )) 
+                })
             }
         }
 

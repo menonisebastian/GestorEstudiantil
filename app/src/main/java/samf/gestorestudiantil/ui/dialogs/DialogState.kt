@@ -138,7 +138,8 @@ sealed class DialogState {
         val estudianteId: String,
         val estudianteNombre: String,
         val onEntregar: (ByteArray, String, String?) -> Unit,
-        val onEliminarEntrega: () -> Unit
+        val onEliminarEntrega: () -> Unit,
+        val onAttachmentClick: ((String, String) -> Unit)? = null
     ) : DialogState()
 
     data class VerEntregasProfesor(
@@ -147,15 +148,25 @@ sealed class DialogState {
     ) : DialogState()
 
     data class VerDetalleEvaluacion(
-        val evaluacion: Evaluacion
+        val evaluacion: Evaluacion,
+        val onAttachmentClick: ((String, String) -> Unit)? = null
     ) : DialogState()
 
     data class AddEditCalificacion(
         val evaluacion: Evaluacion,
-        val onSave: (Evaluacion) -> Unit
+        val onSave: (Evaluacion) -> Unit,
+        val onAttachmentClick: ((String, String) -> Unit)? = null
     ) : DialogState()
 
-    // 9. Permisos
+    // 10. Archivos Adjuntos
+    data class AttachmentOptions(
+        val supabasePath: String,
+        val fileName: String,
+        val onOpen: (String, String) -> Unit,
+        val onDownload: (String, String) -> Unit
+    ) : DialogState()
+
+    // 11. Permisos
     data class NotificationPermissionRationale(
         val onConfirm: () -> Unit
     ) : DialogState()

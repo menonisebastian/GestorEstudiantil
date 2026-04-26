@@ -274,12 +274,16 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
-    fun descargarArchivo(supabasePath: String, nombreArchivo: String) {
+    fun descargarArchivo(supabasePath: String, nombreArchivo: String, isDirectDownload: Boolean = false) {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true) }
                 val bytes = tareaRepository.descargarArchivo(supabasePath)
-                FileOpener.openFile(context, bytes, nombreArchivo)
+                if (isDirectDownload) {
+                    FileOpener.downloadFile(context, bytes, nombreArchivo)
+                } else {
+                    FileOpener.openFile(context, bytes, nombreArchivo)
+                }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_open_file), Toast.LENGTH_SHORT).show()

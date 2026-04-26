@@ -121,7 +121,12 @@ fun VerEntregasProfesorContent(
                         },
                         onDescargar = {
                             entrega.adjunto.let { 
-                                viewModel.descargarArchivo(it.supabasePath, it.nombreArchivo)
+                                onOpenDialog(DialogState.AttachmentOptions(
+                                    supabasePath = it.supabasePath,
+                                    fileName = it.nombreArchivo,
+                                    onOpen = { path, name -> viewModel.descargarArchivo(path, name, isDirectDownload = false) },
+                                    onDownload = { path, name -> viewModel.descargarArchivo(path, name, isDirectDownload = true) }
+                                ))
                             }
                         }
                     )

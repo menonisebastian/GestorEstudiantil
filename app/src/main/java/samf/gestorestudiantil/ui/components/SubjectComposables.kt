@@ -49,7 +49,8 @@ fun UnidadCard(
     onDeletePost: ((Post) -> Unit)? = null,
     onEditTarea: ((Tarea) -> Unit)? = null,
     onDeleteTarea: ((Tarea) -> Unit)? = null,
-    onTareaClick: ((Tarea) -> Unit)? = null
+    onTareaClick: ((Tarea) -> Unit)? = null,
+    onAttachmentClick: ((String, String) -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -156,7 +157,8 @@ fun UnidadCard(
                         tarea = tarea,
                         onEdit = onEditTarea?.let { { it(tarea) } },
                         onDelete = onDeleteTarea?.let { { it(tarea) } },
-                        onClick = onTareaClick?.let { { it(tarea) } }
+                        onClick = onTareaClick?.let { { it(tarea) } },
+                        onAttachmentClick = onAttachmentClick
                     )
                 }
             }
@@ -169,7 +171,8 @@ fun TareaCard(
     tarea: Tarea,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onAttachmentClick: ((String, String) -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -237,16 +240,10 @@ fun TareaCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (tarea.adjunto != null) {
-                val estudianteViewModel: EstudianteViewModel = viewModel()
-                val profesorViewModel: ProfesorViewModel = viewModel()
                 Surface(
                     onClick = {
                         tarea.adjunto?.let { adjunto ->
-                            if (onEdit != null) { // Si onEdit no es null, es un profesor
-                                profesorViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
-                            } else {
-                                estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
-                            }
+                            onAttachmentClick?.invoke(adjunto.supabasePath, adjunto.nombreArchivo)
                         }
                     },
                     shape = RoundedCornerShape(8.dp),

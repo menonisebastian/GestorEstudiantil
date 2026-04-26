@@ -191,6 +191,14 @@ fun MateriaDetalleEstudiantePanel(
                                 }
                             )
                         )
+                    },
+                    onAttachmentClick = { path, name ->
+                        onOpenDialog(DialogState.AttachmentOptions(
+                            supabasePath = path,
+                            fileName = name,
+                            onOpen = { p, n -> viewModel.descargarArchivo(p, n, isDirectDownload = false) },
+                            onDownload = { p, n -> viewModel.descargarArchivo(p, n, isDirectDownload = true) }
+                        ))
                     }
                 )
             }

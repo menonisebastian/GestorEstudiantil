@@ -149,7 +149,10 @@ fun TareaDetalleEstudianteContent(
         tarea.adjunto?.let { adjunto ->
             OutlinedCard(
                 onClick = { 
-                    viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                    state.onAttachmentClick?.invoke(adjunto.supabasePath, adjunto.nombreArchivo) ?: run {
+                        // Fallback si no se pasó el callback (aunque debería estar siempre)
+                        viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.outlinedCardColors(containerColor = backgroundColor)

@@ -157,7 +157,7 @@ fun EvaluacionProfesorItem(
 
 @Composable
 fun VerDetalleEvaluacionDialog(
-    evaluacion: Evaluacion,
+    state: DialogState.VerDetalleEvaluacion,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -165,14 +165,14 @@ fun VerDetalleEvaluacionDialog(
         containerColor = backgroundColor,
         title = {
             Column {
-                TypeChip(option = evaluacion.tipoEvaluacion)
+                TypeChip(option = state.evaluacion.tipoEvaluacion)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(evaluacion.nombre, fontWeight = FontWeight.Bold, color = textColor)
+                Text(state.evaluacion.nombre, fontWeight = FontWeight.Bold, color = textColor)
             }
         },
         text = {
             VerDetalleEvaluacionContent(
-                evaluacion = evaluacion
+                state = state
             )
         },
         confirmButton = {
@@ -190,9 +190,10 @@ fun VerDetalleEvaluacionDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerDetalleEvaluacionBottomSheet(
-    evaluacion: Evaluacion,
+    state: DialogState.VerDetalleEvaluacion,
     onDismiss: () -> Unit
 ) {
+    val evaluacion = state.evaluacion
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -210,7 +211,7 @@ fun VerDetalleEvaluacionBottomSheet(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             VerDetalleEvaluacionContent(
-                evaluacion = evaluacion
+                state = state
             )
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -219,8 +220,9 @@ fun VerDetalleEvaluacionBottomSheet(
 
 @Composable
 fun VerDetalleEvaluacionContent(
-    evaluacion: Evaluacion
+    state: DialogState.VerDetalleEvaluacion
 ) {
+    val evaluacion = state.evaluacion
     val viewModel: ProfesorViewModel = hiltViewModel()
 
     Column(
@@ -259,7 +261,11 @@ fun VerDetalleEvaluacionContent(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Archivo adjunto", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
                 OutlinedCard(
-                    onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
+                    onClick = { 
+                        state.onAttachmentClick?.invoke(adjunto.supabasePath, adjunto.nombreArchivo) ?: run {
+                            viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = surfaceColor),
                     shape = RoundedCornerShape(12.dp)
@@ -281,22 +287,19 @@ fun VerDetalleEvaluacionContent(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddEditCalificacionDialog(
-    evaluacion: Evaluacion,
+    state: DialogState.AddEditCalificacion,
     onDismiss: () -> Unit,
-    onSave: (Evaluacion) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = backgroundColor,
-        title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold, color = textColor) },
+        title = { Text(if (state.evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold, color = textColor) },
         text = {
             AddEditCalificacionContent(
-                evaluacion = evaluacion,
-                onDismiss = onDismiss,
-                onSave = onSave
+                state = state,
+                onDismiss = onDismiss
             )
         },
         confirmButton = {},
@@ -307,10 +310,10 @@ fun AddEditCalificacionDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditCalificacionBottomSheet(
-    evaluacion: Evaluacion,
+    state: DialogState.AddEditCalificacion,
     onDismiss: () -> Unit,
-    onSave: (Evaluacion) -> Unit
 ) {
+    val evaluacion = state.evaluacion
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -326,21 +329,20 @@ fun AddEditCalificacionBottomSheet(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             AddEditCalificacionContent(
-                evaluacion = evaluacion,
-                onDismiss = onDismiss,
-                onSave = onSave
+                state = state,
+                onDismiss = onDismiss
             )
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AddEditCalificacionContent(
-    evaluacion: Evaluacion,
+    state: DialogState.AddEditCalificacion,
     onDismiss: () -> Unit,
-    onSave: (Evaluacion) -> Unit
 ) {
+    val evaluacion = state.evaluacion
     var nombre by remember { mutableStateOf(evaluacion.nombre) }
     var nota by remember { mutableStateOf(evaluacion.nota.let { if (it == 0.0 && evaluacion.id.isEmpty()) "" else String.format(Locale.US, "%.2f", it) }) }
     var tipoSeleccionado by remember { mutableStateOf(evaluacion.tipoEvaluacion) }
@@ -427,7 +429,11 @@ fun AddEditCalificacionContent(
         evaluacion.adjunto?.let { adjunto ->
             val viewModel: ProfesorViewModel = hiltViewModel()
             OutlinedCard(
-                onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
+                onClick = { 
+                    state.onAttachmentClick?.invoke(adjunto.supabasePath, adjunto.nombreArchivo) ?: run {
+                        viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.outlinedCardColors(containerColor = surfaceColor),
                 shape = RoundedCornerShape(12.dp)
@@ -461,7 +467,7 @@ fun AddEditCalificacionContent(
             }
             Button(
                 onClick = {
-                    onSave(evaluacion.copy(
+                    state.onSave(evaluacion.copy(
                         nombre = nombre,
                         nota = nota.replace(",", ".").toDoubleOrNull() ?: 0.0,
                         tipoEvaluacion = tipoSeleccionado,

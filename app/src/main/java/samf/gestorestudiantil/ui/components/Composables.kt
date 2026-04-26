@@ -394,7 +394,7 @@ fun CustomNotificationCard(
                         shape = RoundedCornerShape(12.dp),
                         colors = IconButtonDefaults.iconButtonColors(containerColor = tertiaryColor.copy(alpha = 0.1f))
                     ) {
-                        Icon(Icons.Outlined.FileDownload, "Descargar", tint = tertiaryColor, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.AttachFile, "Adjunto", tint = tertiaryColor, modifier = Modifier.size(20.dp))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
