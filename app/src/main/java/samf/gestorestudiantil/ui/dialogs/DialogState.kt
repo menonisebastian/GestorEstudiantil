@@ -20,13 +20,9 @@ sealed class DialogState {
     ) : DialogState()
 
     // 2. Diálogos de Recordatorios (Usado en HomeScreen y RecordatoriosPanel)
-    data class AddRecordatorio(
+    data class Recordatorio(
         val initialDate: String = "",
-        val onSave: (String, String, String, String, tipoRecordatorio) -> Unit
-    ) : DialogState()
-
-    data class EditRecordatorio(
-        val recordatorio: samf.gestorestudiantil.data.models.Recordatorio,
+        val recordatorioExistente: samf.gestorestudiantil.data.models.Recordatorio? = null,
         val onSave: (samf.gestorestudiantil.data.models.Recordatorio) -> Unit
     ) : DialogState()
 

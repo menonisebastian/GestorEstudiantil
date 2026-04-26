@@ -28,7 +28,6 @@ import samf.gestorestudiantil.ui.viewmodels.TareaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTareaDialog(
     state: DialogState.AddTarea,
@@ -36,7 +35,60 @@ fun AddTareaDialog(
     onDismissRequest: () -> Unit,
     viewModel: TareaViewModel = hiltViewModel()
 ) {
-    
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(if (state.tareaExistente == null) "Nueva Tarea" else "Editar Tarea") },
+        containerColor = backgroundColor,
+        text = {
+            AddTareaContent(
+                state = state,
+                onShowDialog = onShowDialog,
+                onDismissRequest = onDismissRequest,
+                viewModel = viewModel
+            )
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddTareaBottomSheet(
+    state: DialogState.AddTarea,
+    onShowDialog: (DialogState) -> Unit,
+    onDismissRequest: () -> Unit,
+    viewModel: TareaViewModel = hiltViewModel()
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = if (state.tareaExistente == null) "Nueva Tarea" else "Editar Tarea",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            AddTareaContent(
+                state = state,
+                onShowDialog = onShowDialog,
+                onDismissRequest = onDismissRequest,
+                viewModel = viewModel
+            )
+        }
+    }
+}
+
+@Composable
+fun AddTareaContent(
+    state: DialogState.AddTarea,
+    onShowDialog: (DialogState) -> Unit,
+    onDismissRequest: () -> Unit,
+    viewModel: TareaViewModel = hiltViewModel()
+) {
     LaunchedEffect(state.tareaExistente) {
         viewModel.inicializarCon(state.tareaExistente)
     }
@@ -47,113 +99,116 @@ fun AddTareaDialog(
         viewModel.onFileSelected(uri)
     }
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(if (state.tareaExistente == null) "Nueva Tarea" else "Editar Tarea") },
-        containerColor = backgroundColor,
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                CustomTextField(value = viewModel.titulo, onValueChange = { viewModel.titulo = it }, label = "Título")
-                CustomTextField(
-                    value = viewModel.descripcion,
-                    onValueChange = { viewModel.descripcion = it },
-                    label = "Instrucciones",
-                    singleLine = false,
-                    minLines = 3
-                )
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CustomTextField(value = viewModel.titulo, onValueChange = { viewModel.titulo = it }, label = "Título")
+        CustomTextField(
+            value = viewModel.descripcion,
+            onValueChange = { viewModel.descripcion = it },
+            label = "Instrucciones",
+            singleLine = false,
+            minLines = 3
+        )
 
-                // Selectores de Fecha y Hora
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CustomDateField(
-                        value = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(viewModel.fechaLimite),
-                        label = "Fecha Límite",
-                        onShowDatePicker = {
-                            val dateString = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(viewModel.fechaLimite)
-                            onShowDialog(DialogState.DatePicker(dateString) { newDateString ->
-                                val sdf = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-                                sdf.parse(newDateString)?.let { newDate ->
-                                    viewModel.updateFecha(newDate)
-                                }
-                            })
+        // Selectores de Fecha y Hora
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CustomDateField(
+                value = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(viewModel.fechaLimite),
+                label = "Fecha Límite",
+                onShowDatePicker = {
+                    val dateString = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(viewModel.fechaLimite)
+                    onShowDialog(DialogState.DatePicker(dateString) { newDateString ->
+                        val sdf = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                        sdf.parse(newDateString)?.let { newDate ->
+                            viewModel.updateFecha(newDate)
                         }
-                    )
-                    CustomTimeField(
-                        value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(viewModel.fechaLimite),
-                        label = "Hora Límite",
-                        onShowTimePicker = {
-                            val timeString = SimpleDateFormat("HH:mm", Locale.getDefault()).format(viewModel.fechaLimite)
-                            onShowDialog(DialogState.TimePicker(timeString) { newTimeString ->
-                                val parts = newTimeString.split(":")
-                                if (parts.size == 2) {
-                                    viewModel.updateHora(parts[0].toInt(), parts[1].toInt())
-                                }
-                            })
+                    })
+                }
+            )
+            CustomTimeField(
+                value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(viewModel.fechaLimite),
+                label = "Hora Límite",
+                onShowTimePicker = {
+                    val timeString = SimpleDateFormat("HH:mm", Locale.getDefault()).format(viewModel.fechaLimite)
+                    onShowDialog(DialogState.TimePicker(timeString) { newTimeString ->
+                        val parts = newTimeString.split(":")
+                        if (parts.size == 2) {
+                            viewModel.updateHora(parts[0].toInt(), parts[1].toInt())
                         }
+                    })
+                }
+            )
+        }
+
+        // Selector de Archivo
+        OutlinedCard(
+            onClick = { filePickerLauncher.launch("*/*") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.outlinedCardColors(containerColor = backgroundColor)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.AttachFile, contentDescription = null, tint = primaryColor)
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Documento Adjunto (opcional)", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
+                    val displaySize = if (viewModel.selectedFileSize > 0) {
+                        val kb = viewModel.selectedFileSize / 1024.0
+                        if (kb > 1024) String.format(Locale.getDefault(), "%.2f MB", kb / 1024.0)
+                        else String.format(Locale.getDefault(), "%.2f KB", kb)
+                    } else ""
+                    
+                    Text(
+                        text = if (viewModel.selectedFileName.isEmpty()) "Seleccionar archivo..." 
+                               else if (displaySize.isNotEmpty()) "${viewModel.selectedFileName} ($displaySize)"
+                               else viewModel.selectedFileName,
+                        color = if (viewModel.selectedFileName.isEmpty()) surfaceDimColor else textColor,
+                        maxLines = 1
                     )
                 }
-
-                // Selector de Archivo
-                OutlinedCard(
-                    onClick = { filePickerLauncher.launch("*/*") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.outlinedCardColors(containerColor = backgroundColor)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.AttachFile, contentDescription = null, tint = primaryColor)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Documento Adjunto (opcional)", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
-                            val displaySize = if (viewModel.selectedFileSize > 0) {
-                                val kb = viewModel.selectedFileSize / 1024.0
-                                if (kb > 1024) String.format(Locale.getDefault(), "%.2f MB", kb / 1024.0)
-                                else String.format(Locale.getDefault(), "%.2f KB", kb)
-                            } else ""
-                            
-                            Text(
-                                text = if (viewModel.selectedFileName.isEmpty()) "Seleccionar archivo..." 
-                                       else if (displaySize.isNotEmpty()) "${viewModel.selectedFileName} ($displaySize)"
-                                       else viewModel.selectedFileName,
-                                color = if (viewModel.selectedFileName.isEmpty()) surfaceDimColor else textColor,
-                                maxLines = 1
-                            )
-                        }
-                        if (viewModel.selectedFileName.isNotEmpty() && viewModel.selectedFileUri != null) {
-                            IconButton(onClick = { viewModel.removeFile() }) {
-                                Icon(Icons.Default.Close, contentDescription = "Quitar", modifier = Modifier.size(16.dp))
-                            }
-                        }
+                if (viewModel.selectedFileName.isNotEmpty() && viewModel.selectedFileUri != null) {
+                    IconButton(onClick = { viewModel.removeFile() }) {
+                        Icon(Icons.Default.Close, contentDescription = "Quitar", modifier = Modifier.size(16.dp))
                     }
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable { viewModel.visible = !viewModel.visible },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Visible para estudiantes")
-                    Switch(
-                        checked = viewModel.visible,
-                        onCheckedChange = { viewModel.visible = it },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = whiteColor,
-                            checkedTrackColor = primaryColor,
-                            uncheckedThumbColor = surfaceDimColor,
-                            uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
-                        )
-                    )
-                }
             }
-        },
-        confirmButton = {
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().clickable { viewModel.visible = !viewModel.visible },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Visible para estudiantes")
+            Switch(
+                checked = viewModel.visible,
+                onCheckedChange = { viewModel.visible = it },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = whiteColor,
+                    checkedTrackColor = primaryColor,
+                    uncheckedThumbColor = surfaceDimColor,
+                    uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                )
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextButton(
+                onClick = onDismissRequest,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Cancelar", color = textColor)
+            }
             Button(
                 onClick = {
                     viewModel.save(state.asignaturaId, state.unidadId) { tarea, data, name, mime ->
@@ -161,15 +216,11 @@ fun AddTareaDialog(
                         onDismissRequest()
                     }
                 },
-                enabled = viewModel.titulo.isNotBlank()
+                enabled = viewModel.titulo.isNotBlank(),
+                modifier = Modifier.weight(1f)
             ) {
                 Text(if (state.tareaExistente == null) "Crear" else "Guardar")
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancelar")
-            }
         }
-    )
+    }
 }

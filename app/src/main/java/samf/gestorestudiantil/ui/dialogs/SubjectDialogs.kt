@@ -5,22 +5,61 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.ui.graphics.Color
-import samf.gestorestudiantil.ui.components.CustomOptionsTextField
-import samf.gestorestudiantil.ui.components.CustomTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import samf.gestorestudiantil.ui.theme.backgroundColor
-import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.surfaceDimColor
-import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.whiteColor
+import samf.gestorestudiantil.ui.components.CustomOptionsTextField
+import samf.gestorestudiantil.ui.components.CustomTextField
+import samf.gestorestudiantil.ui.theme.*
 
 @Composable
 fun AddUnidadDialog(
+    state: DialogState.AddUnidad,
+    onDismissRequest: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(if (state.unidadId == null) "Nueva Unidad" else "Editar Unidad") },
+        containerColor = backgroundColor,
+        text = {
+            AddUnidadContent(state = state, onDismissRequest = onDismissRequest)
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddUnidadBottomSheet(
+    state: DialogState.AddUnidad,
+    onDismissRequest: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = if (state.unidadId == null) "Nueva Unidad" else "Editar Unidad",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            AddUnidadContent(state = state, onDismissRequest = onDismissRequest)
+        }
+    }
+}
+
+@Composable
+fun AddUnidadContent(
     state: DialogState.AddUnidad,
     onDismissRequest: () -> Unit
 ) {
@@ -28,69 +67,110 @@ fun AddUnidadDialog(
     var descripcion by remember { mutableStateOf(state.descripcionInicial) }
     var visible by remember { mutableStateOf(state.visibleInicial) }
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(if (state.unidadId == null) "Nueva Unidad" else "Editar Unidad") },
-        containerColor = backgroundColor,
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CustomTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = "Nombre de la unidad"
+        )
+        CustomTextField(
+            value = descripcion,
+            onValueChange = { descripcion = it },
+            label = "Descripción",
+            singleLine = false,
+            minLines = 3
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { visible = !visible },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Visible para estudiantes")
+            Switch(
+                checked = visible,
+                onCheckedChange = null,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = primaryColor,
+                    checkedTrackColor = primaryColor.copy(alpha = 0.5f),
+                    uncheckedThumbColor = surfaceDimColor,
+                    uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                )
+            )
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextButton(
+                onClick = onDismissRequest,
+                modifier = Modifier.weight(1f)
             ) {
-                CustomTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = "Nombre de la unidad"
-                )
-                CustomTextField(
-                    value = descripcion,
-                    onValueChange = { descripcion = it },
-                    label = "Descripción",
-                    singleLine = false,
-                    minLines = 3
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { visible = !visible },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Visible para estudiantes")
-                    Switch(
-                        checked = visible,
-                        onCheckedChange = null,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = primaryColor,
-                            checkedTrackColor = primaryColor.copy(alpha = 0.5f),
-                            uncheckedThumbColor = surfaceDimColor,
-                            uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
-                        )
-                    )
-                }
+                Text("Cancelar", color = textColor)
             }
-        },
-        confirmButton = {
             Button(
                 onClick = {
                     state.onSave(nombre, descripcion, visible)
                     onDismissRequest()
                 },
-                enabled = nombre.isNotBlank()
+                enabled = nombre.isNotBlank(),
+                modifier = Modifier.weight(1f)
             ) {
                 Text(if (state.unidadId == null) "Crear" else "Guardar")
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancelar")
-            }
         }
-    )
+    }
 }
 
 @Composable
 fun EditHorarioDialog(
+    state: DialogState.EditHorario,
+    onDismissRequest: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Asignar Materia") },
+        containerColor = backgroundColor,
+        text = {
+            EditHorarioContent(state = state, onDismissRequest = onDismissRequest)
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditHorarioBottomSheet(
+    state: DialogState.EditHorario,
+    onDismissRequest: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Asignar Materia",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            EditHorarioContent(state = state, onDismissRequest = onDismissRequest)
+        }
+    }
+}
+
+@Composable
+fun EditHorarioContent(
     state: DialogState.EditHorario,
     onDismissRequest: () -> Unit
 ) {
@@ -99,79 +179,66 @@ fun EditHorarioDialog(
 
     val selectedAsignatura = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text("Asignar Materia") },
-        containerColor = backgroundColor,
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(text = "${state.horario.dia} (${state.horario.horaInicio} - ${state.horario.horaFin})", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(text = "${state.horario.dia} (${state.horario.horaInicio} - ${state.horario.horaFin})", fontWeight = FontWeight.Bold)
 
-                CustomOptionsTextField(
-                    texto = selectedAsignatura?.let { "${it.acronimo} - ${it.nombre}" } ?: "Ninguna / Vacío",
-                    onValueChange = { seleccion ->
-                        selectedAsignaturaId = if (seleccion == "Ninguna / Vacío") "" 
-                        else state.asignaturasDisponibles.find { "${it.acronimo} - ${it.nombre}" == seleccion }?.id ?: ""
-                    },
-                    opciones = listOf("Ninguna / Vacío") + state.asignaturasDisponibles.map { "${it.acronimo} - ${it.nombre}" },
-                    label = "Asignatura"
-                )
+        CustomOptionsTextField(
+            texto = selectedAsignatura?.let { "${it.acronimo} - ${it.nombre}" } ?: "Ninguna / Vacío",
+            onValueChange = { seleccion ->
+                selectedAsignaturaId = if (seleccion == "Ninguna / Vacío") "" 
+                else state.asignaturasDisponibles.find { "${it.acronimo} - ${it.nombre}" == seleccion }?.id ?: ""
+            },
+            opciones = listOf("Ninguna / Vacío") + state.asignaturasDisponibles.map { "${it.acronimo} - ${it.nombre}" },
+            label = "Asignatura"
+        )
 
-                CustomTextField(
-                    value = aula,
-                    onValueChange = { aula = it },
-                    label = "Aula"
-                )
-            }
-        },
-        confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                if (state.horario.id.isNotEmpty()) {
-                    TextButton(
-                        onClick = {
-                            state.onDelete(state.horario)
-                            onDismissRequest()
-                        },
-                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
-                    ) {
-                        Text("Eliminar")
-                    }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
-                }
+        CustomTextField(
+            value = aula,
+            onValueChange = { aula = it },
+            label = "Aula"
+        )
 
-                Button(
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            if (state.horario.id.isNotEmpty()) {
+                TextButton(
                     onClick = {
-                        val asig = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
-                        val updated = state.horario.copy(
-                            asignaturaId = selectedAsignaturaId,
-                            asignaturaAcronimo = asig?.acronimo ?: "",
-                            profesorId = asig?.profesorId ?: "",
-                            profesorNombre = asig?.profesorNombre ?: "",
-                            aula = aula
-                        )
-                        state.onSave(updated)
+                        state.onDelete(state.horario)
                         onDismissRequest()
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
                 ) {
-                    Text("Guardar")
+                    Text("Eliminar")
+                }
+            } else {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Cancelar", color = textColor)
                 }
             }
-        },
-        dismissButton = {
-            if (state.horario.id.isEmpty()) {
-                TextButton(onClick = onDismissRequest) {
-                    Text("Cancelar")
+
+            Button(
+                onClick = {
+                    val asig = state.asignaturasDisponibles.find { it.id == selectedAsignaturaId }
+                    val updated = state.horario.copy(
+                        asignaturaId = selectedAsignaturaId,
+                        asignaturaAcronimo = asig?.acronimo ?: "",
+                        profesorId = asig?.profesorId ?: "",
+                        profesorNombre = asig?.profesorNombre ?: "",
+                        aula = aula
+                    )
+                    state.onSave(updated)
+                    onDismissRequest()
                 }
+            ) {
+                Text("Guardar")
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -183,7 +250,7 @@ fun EditSelfProfileDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text("Editar Perfil", color = textColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) },
+        title = { Text("Editar Perfil", color = textColor, fontWeight = FontWeight.Bold) },
         containerColor = backgroundColor,
         text = {
             Column(
@@ -209,7 +276,7 @@ fun EditSelfProfileDialog(
                     onDismissRequest()
                 },
                 enabled = nombre.isNotBlank() && nombre != state.user.nombre,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = primaryColor)
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
             ) {
                 Text("Guardar", color = textColor)
             }
@@ -227,64 +294,105 @@ fun AddPostDialog(
     state: DialogState.AddPost,
     onDismissRequest: () -> Unit
 ) {
-    var titulo by remember { mutableStateOf(state.tituloInicial) }
-    var contenido by remember { mutableStateOf(state.contenidoInicial) }
-    var visible by remember { mutableStateOf(state.visibleInicial) }
-
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(if (state.postId == null) "Nueva Publicación" else "Editar Publicación") },
         containerColor = backgroundColor,
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                CustomTextField(
-                    value = titulo,
-                    onValueChange = { titulo = it },
-                    label = "Título"
-                )
-                CustomTextField(
-                    value = contenido,
-                    onValueChange = { contenido = it },
-                    label = "Contenido / Mensaje",
-                    singleLine = false,
-                    minLines = 5
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { visible = !visible },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Visible para estudiantes")
-                    Switch(checked = visible, onCheckedChange = null,
-                        colors = SwitchDefaults.colors(
-                        checkedThumbColor = whiteColor,
-                        checkedTrackColor = primaryColor,
-                        uncheckedThumbColor = surfaceDimColor,
-                        uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
-                    ))
-                }
-            }
+            AddPostContent(state = state, onDismissRequest = onDismissRequest)
         },
-        confirmButton = {
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddPostBottomSheet(
+    state: DialogState.AddPost,
+    onDismissRequest: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = if (state.postId == null) "Nueva Publicación" else "Editar Publicación",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            AddPostContent(state = state, onDismissRequest = onDismissRequest)
+        }
+    }
+}
+
+@Composable
+fun AddPostContent(
+    state: DialogState.AddPost,
+    onDismissRequest: () -> Unit
+) {
+    var titulo by remember { mutableStateOf(state.tituloInicial) }
+    var contenido by remember { mutableStateOf(state.contenidoInicial) }
+    var visible by remember { mutableStateOf(state.visibleInicial) }
+
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CustomTextField(
+            value = titulo,
+            onValueChange = { titulo = it },
+            label = "Título"
+        )
+        CustomTextField(
+            value = contenido,
+            onValueChange = { contenido = it },
+            label = "Contenido / Mensaje",
+            singleLine = false,
+            minLines = 5
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { visible = !visible },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Visible para estudiantes")
+            Switch(checked = visible, onCheckedChange = null,
+                colors = SwitchDefaults.colors(
+                checkedThumbColor = whiteColor,
+                checkedTrackColor = primaryColor,
+                uncheckedThumbColor = surfaceDimColor,
+                uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+            ))
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextButton(
+                onClick = onDismissRequest,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Cancelar", color = textColor)
+            }
             Button(
                 onClick = {
                     state.onSave(titulo, contenido, visible)
                     onDismissRequest()
                 },
-                enabled = titulo.isNotBlank() && contenido.isNotBlank()
+                enabled = titulo.isNotBlank() && contenido.isNotBlank(),
+                modifier = Modifier.weight(1f)
             ) {
                 Text(if (state.postId == null) "Publicar" else "Guardar")
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancelar")
-            }
         }
-    )
+    }
 }

@@ -4,8 +4,11 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.7.4] - 2026-04-26
 - **UI/UX**: Migración masiva de diálogos centrales a `ModalBottomSheet` para mejorar la usabilidad táctil y la consistencia visual en toda la aplicación.
-- **UI/UX**: Implementada la refactorización de `FilterByDialog`, `EditUserDialog`, `VerEntregasProfesorDialog`, `AsignarTutorDialog`, `AsignarProfesorDialog` y `AsignarAsignaturasDialog` al patrón de panel inferior.
+- **UI/UX**: Implementada la refactorización de `AddRecordatorio`, `EditRecordatorio`, `AddTarea`, `TareaDetalleEstudiante`, `AddUnidad`, `AddPost`, `EditHorario`, `VerDetalleEvaluacion` y `AddEditCalificacion` al patrón de panel inferior.
+- **Arquitectura**: Unificación de los diálogos de `AddRecordatorio` y `EditRecordatorio` en un componente único `RecordatorioDialog` para mejorar la mantenibilidad.
+- **Arquitectura**: Implementación de un sistema de "Apilamiento Selectivo" (Selective Stacking) en `DialogOrchestrator` para permitir la apertura de selectores de fecha/hora sobre paneles inferiores sin pérdida de estado.
 - **UI/UX**: Estandarizada la presencia del `dragHandle` en todos los BottomSheets para indicar interactividad de deslizamiento.
+- **UI/UX**: Eliminados botones de cierre redundantes en paneles informativos (`VerDetalleEvaluacion`) para aprovechar los gestos nativos de deslizamiento.
 - **Arquitectura**: Implementado el patrón `Content` en componentes de diálogo, permitiendo la reutilización de la lógica de UI tanto en diálogos tradicionales como en paneles inferiores.
 - **Estabilidad**: Corregido bug en el filtro de administración de usuarios donde las opciones aparecían vacías debido a una discrepancia en la resolución de tipos de recursos de string.
 

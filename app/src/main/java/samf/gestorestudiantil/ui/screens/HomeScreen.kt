@@ -255,8 +255,7 @@ fun HomeScreen(
     val onOpenDialog: (DialogState) -> Unit = remember(dialogStack) {
         { newState: DialogState ->
 
-            val shouldStack = newState is DialogState.AddRecordatorio || 
-                             newState is DialogState.EditRecordatorio ||
+            val shouldStack = newState is DialogState.Recordatorio || 
                              newState is DialogState.Confirmation
             
             if (!shouldStack) {
@@ -439,19 +438,10 @@ fun HomeScreen(
                     CustomFAB(
                         onClick = {
                             onOpenDialog(
-                                DialogState.AddRecordatorio(
+                                DialogState.Recordatorio(
                                     initialDate = "",
-                                    onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                        val nuevo = Recordatorio(
-                                            id = UUID.randomUUID().toString(),
-                                            usuarioId = usuario.id,
-                                            titulo = titulo,
-                                            descripcion = descripcion,
-                                            fecha = fecha,
-                                            hora = hora,
-                                            tipo = tipo
-                                        )
-                                        appViewModel.agregarRecordatorio(nuevo)
+                                    onSave = { recordatorio ->
+                                        appViewModel.agregarRecordatorio(recordatorio.copy(usuarioId = usuario.id))
                                     }
                                 )
                             )
@@ -630,27 +620,18 @@ private fun EstudianteNavContent(
                     paddingValues = PaddingValues(0.dp),
                     onAddRecordatorio = { fechaSeleccionada ->
                         onOpenDialog(
-                            DialogState.AddRecordatorio(
+                            DialogState.Recordatorio(
                                 initialDate = fechaSeleccionada,
-                                onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                    val nuevo = Recordatorio(
-                                        id = UUID.randomUUID().toString(),
-                                        usuarioId = usuario.id,
-                                        titulo = titulo,
-                                        descripcion = descripcion,
-                                        fecha = fecha,
-                                        hora = hora,
-                                        tipo = tipo
-                                    )
-                                    appViewModel.agregarRecordatorio(nuevo)
+                                onSave = { recordatorio ->
+                                    appViewModel.agregarRecordatorio(recordatorio.copy(usuarioId = usuario.id))
                                 }
                             )
                         )
                     },
                     onUpdateRecordatorio = { recordatorio ->
                         onOpenDialog(
-                            DialogState.EditRecordatorio(
-                                recordatorio = recordatorio,
+                            DialogState.Recordatorio(
+                                recordatorioExistente = recordatorio,
                                 onSave = { appViewModel.actualizarRecordatorio(it) }
                             )
                         )
@@ -824,27 +805,18 @@ private fun ProfesorNavContent(
                     paddingValues = PaddingValues(0.dp),
                     onAddRecordatorio = { fechaSeleccionada ->
                         onOpenDialog(
-                            DialogState.AddRecordatorio(
+                            DialogState.Recordatorio(
                                 initialDate = fechaSeleccionada,
-                                onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                    val nuevo = Recordatorio(
-                                        id = UUID.randomUUID().toString(),
-                                        usuarioId = usuario.id,
-                                        titulo = titulo,
-                                        descripcion = descripcion,
-                                        fecha = fecha,
-                                        hora = hora,
-                                        tipo = tipo
-                                    )
-                                    appViewModel.agregarRecordatorio(nuevo)
+                                onSave = { recordatorio ->
+                                    appViewModel.agregarRecordatorio(recordatorio.copy(usuarioId = usuario.id))
                                 }
                             )
                         )
                     },
                     onUpdateRecordatorio = { recordatorio ->
                         onOpenDialog(
-                            DialogState.EditRecordatorio(
-                                recordatorio = recordatorio,
+                            DialogState.Recordatorio(
+                                recordatorioExistente = recordatorio,
                                 onSave = { appViewModel.actualizarRecordatorio(it) }
                             )
                         )
@@ -1182,27 +1154,18 @@ private fun AdminNavContent(
                     paddingValues = PaddingValues(0.dp),
                     onAddRecordatorio = { fechaSeleccionada ->
                         onOpenDialog(
-                            DialogState.AddRecordatorio(
+                            DialogState.Recordatorio(
                                 initialDate = fechaSeleccionada,
-                                onSave = { titulo, descripcion, fecha, hora, tipo ->
-                                    val nuevo = Recordatorio(
-                                        id = UUID.randomUUID().toString(),
-                                        usuarioId = usuario.id,
-                                        titulo = titulo,
-                                        descripcion = descripcion,
-                                        fecha = fecha,
-                                        hora = hora,
-                                        tipo = tipo
-                                    )
-                                    appViewModel.agregarRecordatorio(nuevo)
+                                onSave = { recordatorio ->
+                                    appViewModel.agregarRecordatorio(recordatorio.copy(usuarioId = usuario.id))
                                 }
                             )
                         )
                     },
                     onUpdateRecordatorio = { recordatorio ->
                         onOpenDialog(
-                            DialogState.EditRecordatorio(
-                                recordatorio = recordatorio,
+                            DialogState.Recordatorio(
+                                recordatorioExistente = recordatorio,
                                 onSave = { appViewModel.actualizarRecordatorio(it) }
                             )
                         )

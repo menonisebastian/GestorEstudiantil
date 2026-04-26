@@ -96,8 +96,8 @@ fun RecordatoriosEstudiantePanel(
                         recordatorio = recordatorio,
                         onClick = {
                             onOpenDialog(
-                                DialogState.EditRecordatorio(
-                                    recordatorio = recordatorio,
+                                DialogState.Recordatorio(
+                                    recordatorioExistente = recordatorio,
                                     onSave = onUpdate
                                 )
                             )

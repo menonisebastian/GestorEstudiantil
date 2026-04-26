@@ -160,8 +160,6 @@ fun VerDetalleEvaluacionDialog(
     evaluacion: Evaluacion,
     onDismiss: () -> Unit
 ) {
-    val viewModel: ProfesorViewModel = hiltViewModel()
-
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = backgroundColor,
@@ -173,62 +171,9 @@ fun VerDetalleEvaluacionDialog(
             }
         },
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Calificación", color = surfaceDimColor, fontSize = 14.sp)
-                    Text(
-                        text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
-                    )
-                }
-
-                if (!evaluacion.comentario.isNullOrBlank()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(surfaceColor)
-                            .padding(12.dp)
-                    ) {
-                        Text("Comentario del profesor", style = MaterialTheme.typography.labelSmall, color = primaryColor, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(evaluacion.comentario!!, color = textColor, fontSize = 14.sp)
-                    }
-                }
-
-                evaluacion.adjunto?.let { adjunto ->
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Archivo adjunto", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
-                        OutlinedCard(
-                            onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.outlinedCardColors(containerColor = surfaceColor),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.Description, contentDescription = null, tint = primaryColor)
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(adjunto.nombreArchivo, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor, maxLines = 1)
-                                }
-                                Icon(Icons.Default.Download, contentDescription = "Descargar", tint = primaryColor)
-                            }
-                        }
-                    }
-                }
-            }
+            VerDetalleEvaluacionContent(
+                evaluacion = evaluacion
+            )
         },
         confirmButton = {
             Button(
@@ -242,10 +187,156 @@ fun VerDetalleEvaluacionDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VerDetalleEvaluacionBottomSheet(
+    evaluacion: Evaluacion,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            TypeChip(option = evaluacion.tipoEvaluacion)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = evaluacion.nombre,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            VerDetalleEvaluacionContent(
+                evaluacion = evaluacion
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+fun VerDetalleEvaluacionContent(
+    evaluacion: Evaluacion
+) {
+    val viewModel: ProfesorViewModel = hiltViewModel()
+
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Calificación", color = surfaceDimColor, fontSize = 14.sp)
+            Text(
+                text = String.format(Locale.getDefault(), "%.2f", evaluacion.nota),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = if (evaluacion.nota >= 5) Color(0xFF4CAF50) else Color(0xFFF44336)
+            )
+        }
+
+        if (!evaluacion.comentario.isNullOrBlank()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(surfaceColor)
+                    .padding(12.dp)
+            ) {
+                Text("Comentario del profesor", style = MaterialTheme.typography.labelSmall, color = primaryColor, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(evaluacion.comentario!!, color = textColor, fontSize = 14.sp)
+            }
+        }
+
+        evaluacion.adjunto?.let { adjunto ->
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Archivo adjunto", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
+                OutlinedCard(
+                    onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.outlinedCardColors(containerColor = surfaceColor),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Description, contentDescription = null, tint = primaryColor)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(adjunto.nombreArchivo, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor, maxLines = 1)
+                        }
+                        Icon(Icons.Default.Download, contentDescription = "Descargar", tint = primaryColor)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddEditCalificacionDialog(
+    evaluacion: Evaluacion,
+    onDismiss: () -> Unit,
+    onSave: (Evaluacion) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = backgroundColor,
+        title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold, color = textColor) },
+        text = {
+            AddEditCalificacionContent(
+                evaluacion = evaluacion,
+                onDismiss = onDismiss,
+                onSave = onSave
+            )
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEditCalificacionBottomSheet(
+    evaluacion: Evaluacion,
+    onDismiss: () -> Unit,
+    onSave: (Evaluacion) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = backgroundColor
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            AddEditCalificacionContent(
+                evaluacion = evaluacion,
+                onDismiss = onDismiss,
+                onSave = onSave
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun AddEditCalificacionContent(
     evaluacion: Evaluacion,
     onDismiss: () -> Unit,
     onSave: (Evaluacion) -> Unit
@@ -256,113 +347,118 @@ fun AddEditCalificacionDialog(
     var comentario by remember { mutableStateOf(evaluacion.comentario ?: "") }
     var visible by remember { mutableStateOf(evaluacion.visible) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = backgroundColor,
-        title = { Text(if (evaluacion.id.isEmpty()) "Nueva Calificación" else "Editar Calificación", fontWeight = FontWeight.Bold, color = textColor) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        CustomTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = "Nombre del trabajo/examen",
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Column {
+            Text("Tipo de evaluación", fontSize = 12.sp, color = surfaceDimColor, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CustomTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = "Nombre del trabajo/examen",
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Column {
-                    Text("Tipo de evaluación", fontSize = 12.sp, color = surfaceDimColor, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                tipoEvaluacion.entries.forEach { tipo ->
+                    val isSelected = tipoSeleccionado == tipo
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) tipo.color.copy(alpha = 0.2f) else surfaceColor)
+                            .clickable { tipoSeleccionado = tipo }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        tipoEvaluacion.entries.forEach { tipo ->
-                            val isSelected = tipoSeleccionado == tipo
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isSelected) tipo.color.copy(alpha = 0.2f) else surfaceColor)
-                                    .clickable { tipoSeleccionado = tipo }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = tipo.label,
-                                    color = if (isSelected) tipo.color else surfaceDimColor,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
-                    }
-                }
-
-                CustomTextField(
-                    value = nota,
-                    onValueChange = { if (it.isEmpty() || it.replace(",", ".").toDoubleOrNull() != null) nota = it },
-                    label = "Nota (0.0 - 10.0)",
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                )
-
-                CustomTextField(
-                    value = comentario,
-                    onValueChange = { comentario = it },
-                    label = "Comentario (opcional)",
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = false,
-                    minLines = 3
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text("Visibilidad para el estudiante", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
-                        Text(if (visible) "Visible" else "Oculto", color = surfaceDimColor, fontSize = 12.sp)
-                    }
-                    Switch(
-                        checked = visible,
-                        onCheckedChange = { visible = it },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = whiteColor,
-                            checkedTrackColor = primaryColor,
-                            uncheckedThumbColor = surfaceDimColor,
-                            uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                        Text(
+                            text = tipo.label,
+                            color = if (isSelected) tipo.color else surfaceDimColor,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 12.sp
                         )
-                    )
-                }
-
-                evaluacion.adjunto?.let { adjunto ->
-                    val viewModel: ProfesorViewModel = hiltViewModel()
-                    OutlinedCard(
-                        onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.outlinedCardColors(containerColor = surfaceColor),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Description, contentDescription = null, tint = primaryColor)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Archivo entregado", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
-                                Text(adjunto.nombreArchivo, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor, maxLines = 1)
-                            }
-                            Icon(Icons.Default.Download, contentDescription = "Descargar", tint = primaryColor)
-                        }
                     }
                 }
             }
-        },
-        confirmButton = {
+        }
+
+        CustomTextField(
+            value = nota,
+            onValueChange = { if (it.isEmpty() || it.replace(",", ".").toDoubleOrNull() != null) nota = it },
+            label = "Nota (0.0 - 10.0)",
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+        )
+
+        CustomTextField(
+            value = comentario,
+            onValueChange = { comentario = it },
+            label = "Comentario (opcional)",
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = false,
+            minLines = 3
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text("Visibilidad para el estudiante", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+                Text(if (visible) "Visible" else "Oculto", color = surfaceDimColor, fontSize = 12.sp)
+            }
+            Switch(
+                checked = visible,
+                onCheckedChange = { visible = it },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = whiteColor,
+                    checkedTrackColor = primaryColor,
+                    uncheckedThumbColor = surfaceDimColor,
+                    uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
+                )
+            )
+        }
+
+        evaluacion.adjunto?.let { adjunto ->
+            val viewModel: ProfesorViewModel = hiltViewModel()
+            OutlinedCard(
+                onClick = { viewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.outlinedCardColors(containerColor = surfaceColor),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Description, contentDescription = null, tint = primaryColor)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Archivo entregado", style = MaterialTheme.typography.labelSmall, color = surfaceDimColor)
+                        Text(adjunto.nombreArchivo, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor, maxLines = 1)
+                    }
+                    Icon(Icons.Default.Download, contentDescription = "Descargar", tint = primaryColor)
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Cancelar", color = textColor.copy(alpha = 0.7f))
+            }
             Button(
                 onClick = {
                     onSave(evaluacion.copy(
@@ -374,15 +470,13 @@ fun AddEditCalificacionDialog(
                     ))
                     onDismiss()
                 },
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
                 enabled = nombre.isNotBlank() && nota.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
             ) {
                 Text("Guardar", color = textColor)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar", color = textColor.copy(alpha = 0.7f)) }
         }
-    )
+    }
 }
