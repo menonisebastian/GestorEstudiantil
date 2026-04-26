@@ -3,9 +3,14 @@
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.7.5] - 2026-04-26
-- **Estabilidad**: Implementada la persistencia del estado de navegación mediante `rememberSaveable` y `kotlinx.serialization`, asegurando que la posición del usuario se mantenga tras cambios de configuración (rotación, modo oscuro).
-- **Corrección**: Resuelto crash crítico `SerializationException` al abrir la aplicación mediante la implementación de interfaces selladas (`sealed interface`) y serialización polimórfica en las rutas de navegación.
-- **Arquitectura**: Robustecida la restauración de backstacks en `HomeState` y `AppNavigation` con manejo de excepciones para prevenir fallos por datos de estado incompatibles.
+- **Funcionalidad**: Implementado un sistema integral de **Control de Asistencia Diaria** para profesores, permitiendo el marcado rápido (Presente, Ausente, Tarde, Justificado) mediante un panel inferior táctil.
+- **Funcionalidad**: Añadido **Guardado Automático** (Live-save) en la asistencia; los cambios se persisten instantáneamente en Firestore al seleccionar un estado.
+- **Funcionalidad**: Implementada la vista de **Asistencia Global para Estudiantes**, ofreciendo un historial cronológico filtrable por estado y asignatura de todos sus registros.
+- **UI/UX**: Integrado el historial de asistencia directamente en el `CustomDatePickerDialog`, permitiendo a los profesores navegar a fechas pasadas para consulta o edición.
+- **Navegación**: Reorganización del `TopAppBar` para estudiantes: acceso a Asistencia Global en el lado izquierdo y Calificaciones Globales en el derecho.
+- **Estabilidad**: Corregidos crashes de navegación (`IllegalArgumentException` y `SerializationException`) mediante la unificación de rutas y optimización de la serialización polimórfica en `HomeState`.
+- **UI/UX**: Vinculación de las imágenes de perfil en la lista de asistencia para abrir directamente el detalle del alumno (`UserProfileDialog`).
+- **Estabilidad**: Implementada la persistencia del estado de navegación mediante `rememberSaveable` y `kotlinx.serialization`, asegurando que la posición del usuario se mantenga tras cambios de configuración.
 - **UI/UX**: Implementado `ModalBottomSheet` para archivos adjuntos con un diseño minimalista, ofreciendo opciones para abrir directamente o descargar.
 - **Funcionalidad**: Añadida lógica de descarga de archivos a la carpeta pública de Descargas usando `MediaStore`.
 - **UI/UX**: Actualizado el icono de adjuntos en `CustomNotificationCard` a un clip (`AttachFile`) para mayor consistencia visual.

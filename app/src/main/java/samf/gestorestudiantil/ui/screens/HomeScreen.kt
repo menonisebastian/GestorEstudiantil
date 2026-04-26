@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Class
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,7 +70,6 @@ import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
-import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.BottomNavBar
@@ -87,8 +87,9 @@ import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.HorariosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.MateriaDetalleEstudiantePanel
-import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.filled.Checklist
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesGlobalesPanel
+import samf.gestorestudiantil.ui.panels.estudiante.AsistenciaGlobalEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.profesor.AsignaturasProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.CalificacionesDetalleEstudiante
@@ -96,7 +97,9 @@ import samf.gestorestudiantil.ui.panels.profesor.CalificacionesProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.EstudiantesAsignaturaLista
 import samf.gestorestudiantil.ui.panels.profesor.HorariosProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.MateriaDetalleProfesorPanel
+import samf.gestorestudiantil.ui.panels.profesor.AsistenciaPanel
 import samf.gestorestudiantil.ui.panels.CalendarioPanel
+import samf.gestorestudiantil.ui.viewmodels.AsistenciaViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -111,7 +114,6 @@ import samf.gestorestudiantil.ui.viewmodels.CurrentUserUiState
 import samf.gestorestudiantil.ui.viewmodels.EstudianteState
 import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorState
-import java.util.UUID
 
 
 val itemsEstudiante: Map<String, ImageVector> = mapOf(
@@ -175,6 +177,8 @@ fun HomeScreen(
 
     val adminViewModel: AdminViewModel = hiltViewModel()
     val adminState by adminViewModel.adminState.collectAsState()
+
+    val asistenciaViewModel: AsistenciaViewModel = hiltViewModel()
 
 
     LaunchedEffect(usuario.id) {
@@ -383,12 +387,30 @@ fun HomeScreen(
                                     modifier = Modifier.padding(8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.ListAlt,
+                                        imageVector = Icons.AutoMirrored.Filled.ListAlt,
                                         contentDescription = "Calificaciones Globales",
                                         tint = surfaceDimColor
                                     )
                                 }
                             }
+
+                            if (usuario.rol == "PROFESOR" && currentTab == "Asignaturas" && currentRoute is Routes.HomeRoutes.MateriaDetalle) {
+                                IconButton(
+                                    onClick = {
+                                        homeState.navigate("Asignaturas", Routes.HomeRoutes.Asistencia(currentRoute.asignatura))
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Checklist,
+                                        contentDescription = "Asistencia",
+                                        tint = surfaceDimColor
+                                    )
+                                }
+                            }
+
                             if (currentTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
                                 IconButton(
                                     onClick = {
@@ -407,7 +429,22 @@ fun HomeScreen(
                             }
                         },
                         navigationIcon = {
-                            if (currentStack != null && currentStack.size > 1) {
+                            if (usuario.rol == "ESTUDIANTE" && currentTab == "Asignaturas" && currentRoute is Routes.HomeRoutes.Materias) {
+                                IconButton(
+                                    onClick = {
+                                        homeState.navigate("Asignaturas", Routes.HomeRoutes.AsistenciaGlobalEstudiante)
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Checklist,
+                                        contentDescription = "Mi Asistencia Global",
+                                        tint = surfaceDimColor
+                                    )
+                                }
+                            } else if (currentStack != null && currentStack.size > 1) {
                                 IconButton(
                                     onClick = { homeState.pop(currentTab) },
                                     colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
@@ -517,6 +554,7 @@ fun HomeScreen(
                         onOpenDialog = onOpenDialog,
                         estudianteViewModel = estudianteViewModel,
                         profesorViewModel = profesorViewModel,
+                        asistenciaViewModel = asistenciaViewModel,
                         appViewModel = appViewModel,
                         onLogout = onLogout
                     )
@@ -531,6 +569,7 @@ fun HomeScreen(
                         homeState = homeState,
                         onOpenDialog = onOpenDialog,
                         profesorViewModel = profesorViewModel,
+                        asistenciaViewModel = asistenciaViewModel,
                         appViewModel = appViewModel,
                         onLogout = onLogout
                     )
@@ -572,6 +611,7 @@ private fun EstudianteNavContent(
     onOpenDialog: (DialogState) -> Unit,
     estudianteViewModel: EstudianteViewModel,
     profesorViewModel: ProfesorViewModel,
+    asistenciaViewModel: AsistenciaViewModel,
     appViewModel: AppViewModel,
     onLogout: () -> Unit
 ) {
@@ -822,6 +862,15 @@ private fun EstudianteNavContent(
                     }
                 )
             }
+            entry<Routes.HomeRoutes.AsistenciaGlobalEstudiante> {
+                AsistenciaGlobalEstudiantePanel(
+                    estudianteId = usuario.id,
+                    asignaturas = estudianteState.asignaturas,
+                    onOpenDialog = onOpenDialog,
+                    paddingValues = PaddingValues(0.dp),
+                    viewModel = asistenciaViewModel
+                )
+            }
             entry<Routes.HomeRoutes.Recordatorios> {
                 RecordatoriosEstudiantePanel(
                     recordatorios = appState.recordatorios,
@@ -852,6 +901,7 @@ private fun ProfesorNavContent(
     homeState: HomeState,
     onOpenDialog: (DialogState) -> Unit,
     profesorViewModel: ProfesorViewModel,
+    asistenciaViewModel: AsistenciaViewModel,
     appViewModel: AppViewModel,
     onLogout: () -> Unit
 ) {
@@ -897,6 +947,13 @@ private fun ProfesorNavContent(
                     profesor = usuario,
                     onOpenDialog = onOpenDialog,
                     viewModel = profesorViewModel
+                )
+            }
+            entry<Routes.HomeRoutes.Asistencia> { route ->
+                AsistenciaPanel(
+                    asignatura = route.asignatura,
+                    onOpenDialog = onOpenDialog,
+                    viewModel = asistenciaViewModel
                 )
             }
             entry<Routes.HomeRoutes.Horarios> {

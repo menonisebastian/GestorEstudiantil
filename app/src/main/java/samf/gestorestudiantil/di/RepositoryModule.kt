@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import samf.gestorestudiantil.data.repositories.AdminRepositoryImpl
 import samf.gestorestudiantil.data.repositories.AuthRepositoryImpl
+import samf.gestorestudiantil.data.repositories.AsistenciaRepositoryImpl
 import samf.gestorestudiantil.data.repositories.CourseRepositoryImpl
 import samf.gestorestudiantil.data.repositories.EstudianteRepositoryImpl
 import samf.gestorestudiantil.data.repositories.NotificationRepositoryImpl
@@ -14,6 +15,7 @@ import samf.gestorestudiantil.data.repositories.RecordatorioRepositoryImpl
 import samf.gestorestudiantil.data.repositories.TareaRepositoryImpl
 import samf.gestorestudiantil.data.repositories.UserRepositoryImpl
 import samf.gestorestudiantil.domain.repositories.AdminRepository
+import samf.gestorestudiantil.domain.repositories.AsistenciaRepository
 import samf.gestorestudiantil.domain.repositories.AuthRepository
 import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
@@ -81,4 +83,10 @@ abstract class RepositoryModule {
     abstract fun bindNotificationRepository(
         notificationRepositoryImpl: NotificationRepositoryImpl
     ): NotificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAsistenciaRepository(
+        asistenciaRepositoryImpl: AsistenciaRepositoryImpl
+    ): AsistenciaRepository
 }

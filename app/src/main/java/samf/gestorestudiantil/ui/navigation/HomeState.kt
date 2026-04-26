@@ -18,9 +18,9 @@ fun rememberHomeState(
 }
 
 class HomeState(
-    val tabs: List<String>,
+    tabs: List<String>,
     val rol: String,
-    initialBackStacks: Map<String, List<Routes.HomeRoutes>>? = null
+    initialBackStacks: Map<String, List<Routes.HomeRoutes>>? = null,
 ) {
     // Mapa de backstacks por cada pestaña
     val tabBackStacks = tabs.associateWith { tab ->
@@ -62,16 +62,20 @@ class HomeState(
     }
 
     companion object {
+        private val json = Json {
+            ignoreUnknownKeys = true
+        }
+
         fun saver(tabs: List<String>, rol: String) = Saver<HomeState, Map<String, List<String>>>(
             save = { state ->
                 state.tabBackStacks.mapValues { entry ->
-                    entry.value.map { Json.encodeToString(Routes.HomeRoutes.serializer(), it) }
+                    entry.value.map { json.encodeToString(Routes.HomeRoutes.serializer(), it) }
                 }
             },
             restore = { savedValue ->
                 val restoredStacks = try {
                     savedValue.mapValues { entry ->
-                        entry.value.map { Json.decodeFromString(Routes.HomeRoutes.serializer(), it) }
+                        entry.value.map { json.decodeFromString(Routes.HomeRoutes.serializer(), it) }
                     }
                 } catch (_: Exception) {
                     null

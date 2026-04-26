@@ -41,7 +41,7 @@ fun CustomDatePickerDialog(
                 val millis = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(normalizedDate)?.time
                     ?: System.currentTimeMillis()
 
-                if (millis < System.currentTimeMillis() - 86400000) {
+                if (!state.allowPastDates && millis < System.currentTimeMillis() - 86400000) {
                     System.currentTimeMillis()
                 } else {
                     millis
@@ -54,7 +54,7 @@ fun CustomDatePickerDialog(
         },
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis >= System.currentTimeMillis() - 86400000
+                return if (state.allowPastDates) true else utcTimeMillis >= System.currentTimeMillis() - 86400000
             }
         }
     )

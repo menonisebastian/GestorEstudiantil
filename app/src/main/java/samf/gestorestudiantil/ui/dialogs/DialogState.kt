@@ -2,6 +2,7 @@ package samf.gestorestudiantil.ui.dialogs
 
 import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.AsistenciaEstado
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Evaluacion
@@ -117,6 +118,7 @@ sealed class DialogState {
     // 7. Selectores de Fecha y Hora
     data class DatePicker(
         val initialDate: String,
+        val allowPastDates: Boolean = false,
         val onDateSelected: (String) -> Unit
     ) : DialogState()
 
@@ -169,5 +171,11 @@ sealed class DialogState {
     // 11. Permisos
     data class NotificationPermissionRationale(
         val onConfirm: () -> Unit
+    ) : DialogState()
+
+    data class SelectAsistencia(
+        val estudianteNombre: String,
+        val estadoActual: AsistenciaEstado?,
+        val onEstadoSelected: (AsistenciaEstado) -> Unit
     ) : DialogState()
 }

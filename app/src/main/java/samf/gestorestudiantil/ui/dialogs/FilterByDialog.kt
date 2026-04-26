@@ -124,17 +124,20 @@ fun FilterByContent(
             "Usuario" -> "Tipo de Usuario"
             "Recordatorio" -> "Tipo de Recordatorio"
             "Asignatura" -> "Asignatura"
+            "Asistencia" -> "Estado de Asistencia"
             else -> "Categoría"
         }
         val opcionesPrincipales = when (state.tipo) {
             "Usuario" -> userOptions
             "Recordatorio" -> recordatorioOptions
             "Asignatura" -> asignaturaOptions
+            "Asistencia" -> state.opcionesPersonalizadas["estados"] ?: emptyList()
             else -> emptyList()
         }
         val keyPrincipal = when (state.tipo) {
             "Recordatorio" -> "tipo"
             "Asignatura" -> "asignatura"
+            "Asistencia" -> "estado"
             else -> "rol"
         }
 
@@ -152,8 +155,8 @@ fun FilterByContent(
             )
         }
 
-        // Filtros adicionales para Usuarios / Calificaciones / Asignaturas
-        if (state.tipo == "Usuario" || state.tipo == "Calificaciones" || state.tipo == "Asignatura") {
+        // Filtros adicionales para Usuarios / Calificaciones / Asignaturas / Asistencia
+        if (state.tipo == "Usuario" || state.tipo == "Calificaciones" || state.tipo == "Asignatura" || state.tipo == "Asistencia") {
             if (cursoOptions.isNotEmpty()) {
                 FilterChipGroup(
                     label = "Curso",
@@ -194,7 +197,7 @@ fun FilterByContent(
                 )
             }
 
-            if (state.tipo == "Calificaciones" && asignaturaOptions.isNotEmpty()) {
+            if ((state.tipo == "Calificaciones" || state.tipo == "Asistencia") && asignaturaOptions.isNotEmpty()) {
                 FilterChipGroup(
                     label = "Asignatura",
                     options = asignaturaOptions,

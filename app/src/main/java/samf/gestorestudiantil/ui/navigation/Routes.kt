@@ -77,7 +77,15 @@ sealed interface Routes : NavKey {
         data object CalificacionesGlobales : HomeRoutes
 
         @Serializable
+        data object AsistenciaGlobalEstudiante : HomeRoutes
+
+        @Serializable
         data class EstudiantesAsignatura(
+            val asignatura: Asignatura
+        ) : HomeRoutes
+
+        @Serializable
+        data class Asistencia(
             val asignatura: Asignatura
         ) : HomeRoutes
 
