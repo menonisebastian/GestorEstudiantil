@@ -342,6 +342,7 @@ fun ProfileImagePicker(
 @Composable
 fun CustomNotificationCard(
     modifier: Modifier = Modifier,
+    isAsignaturaPanel: Boolean = false,
     recordatorio: Recordatorio,
     onClick: () -> Unit = {},
     onDelete: () -> Unit = {},
@@ -357,7 +358,9 @@ fun CustomNotificationCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = surfaceColor)
+        colors = CardDefaults.cardColors(
+            containerColor = if (isAsignaturaPanel) backgroundColor else surfaceColor
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

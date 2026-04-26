@@ -40,6 +40,7 @@ data class EstudianteState(
     val isLoading: Boolean = false,
     val asignaturas: List<Asignatura> = emptyList(),
     val evaluaciones: List<Evaluacion> = emptyList(),
+    val evaluacionesGlobales: List<Evaluacion> = emptyList(),
     val tareas: List<Tarea> = emptyList(),
     val miEntrega: Entrega? = null,
     val horarios: List<Horario> = emptyList(),
@@ -162,6 +163,22 @@ class EstudianteViewModel @Inject constructor(
             try {
                 val evaluations = estudianteRepository.getEvaluaciones(asignaturaId, estudianteId)
                 _state.update { it.copy(isLoading = false, evaluaciones = evaluations) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false, errorMessage = context.getString(R.string.error_load_evaluations)) }
+            }
+        }
+    }
+
+    fun cargarTodasLasEvaluaciones(estudianteId: String, asignaturaIds: List<String>) {
+        _state.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            try {
+                val allEvaluations = mutableListOf<Evaluacion>()
+                asignaturaIds.forEach { id ->
+                    val evals = estudianteRepository.getEvaluaciones(id, estudianteId)
+                    allEvaluations.addAll(evals)
+                }
+                _state.update { it.copy(isLoading = false, evaluacionesGlobales = allEvaluations) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = context.getString(R.string.error_load_evaluations)) }
             }

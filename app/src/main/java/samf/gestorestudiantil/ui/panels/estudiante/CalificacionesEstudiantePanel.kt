@@ -3,14 +3,11 @@ package samf.gestorestudiantil.ui.panels.estudiante
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -18,12 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.ui.components.AsignaturaCard
-import samf.gestorestudiantil.ui.theme.textColor
 
 @Composable
 fun CalificacionesEstudiantePanel(
@@ -57,14 +51,6 @@ fun CalificacionesEstudiantePanel(
                 .padding(horizontal = 20.dp)
         ) {
 
-            // Título (ya no necesita padding individual)
-            Text(
-                text = "Mis Calificaciones",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = textColor,
-                modifier = Modifier.padding(top = 16.dp)
-            )
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),

@@ -3,6 +3,9 @@
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.7.4] - 2026-04-26
+- **UI/UX**: Implementado el dashboard de **"Próximas entregas"** para estudiantes; una tarjeta expandible que muestra las tareas con vencimiento en los próximos 7 días con un badge de conteo dinámico.
+- **UI/UX**: Nueva pantalla de **Calificaciones Globales** para estudiantes; permite visualizar un resumen tabular de las notas medias de todas las materias con indicadores de color por asignatura y estado de aprobado/suspenso.
+- **Navegación**: Añadido botón de acceso rápido a Calificaciones Globales en la TopAppBar de la pestaña de Asignaturas (restringido a rol Estudiante).
 - **UI/UX**: Migración masiva de diálogos centrales a `ModalBottomSheet` para mejorar la usabilidad táctil y la consistencia visual en toda la aplicación.
 - **UI/UX**: Implementada la refactorización de `AddRecordatorio`, `EditRecordatorio`, `AddTarea`, `TareaDetalleEstudiante`, `AddUnidad`, `AddPost`, `EditHorario`, `VerDetalleEvaluacion` y `AddEditCalificacion` al patrón de panel inferior.
 - **Arquitectura**: Unificación de los diálogos de `AddRecordatorio` y `EditRecordatorio` en un componente único `RecordatorioDialog` para mejorar la mantenibilidad.

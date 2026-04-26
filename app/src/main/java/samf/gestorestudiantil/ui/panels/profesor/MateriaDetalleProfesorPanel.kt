@@ -178,7 +178,7 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Unidad",
                                 content = "¿Estás seguro de que deseas eliminar esta unidad y todo su contenido?",
-                                onConfirm = { 
+                                onConfirm = {
                                     viewModel.eliminarUnidad(unidad) {
                                         appViewModel.showSnackbar(
                                             message = "Unidad eliminada",
@@ -217,7 +217,7 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Publicación",
                                 content = "¿Estás seguro de que deseas eliminar esta publicación?",
-                                onConfirm = { 
+                                onConfirm = {
                                     viewModel.eliminarPost(post) {
                                         appViewModel.showSnackbar(
                                             message = "Publicación eliminada",
@@ -256,7 +256,7 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.Confirmation(
                                 title = "Eliminar Tarea",
                                 content = "¿Estás seguro de que deseas eliminar esta tarea y todas sus entregas?",
-                                onConfirm = { 
+                                onConfirm = {
                                     viewModel.eliminarTarea(tarea) {
                                         appViewModel.showSnackbar(
                                             message = "Tarea eliminada",

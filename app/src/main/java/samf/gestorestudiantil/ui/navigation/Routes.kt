@@ -71,6 +71,9 @@ sealed interface Routes {
         ) : HomeRoutes
 
         @Serializable
+        data object CalificacionesGlobales : HomeRoutes
+
+        @Serializable
         data class EstudiantesAsignatura(
             val asignatura: Asignatura
         ) : HomeRoutes

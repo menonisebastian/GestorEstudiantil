@@ -70,6 +70,7 @@ import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Recordatorio
+import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomFAB
@@ -86,6 +87,8 @@ import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.HorariosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.MateriaDetalleEstudiantePanel
+import androidx.compose.material.icons.filled.ListAlt
+import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesGlobalesPanel
 import samf.gestorestudiantil.ui.panels.estudiante.RecordatoriosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.profesor.AsignaturasProfesorPanel
 import samf.gestorestudiantil.ui.panels.profesor.CalificacionesDetalleEstudiante
@@ -370,6 +373,22 @@ fun HomeScreen(
                             IconLogo(width = 125.dp)
                         },
                         actions = {
+                            if (usuario.rol == "ESTUDIANTE" && currentTab == "Asignaturas" && currentRoute is Routes.HomeRoutes.Materias) {
+                                IconButton(
+                                    onClick = {
+                                        homeState.navigate("Asignaturas", Routes.HomeRoutes.CalificacionesGlobales)
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ListAlt,
+                                        contentDescription = "Calificaciones Globales",
+                                        tint = surfaceDimColor
+                                    )
+                                }
+                            }
                             if (currentTab == "Calendario" && currentRoute !is Routes.HomeRoutes.Recordatorios) {
                                 IconButton(
                                     onClick = {
@@ -585,10 +604,61 @@ private fun EstudianteNavContent(
                         homeState.navigate(pageTab, Routes.HomeRoutes.MateriaDetalle(asignatura))
                     }
                 }
+                val onTareaClickEstudiante = remember(usuario.id) {
+                    { tarea: Tarea ->
+                        estudianteViewModel.cargarMiEntrega(tarea.id, usuario.id)
+                        onOpenDialog(
+                            DialogState.TareaDetalleEstudiante(
+                                tarea = tarea,
+                                estudianteId = usuario.id,
+                                estudianteNombre = usuario.nombre,
+                                onEntregar = { data, name, mime ->
+                                    estudianteViewModel.realizarEntrega(
+                                        samf.gestorestudiantil.data.models.Entrega(
+                                            tareaId = tarea.id,
+                                            estudianteId = usuario.id,
+                                            estudianteNombre = usuario.nombre,
+                                            profesorId = tarea.profesorId,
+                                            asignaturaId = tarea.asignaturaId
+                                        ),
+                                        data,
+                                        name,
+                                        mime,
+                                        tarea.titulo
+                                    )
+                                },
+                                onEliminarEntrega = {
+                                    estudianteViewModel.state.value.miEntrega?.let { entrega ->
+                                        onOpenDialog(DialogState.Confirmation(
+                                            title = "Eliminar entrega",
+                                            content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                            onConfirm = {
+                                                estudianteViewModel.eliminarEntrega(entrega) {
+                                                    appViewModel.showSnackbar(
+                                                        message = "Entrega eliminada",
+                                                        actionLabel = "Deshacer",
+                                                        onAction = { }
+                                                    )
+                                                }
+                                            }
+                                        ))
+                                    }
+                                }
+                            )
+                        )
+                    }
+                }
                 AsignaturasEstudiantePanel(
                     asignaturas = estudianteState.asignaturas,
+                    tareas = estudianteState.tareas,
                     paddingValues = PaddingValues(0.dp),
-                    onAsignaturaClick = onAsignaturaClickEstudiante
+                    onAsignaturaClick = onAsignaturaClickEstudiante,
+                    onTareaClick = onTareaClickEstudiante,
+                    onDownloadTarea = { tarea ->
+                        tarea.adjunto?.let { adjunto ->
+                            estudianteViewModel.descargarArchivo(adjunto.supabasePath, adjunto.nombreArchivo)
+                        }
+                    }
                 )
             }
             entry<Routes.HomeRoutes.MateriaDetalle> { route ->
@@ -710,6 +780,20 @@ private fun EstudianteNavContent(
                     asignatura = route.asignatura,
                     evaluaciones = estudianteState.evaluaciones,
                     onOpenDialog = onOpenDialog
+                )
+            }
+            entry<Routes.HomeRoutes.CalificacionesGlobales> {
+                LaunchedEffect(Unit) {
+                    val ids = estudianteState.asignaturas.map { it.id }
+                    estudianteViewModel.cargarTodasLasEvaluaciones(usuario.id, ids)
+                }
+                CalificacionesGlobalesPanel(
+                    asignaturas = estudianteState.asignaturas,
+                    evaluaciones = estudianteState.evaluacionesGlobales,
+                    paddingValues = PaddingValues(0.dp),
+                    onAsignaturaClick = { asignatura ->
+                        homeState.navigate("Asignaturas", Routes.HomeRoutes.CalificacionesDetalle(asignatura))
+                    }
                 )
             }
             entry<Routes.HomeRoutes.Recordatorios> {
