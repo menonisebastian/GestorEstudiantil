@@ -2,6 +2,11 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.5] - 2026-04-26
+- **Estabilidad**: Implementada la persistencia del estado de navegación mediante `rememberSaveable` y `kotlinx.serialization`, asegurando que la posición del usuario se mantenga tras cambios de configuración (rotación, modo oscuro).
+- **Corrección**: Resuelto crash crítico `SerializationException` al abrir la aplicación mediante la implementación de interfaces selladas (`sealed interface`) y serialización polimórfica en las rutas de navegación.
+- **Arquitectura**: Robustecida la restauración de backstacks en `HomeState` y `AppNavigation` con manejo de excepciones para prevenir fallos por datos de estado incompatibles.
+
 ## [v0.7.4] - 2026-04-26
 - **UI/UX**: Implementado el dashboard de **"Próximas entregas"** para estudiantes; una tarjeta expandible que muestra las tareas con vencimiento en los próximos 7 días con un badge de conteo dinámico.
 - **UI/UX**: Nueva pantalla de **Calificaciones Globales** para estudiantes; permite visualizar un resumen tabular de las notas medias de todas las materias con indicadores de color por asignatura y estado de aprobado/suspenso.

@@ -8,10 +8,12 @@ import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
 
 // Definición de rutas Type-Safe
-sealed interface Routes {
+@Serializable
+sealed interface Routes : NavKey {
     @Serializable
-    data object Auth : Routes, NavKey
+    data object Auth : Routes
 
+    @Serializable
     sealed interface AuthRoutes : NavKey {
         @Serializable
         data object Login : AuthRoutes
@@ -32,21 +34,22 @@ sealed interface Routes {
         val email: String,
         val pass: String,
         val imgUrl: String
-    ) : Routes, NavKey
+    ) : Routes
 
     @Serializable
-    data object Pending : Routes, NavKey
+    data object Pending : Routes
 
     @Serializable
-    data object GooglePasswordSetup : Routes, NavKey
+    data object GooglePasswordSetup : Routes
 
     @Serializable
-    data class GoogleAcademicSetup(val password: String) : Routes, NavKey
+    data class GoogleAcademicSetup(val password: String) : Routes
 
     @Serializable
-    data object Home : Routes, NavKey
+    data object Home : Routes
 
     // Sub-rutas de HomeScreen
+    @Serializable
     sealed interface HomeRoutes : NavKey {
         @Serializable
         data object Materias : HomeRoutes
@@ -130,5 +133,5 @@ sealed interface Routes {
     }
 
     @Serializable
-    data object Profile : Routes, NavKey
+    data object Profile : Routes
 }

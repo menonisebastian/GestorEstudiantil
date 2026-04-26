@@ -16,12 +16,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.serialization.json.Json
 import samf.gestorestudiantil.ui.screens.AuthScreen
 import samf.gestorestudiantil.ui.screens.GoogleAcademicSetupScreen
 import samf.gestorestudiantil.ui.screens.GooglePasswordSetupScreen
@@ -35,7 +37,7 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 fun AppNavigation(
     targetAsignaturaId: String? = null,
     onNotificationHandled: () -> Unit = {},
-    darkTheme: Boolean
+    darkTheme: Boolean,
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
@@ -48,7 +50,26 @@ fun AppNavigation(
         else -> Routes.Home
     }
 
-    val backStack = remember { mutableStateListOf<Any>() }
+    val backStack = rememberSaveable(saver = Saver<MutableList<Any>, List<String>>(
+        save = { stack -> 
+            try {
+                stack.map { Json.encodeToString(Routes.serializer(), it as Routes) }
+            } catch (_: Exception) {
+                emptyList()
+            }
+        },
+        restore = { saved ->
+            val list = mutableStateListOf<Any>()
+            try {
+                list.addAll(saved.map { Json.decodeFromString(Routes.serializer(), it) })
+            } catch (_: Exception) {
+                // Si falla la restauración, dejaremos que el LaunchedEffect ponga el rootRoute
+            }
+            list
+        }
+    )) {
+        mutableStateListOf<Any>()
+    }
 
     LaunchedEffect(rootRoute) {
         if (rootRoute != null) {
