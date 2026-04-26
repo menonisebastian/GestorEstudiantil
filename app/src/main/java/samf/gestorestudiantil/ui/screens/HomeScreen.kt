@@ -957,7 +957,18 @@ private fun ProfesorNavContent(
                             ))
                         }
                     },
-                    onTareaClick = { /* Los profesores ven entregas desde MateriaDetalle */ }
+                    onTareaClick = { tarea ->
+                        onOpenDialog(
+                            DialogState.AddTarea(
+                                asignaturaId = tarea.asignaturaId,
+                                unidadId = tarea.unidadId,
+                                tareaExistente = tarea,
+                                onSave = { tareaEditada, fileData, fileName, mimeType ->
+                                    profesorViewModel.editarTarea(tareaEditada, fileData, fileName, mimeType)
+                                }
+                            )
+                        )
+                    }
                 )
             }
             entry<Routes.HomeRoutes.Calificaciones> {

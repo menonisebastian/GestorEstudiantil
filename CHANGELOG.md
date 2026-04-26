@@ -9,6 +9,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 - **UI/UX**: Implementado `ModalBottomSheet` para archivos adjuntos con un diseño minimalista, ofreciendo opciones para abrir directamente o descargar.
 - **Funcionalidad**: Añadida lógica de descarga de archivos a la carpeta pública de Descargas usando `MediaStore`.
 - **UI/UX**: Actualizado el icono de adjuntos en `CustomNotificationCard` a un clip (`AttachFile`) para mayor consistencia visual.
+- **Funcionalidad**: Diferenciado el comportamiento del click en tareas del calendario según el rol: los estudiantes abren el detalle para entrega y los profesores abren el diálogo de edición.
 
 ## [v0.7.4] - 2026-04-26
 - **UI/UX**: Implementado el dashboard de **"Próximas entregas"** para estudiantes; una tarjeta expandible que muestra las tareas con vencimiento en los próximos 7 días con un badge de conteo dinámico.
