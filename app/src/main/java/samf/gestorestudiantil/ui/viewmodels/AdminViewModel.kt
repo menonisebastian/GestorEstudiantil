@@ -246,17 +246,6 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun recalcularContadores() {
-        viewModelScope.launch {
-            _adminState.value = _adminState.value.copy(isLoading = true)
-            try {
-                adminRepository.recalcularTodosLosContadores()
-                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.success_counters_synced))
-            } catch (e: Exception) {
-                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.error_sync_counters))
-            }
-        }
-    }
 
     fun generarClasesPorDefecto(centroId: String) {
         viewModelScope.launch {

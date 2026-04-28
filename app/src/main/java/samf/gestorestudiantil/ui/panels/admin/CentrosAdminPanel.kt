@@ -295,6 +295,13 @@ fun CiclosScreen(
                     items = asignaturasDelCiclo,
                     key = { it.id.ifEmpty { it.idDocumento } }
                 ) { asignatura ->
+                    val claseCorrespondiente = adminState.clases.find { clase ->
+                        clase.cursoGlobalId == asignatura.cursoId &&
+                                clase.turno.equals(asignatura.turno, ignoreCase = true) &&
+                                clase.cicloNum == asignatura.cicloNum
+                    }
+                    val numEstudiantes = claseCorrespondiente?.estudiantesIds?.size ?: 0
+
                     AsignaturaCard(
                         modifier = Modifier.animateItem(
                             fadeInSpec = tween(150),
@@ -302,6 +309,7 @@ fun CiclosScreen(
                             placementSpec = tween(150)
                         ),
                         asignatura = asignatura,
+                        numEstudiantesOverride = numEstudiantes,
                         userRole = "ADMIN",
                         onClick = { onAsignaturaClick(asignatura) },
                         onEdit = { onEditAsignatura(asignatura) }
@@ -422,6 +430,13 @@ fun AsignaturasScreen(
                 items = filteredAsignaturas,
                 key = { it.id.ifEmpty { it.idDocumento } }
             ) { asignatura ->
+                val claseCorrespondiente = adminState.clases.find { clase ->
+                    clase.cursoGlobalId == asignatura.cursoId &&
+                            clase.turno.equals(asignatura.turno, ignoreCase = true) &&
+                            clase.cicloNum == asignatura.cicloNum
+                }
+                val numEstudiantes = claseCorrespondiente?.estudiantesIds?.size ?: 0
+
                 AsignaturaCard(
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(150),
@@ -429,6 +444,7 @@ fun AsignaturasScreen(
                         placementSpec = tween(150)
                     ),
                     asignatura = asignatura,
+                    numEstudiantesOverride = numEstudiantes,
                     userRole = "ADMIN",
                     onClick = { onAsignaturaClick(asignatura) },
                     onEdit = { onEditAsignatura(asignatura) }

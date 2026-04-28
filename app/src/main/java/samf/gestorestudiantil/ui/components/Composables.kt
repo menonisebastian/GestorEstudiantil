@@ -423,6 +423,7 @@ fun AsignaturaCard(
     modifier: Modifier = Modifier,
     asignatura: Asignatura,
     userRole: String, // "ADMIN", "PROFESOR" o "ESTUDIANTE"
+    numEstudiantesOverride: Int? = null,
     onClick: () -> Unit,
     onEdit: (() -> Unit)? = null
 ) {
@@ -491,7 +492,8 @@ fun AsignaturaCard(
                         Spacer(modifier = Modifier.width(16.dp))
 
                         Icon(Icons.Outlined.Groups, "Alumnos", tint = surfaceDimColor, modifier = iconModifier)
-                        Text(text = "${asignatura.numEstudiantesCurso}", color = surfaceDimColor, fontSize = 10.sp)
+                        val totalAlumnos = numEstudiantesOverride ?: asignatura.numEstudiantesCurso
+                        Text(text = "$totalAlumnos", color = surfaceDimColor, fontSize = 10.sp)
                     }
                 }
             }

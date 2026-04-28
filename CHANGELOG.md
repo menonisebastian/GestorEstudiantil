@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.6] - 2026-04-28
+- **Estabilidad**: Refactorizada la lógica de eliminación de usuarios (`eliminarUsuario`) en `AdminRepositoryImpl` para utilizar `whereArrayContains` y `WriteBatch`, garantizando la limpieza total de IDs en todas las clases y evitando registros "fantasma".
+- **Rendimiento**: Implementado el cálculo dinámico "on the fly" de contadores de estudiantes en el panel de Administración, eliminando la necesidad de sincronización manual y reduciendo las operaciones de escritura en Firestore.
+- **Limpieza**: Eliminada la funcionalidad de "Recalcular contadores" (UI, ViewModel y Repositorio) al quedar obsoleta por el nuevo sistema dinámico.
+- **UI/UX**: Actualizada `AsignaturaCard` para soportar inyección de datos dinámicos mediante `numEstudiantesOverride`.
+
 ## [v0.7.5] - 2026-04-26
 - **Funcionalidad**: Implementado un sistema integral de **Control de Asistencia Diaria** para profesores, permitiendo el marcado rápido (Presente, Ausente, Tarde, Justificado) mediante un panel inferior táctil.
 - **Funcionalidad**: Añadido **Guardado Automático** (Live-save) en la asistencia; los cambios se persisten instantáneamente en Firestore al seleccionar un estado.

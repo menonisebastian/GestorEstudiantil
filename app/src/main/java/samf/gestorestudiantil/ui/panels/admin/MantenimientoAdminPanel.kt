@@ -50,23 +50,6 @@ fun MantenimientoAdminPanel(
 
         item {
             MantenimientoCard(
-                titulo = "Sincronización de Datos",
-                descripcion = "Recalcula todos los contadores de estudiantes en cursos y asignaturas."
-            ) {
-                Button(
-                    onClick = { adminViewModel.recalcularContadores() },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = true,
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
-                ) {
-                    Text(stringResource(R.string.admin_sync_counters))
-                }
-            }
-        }
-
-        item {
-            MantenimientoCard(
                 titulo = "Gestión de Clases",
                 descripcion = "Genera automáticamente los grupos (clases) basados en la configuración de cursos y asignaturas."
             ) {

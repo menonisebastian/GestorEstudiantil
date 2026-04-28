@@ -74,24 +74,20 @@ class AdminRepositoryImpl @Inject constructor(
 
     override suspend fun eliminarUsuario(usuarioId: String) {
         val userRef = db.collection("usuarios").document(usuarioId)
-        val userSnap = userRef.get().await()
 
-        if (userSnap.getString("rol") == "ESTUDIANTE") {
-            val cursoId = userSnap.getString("cursoId") ?: ""
-            val turno = userSnap.getString("turno") ?: ""
-            val cicloNum = userSnap.getLong("cicloNum")?.toInt() ?: 1
+        // 1. Buscar TODAS las clases que contengan el ID de este usuario
+        val clasesQuery = db.collection("clases")
+            .whereArrayContains("estudiantesIds", usuarioId)
+            .get().await()
 
-            val clasesQuery = db.collection("clases")
-                .whereEqualTo("cursoGlobalId", cursoId)
-                .whereEqualTo("turno", turno.lowercase().trim())
-                .whereEqualTo("cicloNum", cicloNum)
-                .get().await()
-
-            for (doc in clasesQuery.documents) {
-                doc.reference.update("estudiantesIds", FieldValue.arrayRemove(usuarioId))
-            }
+        // 2. Eliminar el usuario del array 'estudiantesIds' en los documentos encontrados
+        val batch = db.batch()
+        for (doc in clasesQuery.documents) {
+            batch.update(doc.reference, "estudiantesIds", FieldValue.arrayRemove(usuarioId))
         }
+        batch.commit().await()
 
+        // 3. Finalmente, eliminar el documento del usuario
         userRef.delete().await()
     }
 
@@ -400,43 +396,6 @@ class AdminRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun recalcularTodosLosContadores() {
-        val clasesSnapshot = db.collection("clases").get().await()
-        val cursosSnapshot = db.collection("cursos").get().await()
-        val asignaturasSnapshot = db.collection("asignaturas").get().await()
-
-        val batch = db.batch()
-
-        cursosSnapshot.documents.forEach { cursoDoc ->
-            val cursoId = cursoDoc.id
-            var numEstudiantes = 0
-
-            clasesSnapshot.documents.forEach { claseDoc ->
-                if (claseDoc.getString("cursoGlobalId") == cursoId) {
-                    val listaIds = claseDoc.get("estudiantesIds") as? List<*>
-                    numEstudiantes += listaIds?.size ?: 0
-                }
-            }
-            batch.update(cursoDoc.reference, "numEstudiantes", numEstudiantes)
-        }
-
-        asignaturasSnapshot.documents.forEach { asigDoc ->
-            val cursoId = asigDoc.getString("cursoId") ?: ""
-            val turno = asigDoc.getString("turno") ?: ""
-            val cicloNum = asigDoc.getLong("cicloNum")?.toInt() ?: 1
-
-            val claseCorrespondiente = clasesSnapshot.documents.find {
-                it.getString("cursoGlobalId") == cursoId &&
-                        it.getString("turno")?.lowercase()?.trim() == turno.lowercase().trim() &&
-                        it.getLong("cicloNum")?.toInt() == cicloNum
-            }
-
-            val numEstudiantes = (claseCorrespondiente?.get("estudiantesIds") as? List<*>)?.size ?: 0
-            batch.update(asigDoc.reference, "numEstudiantesCurso", numEstudiantes)
-        }
-
-        batch.commit().await()
-    }
 
     override suspend fun generarClasesPorDefecto(centroId: String) {
         val batch = db.batch()
