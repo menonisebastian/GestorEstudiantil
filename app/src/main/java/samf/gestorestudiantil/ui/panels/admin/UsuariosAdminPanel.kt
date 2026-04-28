@@ -372,12 +372,22 @@ fun UsuarioCardAdmin(
                 // Info del Usuario
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = usuario.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                    Text(text = usuario.email, fontSize = 12.sp, color = surfaceDimColor)
+                    Text(
+                        text = usuario.email,
+                        fontSize = 12.sp,
+                        color = surfaceDimColor,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
 
                     Spacer(modifier = Modifier.height(4.dp))
 
                     // Chips de Rol y Curso
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         RoleChip(rol = usuario.rol)
                         val infoExtra = when (usuario) {
                             is User.Estudiante -> usuario.curso
@@ -385,7 +395,14 @@ fun UsuarioCardAdmin(
                             else -> ""
                         }
                         if (infoExtra.isNotEmpty()) {
-                            Text(text = "• $infoExtra", fontSize = 11.sp, color = surfaceDimColor, modifier = Modifier.align(Alignment.CenterVertically))
+                            Text(
+                                text = "• $infoExtra",
+                                fontSize = 11.sp,
+                                color = surfaceDimColor,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }

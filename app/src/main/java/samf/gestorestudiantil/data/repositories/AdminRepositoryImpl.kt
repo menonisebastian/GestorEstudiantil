@@ -1,7 +1,10 @@
 package samf.gestorestudiantil.data.repositories
 
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +19,7 @@ import samf.gestorestudiantil.data.models.ScrapedCourse
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.R
+import java.util.UUID
 import javax.inject.Inject
 
 class AdminRepositoryImpl @Inject constructor(
@@ -492,6 +496,122 @@ class AdminRepositoryImpl @Inject constructor(
             )
 
             batch.set(claseRef, nuevaClase)
+        }
+
+        batch.commit().await()
+    }
+
+    // --- HELPER PARA CREAR USUARIOS EN AUTH SIN DESLOGUEAR AL ADMIN ---
+    private suspend fun createAuthUserSinDesloguear(email: String, pass: String): String {
+        return try {
+            // Utilizamos una instancia secundaria para no cerrar la sesión principal
+            var secondaryApp = FirebaseApp.getApps(context).find { it.name == "SecondaryAuthApp" }
+            if (secondaryApp == null) {
+                val options = FirebaseApp.getInstance().options
+                secondaryApp = FirebaseApp.initializeApp(context, options, "SecondaryAuthApp")
+            }
+            val secondaryAuth = FirebaseAuth.getInstance(secondaryApp!!)
+            val result = secondaryAuth.createUserWithEmailAndPassword(email, pass).await()
+            val uid = result.user?.uid ?: UUID.randomUUID().toString()
+            secondaryAuth.signOut() // Cerramos la secundaria
+            uid
+        } catch (e: Exception) {
+            e.printStackTrace()
+            UUID.randomUUID().toString() // Fallback si el correo ya existe
+        }
+    }
+
+    override suspend fun generarAlumnosFalsos() {
+        val nombres = listOf("Alejandro", "María", "Daniel", "Lucía", "Pablo", "Paula", "Hugo", "Daniela", "Álvaro", "Sara", "Javier", "Elena", "Marcos", "Laura", "Diego", "Carmen", "Mario", "Alba", "David", "Irene")
+        val apellidos = listOf("García", "Fernández", "González", "Rodríguez", "López", "Martínez", "Sánchez", "Pérez", "Gómez", "Martín", "Ruiz", "Díaz", "Álvarez", "Moreno", "Muñoz", "Romero", "Alonso", "Gutiérrez", "Navarro", "Torres")
+
+        val estudiantesDAM1 = mutableListOf<String>()
+        val estudiantesDAM2 = mutableListOf<String>()
+
+        val batch = db.batch()
+
+        for (i in 1..40) {
+            val nombre = nombres.random()
+            val apellido = apellidos.random()
+            
+            // Limpiar acentos para el email
+            val emailBase = "${nombre.lowercase()}.${apellido.lowercase()}$i@iescomercio.com"
+            val email = emailBase.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("ñ", "n")
+
+            // Crear en Authentication (Contraseña: 123456)
+            val uid = createAuthUserSinDesloguear(email, "123456")
+
+            val cicloNum = if (i <= 20) 1 else 2
+
+            val estudiante = User.Estudiante(
+                id = uid,
+                nombre = "$nombre $apellido",
+                email = email,
+                centroId = "ies_comercio",
+                estado = "ACTIVO",
+                rol = "ESTUDIANTE",
+                cursoId = "ies_comercio_DAM",
+                curso = "DAM",
+                turno = "vespertino",
+                cicloNum = cicloNum
+            )
+
+            batch.set(db.collection("usuarios").document(uid), estudiante)
+
+            if (cicloNum == 1) estudiantesDAM1.add(uid) else estudiantesDAM2.add(uid)
+        }
+
+        // Ejecutar creación de usuarios
+        batch.commit().await()
+
+        // --- Actualizar el modelo Clase ---
+        val claseBatch = db.batch()
+        val clase1Ref = db.collection("clases").document("DAMV1")
+        val clase2Ref = db.collection("clases").document("DAMV2")
+
+        // Asegurarnos de que las clases existen (Merge)
+        claseBatch.set(clase1Ref, mapOf("id" to "DAMV1", "centroId" to "ies_comercio", "cursoGlobalId" to "ies_comercio_DAM", "cicloNum" to 1, "turno" to "vespertino"), SetOptions.merge())
+        claseBatch.set(clase2Ref, mapOf("id" to "DAMV2", "centroId" to "ies_comercio", "cursoGlobalId" to "ies_comercio_DAM", "cicloNum" to 2, "turno" to "vespertino"), SetOptions.merge())
+
+        // Añadir a estudiantesIds usando arrayUnion para no sobreescribir otros existentes
+        if (estudiantesDAM1.isNotEmpty()) {
+            claseBatch.update(clase1Ref, "estudiantesIds", FieldValue.arrayUnion(*estudiantesDAM1.toTypedArray()))
+        }
+        if (estudiantesDAM2.isNotEmpty()) {
+            claseBatch.update(clase2Ref, "estudiantesIds", FieldValue.arrayUnion(*estudiantesDAM2.toTypedArray()))
+        }
+
+        claseBatch.commit().await()
+    }
+
+    override suspend fun generarProfesoresFalsos() {
+        val nombres = listOf("Marcos", "Laura", "Javier", "Ana", "Diego", "Carmen", "Mario", "Elena", "David", "Alba")
+        val apellidos = listOf("Ruiz", "Díaz", "Álvarez", "Moreno", "Muñoz", "Romero", "Alonso", "Gutiérrez", "Navarro", "Torres")
+
+        val batch = db.batch()
+
+        for (i in 1..20) {
+            val nombre = nombres.random()
+            val apellido = apellidos.random()
+            
+            val emailBase = "prof.${nombre.lowercase()}.${apellido.lowercase()}$i@iescomercio.com"
+            val email = emailBase.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("ñ", "n")
+
+            val uid = createAuthUserSinDesloguear(email, "123456")
+
+            val profesor = User.Profesor(
+                id = uid,
+                nombre = "$nombre $apellido",
+                email = email,
+                centroId = "ies_comercio",
+                estado = "ACTIVO",
+                rol = "PROFESOR",
+                departamento = User.Profesor.DEPARTAMENTOS.random(),
+                turno = "vespertino",
+                asignaturasImpartidas = emptyList()
+            )
+
+            batch.set(db.collection("usuarios").document(uid), profesor)
         }
 
         batch.commit().await()

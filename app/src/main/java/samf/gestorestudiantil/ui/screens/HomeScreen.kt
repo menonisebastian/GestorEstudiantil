@@ -87,6 +87,7 @@ import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesAsignaturaPanel
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.HorariosEstudiantePanel
 import samf.gestorestudiantil.ui.panels.estudiante.MateriaDetalleEstudiantePanel
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Checklist
 import samf.gestorestudiantil.ui.panels.estudiante.CalificacionesGlobalesPanel
 import samf.gestorestudiantil.ui.panels.estudiante.AsistenciaGlobalEstudiantePanel
@@ -423,6 +424,23 @@ fun HomeScreen(
                                     Icon(
                                         imageVector = Icons.Default.AccessTime,
                                         contentDescription = "Recordatorios",
+                                        tint = surfaceDimColor
+                                    )
+                                }
+                            }
+
+                            if (usuario.rol == "ADMIN" && currentTab != "Calendario" && currentRoute !is Routes.HomeRoutes.Mantenimiento) {
+                                IconButton(
+                                    onClick = {
+                                        homeState.navigate(currentTab, Routes.HomeRoutes.Mantenimiento)
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Build,
+                                        contentDescription = "Mantenimiento",
                                         tint = surfaceDimColor
                                     )
                                 }
@@ -1328,6 +1346,9 @@ private fun AdminNavContent(
                     ),
                     onBack = { homeState.pop(pageTab) }
                 )
+            }
+            entry<Routes.HomeRoutes.Mantenimiento> {
+                MantenimientoAdminPanel(adminViewModel = adminViewModel)
             }
             entry<Routes.HomeRoutes.Calendario> {
                 CalendarioPanel(

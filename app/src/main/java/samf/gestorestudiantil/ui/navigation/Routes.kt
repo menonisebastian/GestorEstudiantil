@@ -137,6 +137,9 @@ sealed interface Routes : NavKey {
         data class EditUser(val user: User) : HomeRoutes
 
         @Serializable
+        data object Mantenimiento : HomeRoutes
+
+        @Serializable
         data object Perfil : HomeRoutes
     }
 

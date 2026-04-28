@@ -270,6 +270,30 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun generarAlumnosDummy() {
+        viewModelScope.launch {
+            _adminState.value = _adminState.value.copy(isLoading = true)
+            try {
+                adminRepository.generarAlumnosFalsos()
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "¡40 Alumnos DAM creados!")
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = ErrorMapper.getFriendlyMessage(context, e))
+            }
+        }
+    }
+
+    fun generarProfesoresDummy() {
+        viewModelScope.launch {
+            _adminState.value = _adminState.value.copy(isLoading = true)
+            try {
+                adminRepository.generarProfesoresFalsos()
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "¡20 Profesores vespertinos creados!")
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = ErrorMapper.getFriendlyMessage(context, e))
+            }
+        }
+    }
+
     fun guardarUsuario(user: User) {
         viewModelScope.launch {
             try {

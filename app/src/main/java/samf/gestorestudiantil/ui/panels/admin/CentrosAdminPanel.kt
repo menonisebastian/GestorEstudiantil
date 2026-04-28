@@ -120,29 +120,6 @@ fun CentrosListScreen(
                 contentPadding = PaddingValues(top = 160.dp, bottom = 160.dp, start = 16.dp, end = 16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Boton temporal para recalcular contadores
-                item {
-                    Button(
-                        onClick = { adminViewModel.recalcularContadores() },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                    ) {
-                        Text(stringResource(R.string.admin_sync_counters))
-                    }
-                }
-
-                // Botón temporal para generar clases masivas
-                item {
-                    Button(
-                        onClick = {
-                            val id = adminState.centros.firstOrNull()?.id ?: "ies_comercio"
-                            adminViewModel.generarClasesPorDefecto(id)
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                    ) {
-                        Text(stringResource(R.string.admin_generate_classes_massively))
-                    }
-                }
-
                 items(
                     items = filteredCentros,
                     key = { it.id }

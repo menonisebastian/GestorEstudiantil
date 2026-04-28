@@ -21,9 +21,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.User
@@ -33,6 +36,11 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import androidx.core.net.toUri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.drawWithContent
 
 @Composable
 fun UserProfileDialog(
@@ -106,9 +114,41 @@ fun UserProfileDialog(
                     ProfileInfoRow(
                         icon = Icons.Outlined.Email,
                         label = "Email",
-                        value = user.email
+                        value = user.email,
+                        isAutoResizing = true
                     )
                 }
+            }
+        }
+    )
+}
+
+@Composable
+private fun AutoResizingText(
+    text: String,
+    fontSize: TextUnit,
+    fontWeight: FontWeight,
+    color: Color,
+    maxLines: Int = 1
+) {
+    var resizedFontSize by remember { mutableStateOf(fontSize) }
+    var readyToDraw by remember { mutableStateOf(false) }
+
+    Text(
+        text = text,
+        fontSize = resizedFontSize,
+        fontWeight = fontWeight,
+        color = color,
+        maxLines = maxLines,
+        softWrap = false,
+        modifier = Modifier.drawWithContent {
+            if (readyToDraw) drawContent()
+        },
+        onTextLayout = { textLayoutResult ->
+            if (textLayoutResult.didOverflowWidth && resizedFontSize > 10.sp) {
+                resizedFontSize *= 0.9f
+            } else {
+                readyToDraw = true
             }
         }
     )
@@ -118,7 +158,8 @@ fun UserProfileDialog(
 private fun ProfileInfoRow(
     icon: ImageVector,
     label: String,
-    value: String
+    value: String,
+    isAutoResizing: Boolean = false
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -137,12 +178,23 @@ private fun ProfileInfoRow(
                 fontSize = 12.sp,
                 color = surfaceDimColor
             )
-            Text(
-                text = value.ifBlank { "No especificado" },
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = textColor
-            )
+            if (isAutoResizing) {
+                AutoResizingText(
+                    text = value.ifBlank { "No especificado" },
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = textColor
+                )
+            } else {
+                Text(
+                    text = value.ifBlank { "No especificado" },
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = textColor,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

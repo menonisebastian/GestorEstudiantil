@@ -38,4 +38,6 @@ interface AdminRepository {
     suspend fun seedDatabase(jsonlLines: List<String>)
     suspend fun recalcularTodosLosContadores()
     suspend fun generarClasesPorDefecto(centroId: String)
+    suspend fun generarAlumnosFalsos()
+    suspend fun generarProfesoresFalsos()
 }
