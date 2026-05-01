@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -35,7 +36,7 @@ import androidx.compose.material.icons.outlined.Class
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Surface
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,6 +59,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -315,40 +317,55 @@ fun HomeScreen(
                     )
                 }
 
-                Snackbar(
-                    modifier = Modifier.padding(12.dp),
+                Surface(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    containerColor = surfaceColor,
-                    contentColor = textColor,
+                    color = surfaceColor,
+                    shadowElevation = 6.dp
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.weight(1f).padding(vertical = 4.dp)) {
-                            Text(text = data.visuals.message)
-                            Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 44.dp, top = 12.dp, bottom = 12.dp)
+                            ) {
+                                Text(
+                                    text = data.visuals.message,
+                                    modifier = Modifier.weight(1f),
+                                    color = textColor
+                                )
+                                if (data.visuals.actionLabel != null) {
+                                    TextButton(onClick = { data.performAction() }) {
+                                        Text(data.visuals.actionLabel!!, color = primaryColor)
+                                    }
+                                }
+                            }
                             LinearProgressIndicator(
                                 progress = { progress.value },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(3.dp),
+                                    .height(4.dp),
                                 color = primaryColor,
-                                trackColor = primaryColor.copy(alpha = 0.2f),
-                                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                                trackColor = primaryColor.copy(alpha = 0.1f),
+                                strokeCap = StrokeCap.Butt
                             )
                         }
-
-                        if (data.visuals.actionLabel != null) {
-                            TextButton(onClick = { data.performAction() }) {
-                                Text(data.visuals.actionLabel!!, color = primaryColor)
-                            }
-                        }
-                        IconButton(onClick = { data.dismiss() }) {
+                        IconButton(
+                            onClick = { data.dismiss() },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .size(28.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Cerrar",
-                                tint = surfaceDimColor
+                                tint = surfaceDimColor,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }

@@ -187,7 +187,7 @@ fun formatearFechaParaMostrar(fechaIso: String, prettyDate: Boolean = false): St
         val dia = partes[2].toInt()
         if (partes.size < 3) return fechaIso
         if (prettyDate) {
-            // Guardamos el resultado del when en una nueva variable (nombreMes)
+
             val nombreMes = when (mes) {
                 1 -> "Enero"
                 2 -> "Febrero"
@@ -198,15 +198,15 @@ fun formatearFechaParaMostrar(fechaIso: String, prettyDate: Boolean = false): St
                 7 -> "Julio"
                 8 -> "Agosto"
                 9 -> "Septiembre"
-                10 -> "Octubre"   // Añadidos los meses faltantes
+                10 -> "Octubre"
                 11 -> "Noviembre"
                 12 -> "Diciembre"
                 else -> ""
             }
-            // Usamos 'nombreMes' en lugar de 'mes'
-            "$dia de $nombreMes de ${partes[0]}"
+
+            "$dia de $nombreMes de ${partes[0]}"        // Retorna 01 de Enero de 2025
         }
-        else "${partes[2]}/${partes[1]}/${partes[0]}" // Retorna "01/01/2025"
+        else "${partes[2]}/${partes[1]}/${partes[0]}"   // Retorna "01/01/2025"
     } catch (e: Exception) {
         e.printStackTrace()
         fechaIso
