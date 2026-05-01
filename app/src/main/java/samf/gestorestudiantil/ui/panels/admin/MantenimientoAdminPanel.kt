@@ -39,7 +39,7 @@ fun MantenimientoAdminPanel(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 116.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
@@ -105,6 +105,31 @@ fun MantenimientoAdminPanel(
                     ) {
                         Text("Cargar datos desde JSONL")
                     }
+                    Button(
+                        onClick = { adminViewModel.generarContenidoAcademico() },
+                        enabled = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Generar Contenido Académico (DAM)")
+                    }
+                }
+            }
+        }
+
+        item {
+            MantenimientoCard(
+                titulo = "Limpieza del Sistema",
+                descripcion = "Elimina permanentemente los elementos marcados para borrado que lleven más de 30 días en la papelera."
+            ) {
+                Button(
+                    onClick = { adminViewModel.ejecutarLimpiezaProfunda() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                ) {
+                    Text("Vaciar Papelera (>30 días)")
                 }
             }
         }

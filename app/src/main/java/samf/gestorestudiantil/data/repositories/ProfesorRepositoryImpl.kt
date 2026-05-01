@@ -45,6 +45,7 @@ class ProfesorRepositoryImpl @Inject constructor(
     override fun getUnidades(asignaturaId: String): Flow<List<Unidad>> = callbackFlow {
         val subscription = db.collection("unidades")
             .whereEqualTo("asignaturaId", asignaturaId)
+            .whereEqualTo("fechaEliminacion", null)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Unidad::class.java).sortedBy { it.orden })
@@ -56,6 +57,7 @@ class ProfesorRepositoryImpl @Inject constructor(
     override fun getPosts(asignaturaId: String): Flow<List<Post>> = callbackFlow {
         val subscription = db.collection("posts")
             .whereEqualTo("asignaturaId", asignaturaId)
+            .whereEqualTo("fechaEliminacion", null)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Post::class.java).sortedByDescending { it.fechaCreacion })
@@ -78,7 +80,11 @@ class ProfesorRepositoryImpl @Inject constructor(
     }
 
     override suspend fun eliminarUnidad(unidadId: String) {
-        db.collection("unidades").document(unidadId).delete().await()
+        db.collection("unidades").document(unidadId).update("fechaEliminacion", System.currentTimeMillis()).await()
+    }
+
+    override suspend fun restaurarUnidad(unidadId: String) {
+        db.collection("unidades").document(unidadId).update("fechaEliminacion", null).await()
     }
 
     override suspend fun crearPost(post: Post) {
@@ -95,7 +101,11 @@ class ProfesorRepositoryImpl @Inject constructor(
     }
 
     override suspend fun eliminarPost(postId: String) {
-        db.collection("posts").document(postId).delete().await()
+        db.collection("posts").document(postId).update("fechaEliminacion", System.currentTimeMillis()).await()
+    }
+
+    override suspend fun restaurarPost(postId: String) {
+        db.collection("posts").document(postId).update("fechaEliminacion", null).await()
     }
 
     override fun getAsignaturas(profesorId: String): Flow<List<Asignatura>> = callbackFlow {

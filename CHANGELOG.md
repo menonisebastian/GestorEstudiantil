@@ -3,6 +3,10 @@
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
 ## [v0.7.7] - 2026-05-01
+- **Estabilidad**: Implementado sistema de **Borrado Lógico (Soft Delete)** para Unidades, Posts y Tareas. Los elementos eliminados se ocultan inmediatamente pero se conservan durante 30 días antes de su borrado físico.
+- **UX**: Mejorada la funcionalidad de "Deshacer" (Undo) en el panel del profesor. Al restaurar un elemento borrado, se recupera ahora todo su contenido íntegro, incluyendo archivos adjuntos en Supabase y entregas de alumnos, al no realizarse un borrado físico inmediato.
+- **Mantenimiento**: Implementada función de **Limpieza Profunda** en el panel de administración para el vaciado definitivo de la papelera (>30 días), gestionando el borrado en cascada de documentos en Firestore y archivos en Supabase Storage.
+- **Arquitectura**: Actualizados los modelos `Unidad`, `Post` y `Tarea` con el campo `fechaEliminacion` y refactorizados los repositorios para filtrar automáticamente el contenido en papelera.
 - **Autenticación**: Rediseñado el flujo de cierre de sesión (`signOut`) para eliminar parpadeos de pantalla blanca/gris.
 - **UI/UX**: Implementado un overlay opaco de nivel superior en `AppNavigation` que cubre la transición de navegación durante el logout.
 - **Arquitectura**: Añadido estado `isSigningOut` en `AuthState` para sincronizar la visibilidad del overlay con el ciclo de vida de la sesión de Firebase.

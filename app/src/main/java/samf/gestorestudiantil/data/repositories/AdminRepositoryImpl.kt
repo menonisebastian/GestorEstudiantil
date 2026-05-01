@@ -17,13 +17,21 @@ import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.ScrapedCourse
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.data.models.Unidad
+import samf.gestorestudiantil.data.models.Post
+import samf.gestorestudiantil.data.models.Tarea
+import samf.gestorestudiantil.data.models.Entrega
+import com.google.firebase.Timestamp
+import io.github.jan.supabase.storage.Storage
 import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.R
+import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 
 class AdminRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
+    private val storage: Storage,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : AdminRepository {
 
@@ -576,6 +584,90 @@ class AdminRepositoryImpl @Inject constructor(
         batch.commit().await()
     }
 
+    override suspend fun generarContenidoAcademicoDummy() {
+        val subjectUnits = mapOf(
+            "PROG" to listOf("Introducción a Kotlin", "Estructuras de Control", "Programación Orientada a Objetos", "Colecciones y Ficheros", "Excepciones"),
+            "BD" to listOf("Modelo Relacional", "SQL Básico", "Diseño de Base de Datos", "PL/SQL y Procedimientos", "Bases de Datos NoSQL"),
+            "LM" to listOf("HTML5 y Estructura Web", "CSS3 y Diseño", "XML y Esquemas", "Transformaciones XSLT", "Sindicación de Contenidos"),
+            "SI" to listOf("Hardware y Componentes", "Sistemas Operativos Libres", "Sistemas Operativos Propietarios", "Redes Locales", "Seguridad Básica"),
+            "ED" to listOf("Entornos de Desarrollo IDE", "Control de Versiones Git", "Pruebas Unitarias", "Optimización y Refactorización", "Diagramas de Clase"),
+            "FOL" to listOf("Salud Laboral", "Derecho del Trabajo", "El Contrato de Trabajo", "Seguridad Social", "Búsqueda de Empleo"),
+            "PMDM" to listOf("Arquitectura Android", "Interfaces de Usuario", "Persistencia de Datos", "Servicios y Notificaciones", "Publicación en Stores"),
+            "PSP" to listOf("Programación Multihilo", "Comunicaciones en Red", "Servicios de Red", "Seguridad y Criptografía", "Programación Concurrente"),
+            "AD" to listOf("Ficheros de Texto y Binarios", "Conectores JDBC", "Object-Relational Mapping (ORM)", "Bases de Datos Objeto-Relacionales", "XML en Bases de Datos"),
+            "DI" to listOf("Diseño de Interfaces", "Componentes Visuales", "Informes y Gráficos", "Usabilidad y Accesibilidad", "Empaquetado y Distribución"),
+            "SGE" to listOf("Sistemas ERP", "Instalación y Configuración", "Personalización de Módulos", "Extracción de Información", "Seguridad en SGE"),
+            "EIE" to listOf("Espíritu Emprendedor", "Idea de Negocio", "Plan de Marketing", "Plan Económico-Financiero", "Trámites de Constitución")
+        )
+
+        val asignaturasSnap = db.collection("asignaturas")
+            .whereEqualTo("cursoId", "ies_comercio_DAM")
+            .get().await()
+
+        val asignaturas = asignaturasSnap.toObjects(Asignatura::class.java)
+        
+        var batch = db.batch()
+        var ops = 0
+
+        for (asig in asignaturas) {
+            val units = subjectUnits[asig.acronimo.uppercase()] ?: 
+                        listOf("Introducción", "Fundamentos", "Avanzado", "Proyecto Final")
+            
+            for ((index, unitName) in units.withIndex()) {
+                val unitId = UUID.randomUUID().toString()
+                val unidad = Unidad(
+                    id = unitId,
+                    nombre = unitName,
+                    descripcion = "Contenidos detallados de $unitName para ${asig.nombre}.",
+                    asignaturaId = asig.id,
+                    orden = index + 1,
+                    visible = true
+                )
+                batch.set(db.collection("unidades").document(unitId), unidad)
+                ops++
+
+                for (p in 1..2) {
+                    val postId = UUID.randomUUID().toString()
+                    val post = Post(
+                        id = postId,
+                        titulo = "Resumen ${if (p == 1) "Teórico" else "Práctico"} - $unitName",
+                        contenido = "En este post se resume el contenido ${if (p == 1) "teórico fundamental" else "práctico con ejemplos"} de $unitName.",
+                        autorId = asig.profesorId.ifEmpty { "admin_dummy" },
+                        autorNombre = asig.profesorNombre.ifEmpty { "Profesor Asignado" },
+                        asignaturaId = asig.id,
+                        unidadId = unitId,
+                        visible = true
+                    )
+                    batch.set(db.collection("posts").document(postId), post)
+                    ops++
+                }
+
+                val tareaId = UUID.randomUUID().toString()
+                val tarea = Tarea(
+                    id = tareaId,
+                    titulo = "Entregable: $unitName",
+                    descripcion = "Realiza los ejercicios propuestos de $unitName y sube el resultado aquí.",
+                    claseId = if (asig.cicloNum == 1) "DAMV1" else "DAMV2",
+                    profesorId = asig.profesorId.ifEmpty { "admin_dummy" },
+                    asignaturaId = asig.id,
+                    centroId = asig.centroId,
+                    unidadId = unitId,
+                    fechaLimiteEntrega = Timestamp(Date(System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000))),
+                    visible = true
+                )
+                batch.set(db.collection("tareas").document(tareaId), tarea)
+                ops++
+
+                if (ops > 400) {
+                    batch.commit().await()
+                    batch = db.batch()
+                    ops = 0
+                }
+            }
+        }
+        if (ops > 0) batch.commit().await()
+    }
+
     private fun extraerNumero(texto: String?): Int {
         if (texto.isNullOrEmpty()) return 0
         return texto.replace(Regex("\\D"), "").toIntOrNull() ?: 0
@@ -584,5 +676,56 @@ class AdminRepositoryImpl @Inject constructor(
     private fun cicloAInt(cicloStr: String?): Int {
         if (cicloStr.isNullOrEmpty()) return 1
         return cicloStr.trim().firstOrNull()?.digitToIntOrNull() ?: 1
+    }
+
+    override suspend fun limpiarPapelera() {
+        val limite = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)
+        
+        // 1. TAREAS: Borrado físico de marcadas para eliminar
+        val tareasABorrar = db.collection("tareas")
+            .whereLessThan("fechaEliminacion", limite)
+            .get().await().toObjects(Tarea::class.java)
+        
+        for (tarea in tareasABorrar) {
+            borrarTareaFisicamente(tarea)
+        }
+
+        // 2. POSTS: Borrado físico de marcados para eliminar
+        val postsABorrar = db.collection("posts")
+            .whereLessThan("fechaEliminacion", limite)
+            .get().await()
+        for (doc in postsABorrar.documents) {
+            doc.reference.delete().await()
+        }
+
+        // 3. UNIDADES: Borrado físico de marcadas para eliminar + sus hijos
+        val unidadesABorrar = db.collection("unidades")
+            .whereLessThan("fechaEliminacion", limite)
+            .get().await().toObjects(Unidad::class.java)
+        
+        for (unidad in unidadesABorrar) {
+            // Borrar hijos de la unidad (tareas y posts)
+            val postsHijos = db.collection("posts").whereEqualTo("unidadId", unidad.id).get().await()
+            for (doc in postsHijos.documents) doc.reference.delete().await()
+            
+            val tareasHijas = db.collection("tareas").whereEqualTo("unidadId", unidad.id).get().await().toObjects(Tarea::class.java)
+            for (tarea in tareasHijas) borrarTareaFisicamente(tarea)
+            
+            db.collection("unidades").document(unidad.id).delete().await()
+        }
+    }
+
+    private suspend fun borrarTareaFisicamente(tarea: Tarea) {
+        val bucket = storage.from("gestor-estudiantil")
+        // Entregas
+        val entregas = db.collection("entregas").whereEqualTo("tareaId", tarea.id).get().await().toObjects(Entrega::class.java)
+        for (entrega in entregas) {
+            try { bucket.delete(entrega.adjunto.supabasePath) } catch (e: Exception) {}
+            db.collection("entregas").document(entrega.id).delete().await()
+        }
+        // Archivo tarea
+        tarea.adjunto?.let { try { bucket.delete(it.supabasePath) } catch (e: Exception) {} }
+        // Documento tarea
+        db.collection("tareas").document(tarea.id).delete().await()
     }
 }

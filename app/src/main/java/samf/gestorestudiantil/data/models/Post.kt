@@ -15,5 +15,6 @@ data class Post(
     var unidadId: String = "",
     var fechaCreacion: Long = System.currentTimeMillis(),
     var fechaActualizacion: Long = System.currentTimeMillis(),
-    var visible: Boolean = false
+    var visible: Boolean = false,
+    var fechaEliminacion: Long? = null
 )

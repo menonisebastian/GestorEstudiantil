@@ -1,14 +1,18 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
@@ -283,6 +287,18 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun generarContenidoAcademico() {
+        viewModelScope.launch {
+            _adminState.value = _adminState.value.copy(isLoading = true)
+            try {
+                adminRepository.generarContenidoAcademicoDummy()
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "¡Contenido para DAMV1 y DAMV2 generado con éxito!")
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = ErrorMapper.getFriendlyMessage(context, e))
+            }
+        }
+    }
+
     fun guardarUsuario(user: User) {
         viewModelScope.launch {
             try {
@@ -306,6 +322,21 @@ class AdminViewModel @Inject constructor(
                 adminRepository.actualizarDatosUsuario(user.id, updates)
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
+            }
+        }
+    }
+
+    fun ejecutarLimpiezaProfunda() {
+        viewModelScope.launch {
+            try {
+                _adminState.update { it.copy(isLoading = true) }
+                adminRepository.limpiarPapelera()
+                _adminState.update { it.copy(isLoading = false) }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Limpieza completada", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                _adminState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
     }

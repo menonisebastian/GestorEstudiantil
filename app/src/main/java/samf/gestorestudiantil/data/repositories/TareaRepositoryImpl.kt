@@ -22,6 +22,7 @@ class TareaRepositoryImpl @Inject constructor(
     override fun getTareasPorUnidad(unidadId: String): Flow<List<Tarea>> = callbackFlow {
         val subscription = db.collection("tareas")
             .whereEqualTo("unidadId", unidadId)
+            .whereEqualTo("fechaEliminacion", null)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Tarea::class.java))
@@ -33,6 +34,7 @@ class TareaRepositoryImpl @Inject constructor(
     override fun getTareasPorAsignatura(asignaturaId: String): Flow<List<Tarea>> = callbackFlow {
         val subscription = db.collection("tareas")
             .whereEqualTo("asignaturaId", asignaturaId)
+            .whereEqualTo("fechaEliminacion", null)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Tarea::class.java))
@@ -48,6 +50,7 @@ class TareaRepositoryImpl @Inject constructor(
         } else {
             val subscription = db.collection("tareas")
                 .whereIn("asignaturaId", asignaturaIds)
+                .whereEqualTo("fechaEliminacion", null)
                 .addSnapshotListener { snapshot, _ ->
                     if (snapshot != null) {
                         trySend(snapshot.toObjects(Tarea::class.java))
@@ -154,14 +157,11 @@ class TareaRepositoryImpl @Inject constructor(
     }
 
     override suspend fun eliminarTarea(tarea: Tarea) {
-        tarea.adjunto?.let {
-            try {
-                storage.from("gestor-estudiantil").delete(it.supabasePath)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        db.collection("tareas").document(tarea.id).delete().await()
+        db.collection("tareas").document(tarea.id).update("fechaEliminacion", System.currentTimeMillis()).await()
+    }
+
+    override suspend fun restaurarTarea(tareaId: String) {
+        db.collection("tareas").document(tareaId).update("fechaEliminacion", null).await()
     }
 
     override fun getEntregasPorTarea(tareaId: String): Flow<List<Entrega>> = callbackFlow {

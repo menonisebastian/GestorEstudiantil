@@ -21,7 +21,8 @@ data class Tarea(
     @Serializable(with = TimestampSerializer::class)
     var fechaLimiteEntrega: Timestamp = Timestamp.now(),
     var adjunto: AdjuntoInfo? = null,
-    var visible: Boolean = true
+    var visible: Boolean = true,
+    var fechaEliminacion: Long? = null
 )
 
 @Serializable

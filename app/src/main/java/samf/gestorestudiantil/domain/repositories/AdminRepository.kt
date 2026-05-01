@@ -39,4 +39,6 @@ interface AdminRepository {
     suspend fun generarClasesPorDefecto(centroId: String)
     suspend fun generarAlumnosFalsos()
     suspend fun generarProfesoresFalsos()
+    suspend fun generarContenidoAcademicoDummy()
+    suspend fun limpiarPapelera()
 }

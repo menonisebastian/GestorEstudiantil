@@ -161,6 +161,18 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
+    fun restaurarUnidad(unidadId: String) {
+        viewModelScope.launch {
+            try {
+                profesorRepository.restaurarUnidad(unidadId)
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     fun crearPost(asignaturaId: String, unidadId: String, titulo: String, contenido: String, autorId: String, autorNombre: String, visible: Boolean) {
         viewModelScope.launch {
             try {
@@ -237,6 +249,18 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
+    fun restaurarPost(postId: String) {
+        viewModelScope.launch {
+            try {
+                profesorRepository.restaurarPost(postId)
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     // ====================================================================
     // 0.1 GESTIÓN DE TAREAS (Hybrid Firebase + Supabase)
     // ====================================================================
@@ -294,6 +318,18 @@ class ProfesorViewModel @Inject constructor(
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    fun restaurarTarea(tareaId: String) {
+        viewModelScope.launch {
+            try {
+                tareaRepository.restaurarTarea(tareaId)
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
                 }
             }
         }

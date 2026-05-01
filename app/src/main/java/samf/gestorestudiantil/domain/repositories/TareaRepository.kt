@@ -12,6 +12,7 @@ interface TareaRepository {
     suspend fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null): String
     suspend fun editarTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null): String
     suspend fun eliminarTarea(tarea: Tarea)
+    suspend fun restaurarTarea(tareaId: String)
 
     // Entregas
     fun getEntregasPorTarea(tareaId: String): Flow<List<Entrega>>

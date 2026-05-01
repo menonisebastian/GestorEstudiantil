@@ -14,9 +14,11 @@ interface ProfesorRepository {
     suspend fun crearUnidad(unidad: Unidad)
     suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int)
     suspend fun eliminarUnidad(unidadId: String)
+    suspend fun restaurarUnidad(unidadId: String)
     suspend fun crearPost(post: Post)
     suspend fun editarPost(postId: String, titulo: String, contenido: String, visible: Boolean)
     suspend fun eliminarPost(postId: String)
+    suspend fun restaurarPost(postId: String)
     
     fun getAsignaturas(profesorId: String): Flow<List<Asignatura>>
     fun observeEntregasChanges(asignaturaIds: List<String>): Flow<Unit>

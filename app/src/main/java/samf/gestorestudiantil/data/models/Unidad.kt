@@ -11,5 +11,6 @@ data class Unidad(
     var descripcion: String = "",
     var asignaturaId: String = "",
     var orden: Int = 0,
-    var visible: Boolean = false
+    var visible: Boolean = false,
+    var fechaEliminacion: Long? = null
 )

@@ -185,13 +185,7 @@ fun MateriaDetalleProfesorPanel(
                                             message = "Unidad eliminada",
                                             actionLabel = "Deshacer",
                                             onAction = {
-                                                viewModel.crearUnidad(
-                                                    asignaturaId = asignatura.id,
-                                                    nombre = unidad.nombre,
-                                                    descripcion = unidad.descripcion,
-                                                    visible = unidad.visible,
-                                                    orden = unidad.orden
-                                                )
+                                                viewModel.restaurarUnidad(unidad.id)
                                             }
                                         )
                                     }
@@ -225,15 +219,7 @@ fun MateriaDetalleProfesorPanel(
                                             message = "Publicación eliminada",
                                             actionLabel = "Deshacer",
                                             onAction = {
-                                                viewModel.crearPost(
-                                                    asignaturaId = post.asignaturaId,
-                                                    unidadId = post.unidadId,
-                                                    titulo = post.titulo,
-                                                    contenido = post.contenido,
-                                                    autorId = post.autorId,
-                                                    autorNombre = post.autorNombre,
-                                                    visible = post.visible
-                                                )
+                                                viewModel.restaurarPost(post.id)
                                             }
                                         )
                                     }
@@ -264,7 +250,7 @@ fun MateriaDetalleProfesorPanel(
                                             message = "Tarea eliminada",
                                             actionLabel = "Deshacer",
                                             onAction = {
-                                                viewModel.crearTarea(tarea, null, null, null)
+                                                viewModel.restaurarTarea(tarea.id)
                                             }
                                         )
                                     }
