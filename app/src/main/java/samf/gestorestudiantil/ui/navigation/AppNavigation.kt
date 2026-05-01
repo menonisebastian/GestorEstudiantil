@@ -44,6 +44,7 @@ fun AppNavigation(
     
     val rootRoute = when {
         authState.isCheckingSession -> null
+        authState.isSigningOut -> null
         authState.user == null && !authState.requireGooglePasswordSetup -> Routes.Auth
         authState.requireGooglePasswordSetup -> Routes.GooglePasswordSetup
         authState.user?.estado == "PENDIENTE" -> Routes.Pending
@@ -63,12 +64,12 @@ fun AppNavigation(
             try {
                 list.addAll(saved.map { Json.decodeFromString(Routes.serializer(), it) })
             } catch (_: Exception) {
-                // Si falla la restauración, dejaremos que el LaunchedEffect ponga el rootRoute
+
             }
             list
         }
     )) {
-        mutableStateListOf<Any>()
+        mutableStateListOf()
     }
 
     LaunchedEffect(rootRoute) {
@@ -82,121 +83,126 @@ fun AppNavigation(
         }
     }
 
-    if (backStack.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize().background(backgroundColor),
-            contentAlignment = Alignment.Center
-        ) {
-            if (rootRoute == null) {
-                CircularProgressIndicator()
-            }
-        }
-        return
-    }
-
     val currentUser = authState.user
 
-    NavDisplay(
-        backStack = backStack,
-        onBack = { backStack.removeLastOrNull() },
-        transitionSpec = {
-            (slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = tween(150)
-            ) + fadeIn(animationSpec = tween(150))) togetherWith
-                    (slideOutHorizontally(
-                        targetOffsetX = { -it },
-                        animationSpec = tween(150)
-                    ) + fadeOut(animationSpec = tween(150)))
-        },
-        popTransitionSpec = {
-            (slideInHorizontally(
-                initialOffsetX = { -it },
-                animationSpec = tween(150)
-            ) + fadeIn(animationSpec = tween(150))) togetherWith
-                    (slideOutHorizontally(
-                        targetOffsetX = { it },
-                        animationSpec = tween(150)
-                    ) + fadeOut(animationSpec = tween(150)))
-        },
-        entryProvider = entryProvider {
-            entry<Routes.Auth> {
-                AuthScreen(
-                    authViewModel = authViewModel,
-                    darkTheme = darkTheme,
-                    onAuthSuccess = { },
-                    onRequireGoogleSetup = { },
-                    onNavigateToRegisterStep2 = { name, email, pass, imgUrl ->
-                        backStack.add(Routes.RegisterStep2(name, email, pass, imgUrl))
-                    },
-                )
-            }
-
-            entry<Routes.RegisterStep2> { route ->
-                RegisterStep2Screen(
-                    route = route,
-                    authViewModel = authViewModel,
-                    onBack = { backStack.removeLastOrNull() },
-                    onNavigateToHome = {
-                    }
-                )
-            }
-
-            entry<Routes.Pending> {
-                currentUser?.let { user ->
-                    PendingApprovalScreen(
-                        usuario = user,
-                        isLoading = authState.isLoading,
-                        onLogout = { authViewModel.signOut() }
+    if (backStack.isNotEmpty()) {
+        NavDisplay(
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
+            transitionSpec = {
+                (slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(150)
+                ) + fadeIn(animationSpec = tween(150))) togetherWith
+                        (slideOutHorizontally(
+                            targetOffsetX = { -it },
+                            animationSpec = tween(150)
+                        ) + fadeOut(animationSpec = tween(150)))
+            },
+            popTransitionSpec = {
+                (slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(150)
+                ) + fadeIn(animationSpec = tween(150))) togetherWith
+                        (slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(150)
+                        ) + fadeOut(animationSpec = tween(150)))
+            },
+            entryProvider = entryProvider {
+                entry<Routes.Auth> {
+                    AuthScreen(
+                        authViewModel = authViewModel,
+                        darkTheme = darkTheme,
+                        onAuthSuccess = { },
+                        onRequireGoogleSetup = { },
+                        onNavigateToRegisterStep2 = { name, email, pass, imgUrl ->
+                            backStack.add(Routes.RegisterStep2(name, email, pass, imgUrl))
+                        },
                     )
                 }
-            }
 
-            entry<Routes.GooglePasswordSetup> {
-                GooglePasswordSetupScreen(
-                    authViewModel = authViewModel,
-                    onBack = {
-                        authViewModel.signOut()
-                    },
-                    onNext = { password: String ->
-                        backStack.add(Routes.GoogleAcademicSetup(password))
-                    }
-                )
-            }
-
-            entry<Routes.GoogleAcademicSetup> { route ->
-                GoogleAcademicSetupScreen(
-                    authViewModel = authViewModel,
-                    passwordValue = route.password,
-                    onBack = { backStack.removeLastOrNull() },
-                    onSetupComplete = { _ ->
-                    }
-                )
-            }
-
-            entry<Routes.Home> {
-                currentUser?.let { user ->
-                    HomeScreen(
-                        usuario = user,
-                        targetAsignaturaId = targetAsignaturaId,
-                        onNotificationHandled = onNotificationHandled,
-                        isLoading = authState.isLoading,
-                        onLogout = {
-                            authViewModel.signOut()
+                entry<Routes.RegisterStep2> { route ->
+                    RegisterStep2Screen(
+                        route = route,
+                        authViewModel = authViewModel,
+                        onBack = { backStack.removeLastOrNull() },
+                        onNavigateToHome = {
                         }
                     )
-                } ?: run {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                }
+
+                entry<Routes.Pending> {
+                    currentUser?.let { user ->
+                        PendingApprovalScreen(
+                            usuario = user,
+                            isLoading = authState.isLoading,
+                            onLogout = { authViewModel.signOut() }
+                        )
                     }
                 }
-            }
 
-        }
-    )
+                entry<Routes.GooglePasswordSetup> {
+                    GooglePasswordSetupScreen(
+                        authViewModel = authViewModel,
+                        onBack = {
+                            authViewModel.signOut()
+                        },
+                        onNext = { password: String ->
+                            backStack.add(Routes.GoogleAcademicSetup(password))
+                        }
+                    )
+                }
+
+                entry<Routes.GoogleAcademicSetup> { route ->
+                    GoogleAcademicSetupScreen(
+                        authViewModel = authViewModel,
+                        passwordValue = route.password,
+                        onBack = { backStack.removeLastOrNull() },
+                        onSetupComplete = { _ ->
+                        }
+                    )
+                }
+
+                entry<Routes.Home> {
+                    currentUser?.let { user ->
+                        HomeScreen(
+                            usuario = user,
+                            targetAsignaturaId = targetAsignaturaId,
+                            onNotificationHandled = onNotificationHandled,
+                            isLoading = authState.isLoading,
+                            onLogout = {
+                                authViewModel.signOut()
+                            }
+                        )
+                    } ?: run {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+            }
+        )
+    }
 
     AnimatedVisibility(
-        visible = authState.isLoading,
+        visible = authState.isSigningOut || authState.isCheckingSession,
+        enter = fadeIn(tween(150)),
+        exit = fadeOut(tween(300))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundColor),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+
+    AnimatedVisibility(
+        visible = authState.isLoading && !authState.isSigningOut,
         enter = fadeIn(),
         exit = fadeOut()
     ) {

@@ -32,7 +32,8 @@ data class AuthState(
     val isSuccess: Boolean = false,
     val user: User? = null,
     val errorMessage: String? = null,
-    val requireGooglePasswordSetup: Boolean = false
+    val requireGooglePasswordSetup: Boolean = false,
+    val isSigningOut: Boolean = false
 )
 
 @HiltViewModel
@@ -68,6 +69,8 @@ class AuthViewModel @Inject constructor(
                     userRepository.getUserFlow(uid).catch { emit(null) }
                 }
             }.collect { user ->
+                if (_authState.value.isSigningOut) return@collect
+
                 val firebaseUid = authRepository.getCurrentUserUid()
                 if (firebaseUid == null) {
                     _authState.value = _authState.value.copy(
@@ -284,7 +287,7 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
-        _authState.value = _authState.value.copy(isLoading = true)
+        _authState.value = _authState.value.copy(isLoading = true, isSigningOut = true)
         viewModelScope.launch {
             try {
                 val userId = authRepository.getCurrentUserUid()
@@ -304,11 +307,11 @@ class AuthViewModel @Inject constructor(
                 }
 
                 authRepository.signOut()
-                delay(600)
-                _authState.value = _authState.value.copy(isLoading = false, user = null)
+                delay(400)
+                _authState.value = _authState.value.copy(isLoading = false, isSigningOut = false, user = null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al cerrar sesión")
+                _authState.value = _authState.value.copy(isLoading = false, isSigningOut = false, errorMessage = "Error al cerrar sesión")
             }
         }
     }

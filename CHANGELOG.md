@@ -2,7 +2,10 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
-## [v0.7.7] - 2026-04-29
+## [v0.7.7] - 2026-05-01
+- **Autenticación**: Rediseñado el flujo de cierre de sesión (`signOut`) para eliminar parpadeos de pantalla blanca/gris.
+- **UI/UX**: Implementado un overlay opaco de nivel superior en `AppNavigation` que cubre la transición de navegación durante el logout.
+- **Arquitectura**: Añadido estado `isSigningOut` en `AuthState` para sincronizar la visibilidad del overlay con el ciclo de vida de la sesión de Firebase.
 - **Notificaciones**: Implementado filtrado en `MyFirebaseMessagingService` para evitar que los usuarios reciban notificaciones de sus propias acciones (self-notifications).
 - **Navegación**: Optimizada la gestión del backstack en `HomeState` para prevenir la duplicación de rutas consecutivas al navegar.
 - **Estabilidad**: Mejorada la redirección por notificaciones en `HomeScreen` asegurando que la navegación a la materia específica se realice solo cuando los datos de asignaturas están cargados.
