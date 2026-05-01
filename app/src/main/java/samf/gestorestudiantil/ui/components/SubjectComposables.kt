@@ -2,7 +2,6 @@ package samf.gestorestudiantil.ui.components
 
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
@@ -11,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -31,17 +32,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Campaign
-import androidx.lifecycle.viewmodel.compose.viewModel
 import samf.gestorestudiantil.data.models.Tarea
-import samf.gestorestudiantil.ui.viewmodels.EstudianteViewModel
-import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 
 @Composable
 fun UnidadCard(
     unidad: Unidad,
     posts: List<Post>,
     tareas: List<Tarea> = emptyList(),
-    onAddPost: (() -> Unit)? = null, // null if student
+    onAddPost: (() -> Unit)? = null,
     onAddTarea: (() -> Unit)? = null,
     onEditUnidad: (() -> Unit)? = null,
     onDeleteUnidad: ((Unidad) -> Unit)? = null,
@@ -92,7 +90,7 @@ fun UnidadCard(
                 }
                 Row {
                     if (onAddPost != null || onAddTarea != null || onEditUnidad != null || onDeleteUnidad != null) {
-                        FloatingPill(
+                        CustomDropDownMenu(
                             items = listOfNotNull(
                                 onAddPost?.let {
                                     MenuItem(
@@ -127,9 +125,7 @@ fun UnidadCard(
                                         isDestructive = true
                                     )
                                 }
-                            ),
-                            expandedIcon = Icons.Default.ArrowDropUp,
-                            shape = CircleShape,
+                            )
                         )
                     }
                 }
@@ -212,18 +208,25 @@ fun TareaCard(
                     }
                 }
                 if (onEdit != null || onDelete != null) {
-                    Row {
-                        onEdit?.let {
-                            IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(16.dp))
+                    CustomDropDownMenu(
+                        items = listOfNotNull(
+                            onEdit?.let {
+                                MenuItem(
+                                    text = stringResource(R.string.label_edit),
+                                    icon = Icons.Default.Edit,
+                                    onClick = it
+                                )
+                            },
+                            onDelete?.let {
+                                MenuItem(
+                                    text = stringResource(R.string.label_delete),
+                                    icon = Icons.Default.Delete,
+                                    onClick = it,
+                                    isDestructive = true
+                                )
                             }
-                        }
-                        onDelete?.let {
-                            IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
-                            }
-                        }
-                    }
+                        )
+                    )
                 }
             }
 
@@ -336,18 +339,25 @@ fun PostCard(
                     }
                 }
                 if (onEdit != null || onDelete != null) {
-                    Row {
-                        onEdit?.let {
-                            IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Edit, contentDescription = "Editar", tint = surfaceDimColor, modifier = Modifier.size(16.dp))
+                    CustomDropDownMenu(
+                        items = listOfNotNull(
+                            onEdit?.let {
+                                MenuItem(
+                                    text = stringResource(R.string.label_edit),
+                                    icon = Icons.Default.Edit,
+                                    onClick = it
+                                )
+                            },
+                            onDelete?.let {
+                                MenuItem(
+                                    text = stringResource(R.string.label_delete),
+                                    icon = Icons.Default.Delete,
+                                    onClick = it,
+                                    isDestructive = true
+                                )
                             }
-                        }
-                        onDelete?.let {
-                            IconButton(onClick = it, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = errorColor.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
-                            }
-                        }
-                    }
+                        )
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))

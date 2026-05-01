@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -170,13 +170,11 @@ fun EntregaItem(
                 }
             }
             IconButton(onClick = onDescargar) {
-                Icon(Icons.Default.Download, contentDescription = "Descargar", tint = primaryColor)
+                Icon(Icons.Default.AttachFile, contentDescription = "Opciones de adjunto", tint = primaryColor)
             }
             IconButton(onClick = onCalificar) {
-                Icon(Icons.Default.Edit, contentDescription = "Calificar", tint = surfaceDimColor)
+                Icon(Icons.Default.HistoryEdu, contentDescription = "Calificar", tint = surfaceDimColor)
             }
         }
     }
 }
-
-

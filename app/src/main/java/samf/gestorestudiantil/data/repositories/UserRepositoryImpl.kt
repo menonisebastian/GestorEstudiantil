@@ -1,17 +1,24 @@
 package samf.gestorestudiantil.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import org.json.JSONObject
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val client: OkHttpClient
 ) : UserRepository {
     
     override suspend fun saveUser(user: User) {
@@ -96,5 +103,46 @@ class UserRepositoryImpl @Inject constructor(
             .await()
         
         return snapshot.documents.firstOrNull()?.toObject(Clase::class.java)
+    }
+
+    override suspend fun getLatestVersionTag(): String? = withContext(Dispatchers.IO) {
+        // Intentar primero Release
+        val releaseRequest = Request.Builder()
+            .url("https://api.github.com/repos/menonisebastian/GestorEstudiantil/releases/latest")
+            .build()
+
+        try {
+            client.newCall(releaseRequest).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string() ?: ""
+                    val json = JSONObject(body)
+                    val tag = json.optString("tag_name", "")
+                    return@withContext if (tag.isNotEmpty()) tag else null
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // Si falla o no hay release, intentar Tags
+        val tagsRequest = Request.Builder()
+            .url("https://api.github.com/repos/menonisebastian/GestorEstudiantil/tags")
+            .build()
+
+        try {
+            client.newCall(tagsRequest).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string() ?: ""
+                    val tagsArray = JSONArray(body)
+                    if (tagsArray.length() > 0) {
+                        return@withContext tagsArray.getJSONObject(0).optString("name", null)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return@withContext null
     }
 }

@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,10 +34,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         scope.launch {
             val enabled = settingsRepository.notificationsEnabled.first()
             if (enabled) {
-                // Solo mostramos notificación manual si la app está en primer plano
-                // Si está en segundo plano, el sistema usa el campo 'notification' del JSON
-                remoteMessage.notification?.let {
-                    showNotification(it.title, it.body, remoteMessage.data)
+                val data = remoteMessage.data
+                val senderId = data["sender_id"]
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+                // 1. Filtrar si es el propio remitente
+                if (senderId != null && senderId == currentUserId) {
+                    return@launch
+                }
+
+                // 2. Extraer título y cuerpo (ya sea del objeto notification o del data)
+                val title = remoteMessage.notification?.title ?: data["title"]
+                val body = remoteMessage.notification?.body ?: data["body"]
+
+                if (title != null || body != null) {
+                    showNotification(title, body, data)
                 }
             }
         }

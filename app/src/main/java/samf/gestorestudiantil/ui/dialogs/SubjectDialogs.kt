@@ -4,12 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
@@ -66,11 +68,18 @@ fun AddUnidadContent(
     var nombre by remember { mutableStateOf(state.nombreInicial) }
     var descripcion by remember { mutableStateOf(state.descripcionInicial) }
     var visible by remember { mutableStateOf(state.visibleInicial) }
+    var ordenStr by remember { mutableStateOf(state.ordenInicial.toString()) }
 
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        CustomTextField(
+            value = ordenStr,
+            onValueChange = { if (it.all { char -> char.isDigit() }) ordenStr = it },
+            label = "Número de la unidad",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
         CustomTextField(
             value = nombre,
             onValueChange = { nombre = it },
@@ -90,13 +99,13 @@ fun AddUnidadContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Visible para estudiantes")
+            Text("Visible para estudiantes", color = textColor)
             Switch(
                 checked = visible,
                 onCheckedChange = null,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = primaryColor,
-                    checkedTrackColor = primaryColor.copy(alpha = 0.5f),
+                    checkedThumbColor = whiteColor,
+                    checkedTrackColor = primaryColor,
                     uncheckedThumbColor = surfaceDimColor,
                     uncheckedTrackColor = surfaceDimColor.copy(alpha = 0.5f)
                 )
@@ -115,10 +124,11 @@ fun AddUnidadContent(
             }
             Button(
                 onClick = {
-                    state.onSave(nombre, descripcion, visible)
+                    val orden = ordenStr.toIntOrNull() ?: state.ordenInicial
+                    state.onSave(nombre, descripcion, visible, orden)
                     onDismissRequest()
                 },
-                enabled = nombre.isNotBlank(),
+                enabled = nombre.isNotBlank() && ordenStr.isNotBlank(),
                 modifier = Modifier.weight(1f)
             ) {
                 Text(if (state.unidadId == null) "Crear" else "Guardar")
@@ -363,7 +373,7 @@ fun AddPostContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Visible para estudiantes")
+            Text("Visible para estudiantes", color = textColor)
             Switch(checked = visible, onCheckedChange = null,
                 colors = SwitchDefaults.colors(
                 checkedThumbColor = whiteColor,

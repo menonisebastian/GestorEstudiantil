@@ -208,6 +208,12 @@ fun DialogOrchestrator(
                     )
                 }
 
+                is DialogState.Help -> {
+                    HelpDialog(
+                        onDismissRequest = dismissAction
+                    )
+                }
+
                 is DialogState.SelectAsistencia -> {
                     ModalBottomSheet(
                         onDismissRequest = dismissAction,

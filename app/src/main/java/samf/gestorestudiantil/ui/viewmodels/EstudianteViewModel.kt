@@ -214,7 +214,14 @@ class EstudianteViewModel @Inject constructor(
             try {
                 tareaRepository.realizarEntrega(entrega, fileData, fileName, mimeType)
                 
-                enviarNotificacionAlProfesor(entrega, acronimoAsignatura)
+                // Si no viene acrónimo, intentamos buscarlo en el estado
+                val finalAcronimo = if (acronimoAsignatura.isBlank()) {
+                    _state.value.asignaturas.find { it.id == entrega.asignaturaId }?.acronimo ?: ""
+                } else {
+                    acronimoAsignatura
+                }
+
+                enviarNotificacionAlProfesor(entrega, finalAcronimo)
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.success_delivery), Toast.LENGTH_SHORT).show()
@@ -232,14 +239,16 @@ class EstudianteViewModel @Inject constructor(
     }
 
     private fun enviarNotificacionAlProfesor(entrega: Entrega, acronimo: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
+                // Las entregas deben notificar a los PROFESORES
                 val topic = "asignatura_${entrega.asignaturaId}_profesores"
-                val title = "Nueva Entrega: $acronimo"
+                val title = if (acronimo.isNotBlank()) "Nueva Entrega: $acronimo" else "Nueva Entrega"
                 val body = "${entrega.estudianteNombre} ha entregado una tarea."
                 val data = mapOf(
                     "target_asignatura_id" to entrega.asignaturaId,
-                    "type" to "entrega"
+                    "type" to "entrega",
+                    "sender_id" to entrega.estudianteId
                 )
 
                 notificationRepository.sendTopicNotification(topic, title, body, data)

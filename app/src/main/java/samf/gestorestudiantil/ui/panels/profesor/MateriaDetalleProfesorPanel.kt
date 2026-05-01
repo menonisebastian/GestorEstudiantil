@@ -167,8 +167,9 @@ fun MateriaDetalleProfesorPanel(
                                 nombreInicial = unidad.nombre,
                                 descripcionInicial = unidad.descripcion,
                                 visibleInicial = unidad.visible,
-                                onSave = { nombre, desc, visible ->
-                                    viewModel.editarUnidad(unidad.id, nombre, desc, visible)
+                                ordenInicial = unidad.orden,
+                                onSave = { nombre, desc, visible, orden ->
+                                    viewModel.editarUnidad(unidad.id, nombre, desc, visible, orden)
                                 }
                             )
                         )
@@ -188,7 +189,8 @@ fun MateriaDetalleProfesorPanel(
                                                     asignaturaId = asignatura.id,
                                                     nombre = unidad.nombre,
                                                     descripcion = unidad.descripcion,
-                                                    visible = unidad.visible
+                                                    visible = unidad.visible,
+                                                    orden = unidad.orden
                                                 )
                                             }
                                         )
@@ -298,8 +300,9 @@ fun MateriaDetalleProfesorPanel(
                 onOpenDialog(
                     DialogState.AddUnidad(
                         asignaturaId = asignatura.id,
-                        onSave = { nombre, desc, visible ->
-                            viewModel.crearUnidad(asignatura.id, nombre, desc, visible)
+                        ordenInicial = (state.unidades.maxOfOrNull { it.orden } ?: 0) + 1,
+                        onSave = { nombre, desc, visible, orden ->
+                            viewModel.crearUnidad(asignatura.id, nombre, desc, visible, orden)
                         }
                     )
                 )

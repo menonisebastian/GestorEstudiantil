@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
+import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Inject
 
 data class SnackbarEvent(
@@ -41,10 +42,17 @@ data class AppState(
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val recordatorioRepository: RecordatorioRepository,
+    private val userRepository: UserRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
+
+    private val _isCheckingUpdate = MutableStateFlow(false)
+    val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate.asStateFlow()
+
+    private val _updateMessage = MutableStateFlow<String?>(null)
+    val updateMessage: StateFlow<String?> = _updateMessage.asStateFlow()
 
     private val _snackbarEvents = MutableSharedFlow<SnackbarEvent>()
     val snackbarEvents: SharedFlow<SnackbarEvent> = _snackbarEvents.asSharedFlow()
@@ -116,5 +124,33 @@ class AppViewModel @Inject constructor(
 
     fun clearError() {
         _state.update { it.copy(errorMessage = null) }
+    }
+
+    fun checkLatestVersion(currentVersion: String) {
+        viewModelScope.launch {
+            _isCheckingUpdate.value = true
+            _updateMessage.value = null
+            try {
+                val latestTag = userRepository.getLatestVersionTag()
+                if (latestTag != null) {
+                    val cleanTag = latestTag.removePrefix("v").trim()
+                    if (cleanTag == currentVersion.trim()) {
+                        _updateMessage.value = "Ya tienes la última versión"
+                    } else {
+                        _updateMessage.value = "Nueva versión disponible: $latestTag"
+                    }
+                } else {
+                    _updateMessage.value = "No se pudo determinar la versión"
+                }
+            } catch (_: Exception) {
+                _updateMessage.value = "Error de conexión"
+            } finally {
+                _isCheckingUpdate.value = false
+            }
+        }
+    }
+
+    fun clearUpdateMessage() {
+        _updateMessage.value = null
     }
 }

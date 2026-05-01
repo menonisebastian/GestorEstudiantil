@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -286,23 +287,27 @@ class AuthViewModel @Inject constructor(
         _authState.value = _authState.value.copy(isLoading = true)
         viewModelScope.launch {
             try {
-                // 1. Limpiar el token de FCM en Firestore antes de cerrar sesión
                 val userId = authRepository.getCurrentUserUid()
+                
                 if (userId != null) {
-                    userRepository.updateFcmToken(userId, "")
+                    try {
+                        userRepository.updateFcmToken(userId, "")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 
-                // 2. Eliminar el token del dispositivo (limpia suscripciones a topics)
                 try {
                     FirebaseMessaging.getInstance().deleteToken().await()
                 } catch (e: Exception) {
-                    // Ignorar error de red al borrar token, pero seguir con el logout
+                    e.printStackTrace()
                 }
 
-                // 3. Cerrar sesión en el repositorio
                 authRepository.signOut()
+                delay(600)
                 _authState.value = _authState.value.copy(isLoading = false, user = null)
             } catch (e: Exception) {
+                e.printStackTrace()
                 _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al cerrar sesión")
             }
         }

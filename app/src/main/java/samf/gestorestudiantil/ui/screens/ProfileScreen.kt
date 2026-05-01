@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -59,6 +60,7 @@ fun ProfileScreen(
     usuario: User?,
     onLogout: () -> Unit = {},
     onProfileUpdated: (User) -> Unit = {},
+    isLoading: Boolean = false,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 )
 {
@@ -236,21 +238,32 @@ fun ProfileScreen(
             Button(
                 onClick = onLogout,
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading,
                 shape = CardDefaults.shape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = errorColor.copy(alpha = 0.1f),
-                    contentColor = errorColor
+                    contentColor = errorColor,
+                    disabledContainerColor = errorColor.copy(alpha = 0.05f),
+                    disabledContentColor = errorColor.copy(alpha = 0.5f)
                 )
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Logout,
-                        contentDescription = "Cerrar Sesión"
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = errorColor,
+                        strokeWidth = 2.dp
                     )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Cerrar Sesión"
+                        )
+                    }
                 }
             }
         }

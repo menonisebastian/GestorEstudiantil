@@ -68,11 +68,12 @@ class ProfesorRepositoryImpl @Inject constructor(
         db.collection("unidades").add(unidad).await()
     }
 
-    override suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean) {
+    override suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int) {
         db.collection("unidades").document(unidadId).update(
             "nombre", nombre,
             "descripcion", descripcion,
-            "visible", visible
+            "visible", visible,
+            "orden", orden
         ).await()
     }
 

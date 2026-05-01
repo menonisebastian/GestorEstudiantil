@@ -12,7 +12,7 @@ interface ProfesorRepository {
     fun getUnidades(asignaturaId: String): Flow<List<Unidad>>
     fun getPosts(asignaturaId: String): Flow<List<Post>>
     suspend fun crearUnidad(unidad: Unidad)
-    suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean)
+    suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int)
     suspend fun eliminarUnidad(unidadId: String)
     suspend fun crearPost(post: Post)
     suspend fun editarPost(postId: String, titulo: String, contenido: String, visible: Boolean)

@@ -166,7 +166,8 @@ fun MateriaDetalleEstudiantePanel(
                                         ),
                                         fileData,
                                         fileName,
-                                        mimeType
+                                        mimeType,
+                                        asignatura.acronimo
                                     )
                                 },
                                 onEliminarEntrega = {

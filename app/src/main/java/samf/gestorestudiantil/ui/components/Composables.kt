@@ -112,7 +112,6 @@ import samf.gestorestudiantil.data.interfaces.ChipOption
 import samf.gestorestudiantil.data.models.Asignatura
 import java.util.Locale
 import samf.gestorestudiantil.data.models.Evaluacion
-import androidx.compose.material.icons.outlined.FileDownload
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -1009,85 +1008,6 @@ fun TypeChip(option: ChipOption) {
             fontSize = 8.sp,
             maxLines = 1
         )
-    }
-}
-
-@Composable
-fun FloatingPill(
-    baseIcon: ImageVector = Icons.Default.Add,
-    iconTint: Color = whiteColor,
-    buttonColor: Color = primaryColor,
-    items: List<MenuItem>,
-    expandedIcon: ImageVector,
-    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(16.dp),
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
-    ) {
-        FloatingActionButton(
-            onClick = { expanded = true },
-            containerColor = buttonColor,
-            contentColor = iconTint,
-            modifier = Modifier.size(56.dp),
-            shape = shape
-        ) {
-            Icon(
-                imageVector = if (expanded) expandedIcon else baseIcon,
-                contentDescription = "Opciones",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
-            offset = DpOffset(x = (-130).dp, y = (-120).dp)
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier.padding(end = 12.dp)
-            ) {
-                items.reversed().forEach { item ->
-                    Surface(
-                        onClick = {
-                            item.onClick()
-                            expanded = false
-                        },
-                        shape = RoundedCornerShape(20.dp),
-                        color = surfaceColor,
-                        shadowElevation = 2.dp,
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            item.icon?.let {
-                                Icon(
-                                    imageVector = it,
-                                    contentDescription = null,
-                                    tint = item.iconTint ?: primaryColor,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Text(
-                                text = item.text,
-                                color = textColor,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 

@@ -82,12 +82,14 @@ fun AppNavigation(
         }
     }
 
-    if (rootRoute == null || backStack.isEmpty()) {
+    if (backStack.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize().background(backgroundColor),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            if (rootRoute == null) {
+                CircularProgressIndicator()
+            }
         }
         return
     }
@@ -144,6 +146,7 @@ fun AppNavigation(
                 currentUser?.let { user ->
                     PendingApprovalScreen(
                         usuario = user,
+                        isLoading = authState.isLoading,
                         onLogout = { authViewModel.signOut() }
                     )
                 }
@@ -177,6 +180,7 @@ fun AppNavigation(
                         usuario = user,
                         targetAsignaturaId = targetAsignaturaId,
                         onNotificationHandled = onNotificationHandled,
+                        isLoading = authState.isLoading,
                         onLogout = {
                             authViewModel.signOut()
                         }

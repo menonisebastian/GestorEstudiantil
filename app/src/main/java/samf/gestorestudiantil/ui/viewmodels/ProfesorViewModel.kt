@@ -111,7 +111,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun crearUnidad(asignaturaId: String, nombre: String, descripcion: String, visible: Boolean) {
+    fun crearUnidad(asignaturaId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int? = null) {
         viewModelScope.launch {
             try {
                 val nuevaUnidad = Unidad(
@@ -119,7 +119,7 @@ class ProfesorViewModel @Inject constructor(
                     nombre = nombre,
                     descripcion = descripcion,
                     visible = visible,
-                    orden = (_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1
+                    orden = orden ?: ((_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1)
                 )
                 profesorRepository.crearUnidad(nuevaUnidad)
                 withContext(Dispatchers.Main) {
@@ -133,10 +133,10 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean) {
+    fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int) {
         viewModelScope.launch {
             try {
-                profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible)
+                profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible, orden)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, R.string.success_update, Toast.LENGTH_SHORT).show()
                 }
@@ -193,10 +193,14 @@ class ProfesorViewModel @Inject constructor(
     private fun enviarNotificacion(asignaturaId: String, tituloPost: String, nombreProfesor: String, acronimoAsignatura: String) {
         viewModelScope.launch {
             try {
+                // Los posts y tareas deben notificar a los ESTUDIANTES
                 val topic = "asignatura_${asignaturaId}_estudiantes"
                 val title = "Nuevo post en $acronimoAsignatura"
                 val body = tituloPost
-                val data = mapOf("target_asignatura_id" to asignaturaId)
+                val data = mapOf(
+                    "target_asignatura_id" to asignaturaId,
+                    "sender_id" to (_profesor.value?.id ?: "")
+                )
 
                 notificationRepository.sendTopicNotification(topic, title, body, data)
             } catch (e: Exception) {
@@ -354,6 +358,9 @@ class ProfesorViewModel @Inject constructor(
     fun cargarAsignaturas(profesorId: String, ultimaVez: Map<String, Long> = emptyMap()) {
         if (profesorId == lastAsignaturasParams) return
         lastAsignaturasParams = profesorId
+
+        // Cargar los datos básicos del profesor (incluyendo su ID para el sender_id de FCM)
+        cargarProfesor(profesorId)
 
         currentUltimaVez = ultimaVez
         observarUsuario(profesorId)
@@ -555,7 +562,8 @@ class ProfesorViewModel @Inject constructor(
                 val body = "Se ha publicado la nota de: ${evaluacion.nombre}"
                 val data = mapOf(
                     "target_asignatura_id" to evaluacion.asignaturaId,
-                    "type" to "calificacion"
+                    "type" to "calificacion",
+                    "sender_id" to (_profesor.value?.id ?: "")
                 )
 
                 notificationRepository.sendTokenNotification(token, title, body, data)

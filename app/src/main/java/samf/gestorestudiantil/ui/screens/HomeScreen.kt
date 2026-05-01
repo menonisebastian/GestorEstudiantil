@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextButton
@@ -146,6 +147,7 @@ fun HomeScreen(
     usuario: User,
     targetAsignaturaId: String? = null,
     onNotificationHandled: () -> Unit = {},
+    isLoading: Boolean = false,
     onLogout: () -> Unit
 ) {
     val currentNavItems = remember(usuario.rol) {
@@ -384,6 +386,20 @@ fun HomeScreen(
                         title = {
                             TitleLogo(125.dp)
                         },
+                        actions = {
+                            IconButton(
+                                onClick = { onOpenDialog(DialogState.Help) },
+                                colors = IconButtonDefaults.iconButtonColors(containerColor = surfaceColor),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.HelpOutline,
+                                    contentDescription = "Ayuda",
+                                    tint = surfaceDimColor
+                                )
+                            }
+                        },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = backgroundColor,
                         )
@@ -590,6 +606,7 @@ fun HomeScreen(
                         profesorViewModel = profesorViewModel,
                         asistenciaViewModel = asistenciaViewModel,
                         appViewModel = appViewModel,
+                        isLoading = isLoading,
                         onLogout = onLogout
                     )
                 }
@@ -605,6 +622,7 @@ fun HomeScreen(
                         profesorViewModel = profesorViewModel,
                         asistenciaViewModel = asistenciaViewModel,
                         appViewModel = appViewModel,
+                        isLoading = isLoading,
                         onLogout = onLogout
                     )
                 }
@@ -619,6 +637,7 @@ fun HomeScreen(
                         onOpenDialog = onOpenDialog,
                         adminViewModel = adminViewModel,
                         appViewModel = appViewModel,
+                        isLoading = isLoading,
                         onLogout = onLogout
                     )
                 }
@@ -647,6 +666,7 @@ private fun EstudianteNavContent(
     profesorViewModel: ProfesorViewModel,
     asistenciaViewModel: AsistenciaViewModel,
     appViewModel: AppViewModel,
+    isLoading: Boolean,
     onLogout: () -> Unit
 ) {
     NavDisplay(
@@ -698,7 +718,7 @@ private fun EstudianteNavContent(
                                         data,
                                         name,
                                         mime,
-                                        tarea.titulo
+                                        "" // Dejamos vacío para que el ViewModel busque el acrónimo correcto
                                     )
                                 },
                                 onEliminarEntrega = {
@@ -826,7 +846,7 @@ private fun EstudianteNavContent(
                                         data,
                                         name,
                                         mime,
-                                        tarea.titulo
+                                        "" // Dejamos vacío para que el ViewModel busque el acrónimo correcto
                                     )
                                 },
                                 onEliminarEntrega = {
@@ -917,6 +937,7 @@ private fun EstudianteNavContent(
             entry<Routes.HomeRoutes.Perfil> {
                 ProfileScreen(
                     usuario = usuario,
+                    isLoading = isLoading,
                     onLogout = onLogout,
                     onProfileUpdated = { }
                 )
@@ -937,6 +958,7 @@ private fun ProfesorNavContent(
     profesorViewModel: ProfesorViewModel,
     asistenciaViewModel: AsistenciaViewModel,
     appViewModel: AppViewModel,
+    isLoading: Boolean,
     onLogout: () -> Unit
 ) {
     NavDisplay(
@@ -1111,6 +1133,7 @@ private fun ProfesorNavContent(
             entry<Routes.HomeRoutes.Perfil> {
                 ProfileScreen(
                     usuario = usuario,
+                    isLoading = isLoading,
                     onLogout = onLogout,
                     onProfileUpdated = { }
                 )
@@ -1130,6 +1153,7 @@ private fun AdminNavContent(
     onOpenDialog: (DialogState) -> Unit,
     adminViewModel: AdminViewModel,
     appViewModel: AppViewModel,
+    isLoading: Boolean,
     onLogout: () -> Unit
 ) {
     NavDisplay(
@@ -1408,6 +1432,7 @@ private fun AdminNavContent(
             entry<Routes.HomeRoutes.Perfil> {
                 ProfileScreen(
                     usuario = usuario,
+                    isLoading = isLoading,
                     onLogout = onLogout,
                     onProfileUpdated = { }
                 )

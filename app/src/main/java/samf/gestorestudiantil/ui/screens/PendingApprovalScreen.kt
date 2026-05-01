@@ -19,7 +19,11 @@ import samf.gestorestudiantil.ui.theme.textColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PendingApprovalScreen(usuario: User, onLogout: () -> Unit) {
+fun PendingApprovalScreen(
+    usuario: User,
+    onLogout: () -> Unit,
+    isLoading: Boolean = false
+) {
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
@@ -72,9 +76,18 @@ fun PendingApprovalScreen(usuario: User, onLogout: () -> Unit) {
 
             Button(
                 onClick = onLogout,
+                enabled = !isLoading,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text("Cerrar Sesión")
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = textColor,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Cerrar Sesión")
+                }
             }
         }
     }

@@ -24,6 +24,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -359,6 +362,7 @@ fun UsuarioCardAdmin(
     val softRed = Color(0xFFD74132)
     Card(
         modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = surfaceColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -407,44 +411,89 @@ fun UsuarioCardAdmin(
                     }
                 }
 
-                // Acciones para usuarios ACTIVOS (Editar / Eliminar)
+                // Acciones para usuarios ACTIVOS (Menú de opciones)
                 if (!isPending) {
-                    Row {
+                    var showMenu by remember { mutableStateOf(false) }
+
+                    Box {
                         IconButton(
-                            onClick = {
-                                onOpenDialog(DialogState.EditUser(
-                                    user = usuario,
-                                    cursos = adminState.cursos,
-                                    onSave = { updated ->
-                                        adminViewModel.guardarUsuario(updated)
-                                    }
-                                ))
-                            }, 
+                            onClick = { showMenu = true },
                             modifier = Modifier.size(32.dp)
                         ) {
-                            Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.label_edit), tint = surfaceDimColor, modifier = Modifier.size(20.dp))
-                        }
-                        
-                        // Botón adicional para Profesores (Asignar materias)
-                        if (usuario.rol == "PROFESOR") {
-                            IconButton(
-                                onClick = {
-                                    onOpenDialog(DialogState.AsignarAsignaturas(
-                                        profesor = usuario,
-                                        onAssign = { },
-                                        onUnassign = { }
-                                    ))
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(Icons.Outlined.School, contentDescription = stringResource(R.string.label_subjects), tint = surfaceDimColor, modifier = Modifier.size(20.dp))
-                            }
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.label_options),
+                                tint = surfaceDimColor,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
 
-                        // MOSTRAR SOLO SI NO ES ÉL MISMO
-                        if (canDelete) {
-                            IconButton(onClick = onRechazar, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.label_delete), tint = softRed, modifier = Modifier.size(20.dp))
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            containerColor = surfaceColor,
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.label_edit), color = textColor) },
+                                onClick = {
+                                    showMenu = false
+                                    onOpenDialog(DialogState.EditUser(
+                                        user = usuario,
+                                        cursos = adminState.cursos,
+                                        onSave = { updated ->
+                                            adminViewModel.guardarUsuario(updated)
+                                        }
+                                    ))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Outlined.Edit,
+                                        contentDescription = null,
+                                        tint = surfaceDimColor,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            )
+
+                            if (usuario.rol == "PROFESOR") {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.label_subjects), color = textColor) },
+                                    onClick = {
+                                        showMenu = false
+                                        onOpenDialog(DialogState.AsignarAsignaturas(
+                                            profesor = usuario,
+                                            onAssign = { },
+                                            onUnassign = { }
+                                        ))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.School,
+                                            contentDescription = null,
+                                            tint = surfaceDimColor,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                )
+                            }
+
+                            if (canDelete) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.label_delete), color = softRed) },
+                                    onClick = {
+                                        showMenu = false
+                                        onRechazar()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.Delete,
+                                            contentDescription = null,
+                                            tint = softRed,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                )
                             }
                         }
                     }

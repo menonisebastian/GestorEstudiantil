@@ -117,6 +117,7 @@
     <string name="label_edit">Editar</string>
     <string name="label_delete">Eliminar</string>
     <string name="label_subjects">Asignaturas</string>
+    <string name="label_options">Opciones</string>
     <string name="label_user">Usuario</string>
     <string name="label_icon_name">Nombre de Icono</string>
     <string name="label_select_color">Seleccionar Color</string>
@@ -125,6 +126,15 @@
     <string name="label_select_icon">Seleccionar Icono</string>
     <string name="label_close">Cerrar</string>
     <string name="open_with">Abrir con...</string>
+
+    <string name="help_title">Ayuda y Soporte</string>
+    <string name="help_version">Versión actual: %s</string>
+    <string name="help_github_repo">Repositorio en GitHub</string>
+    <string name="help_check_update">Buscar última versión</string>
+    <string name="help_developed_by">DESARROLLADO POR SEBASTIÁN MENONI</string>
+    <string name="help_up_to_date">Ya tienes la última versión</string>
+    <string name="help_new_version_available">Nueva versión disponible</string>
+    <string name="help_error_checking_version">Error al comprobar la versión</string>
 
     <!-- Opciones de Selección -->
     <string name="option_ies">IES</string>

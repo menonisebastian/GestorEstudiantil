@@ -95,7 +95,8 @@ sealed class DialogState {
         val nombreInicial: String = "",
         val descripcionInicial: String = "",
         val visibleInicial: Boolean = false,
-        val onSave: (String, String, Boolean) -> Unit // nombre, descripcion, visible
+        val ordenInicial: Int = 1,
+        val onSave: (String, String, Boolean, Int) -> Unit // nombre, descripcion, visible, orden
     ) : DialogState()
 
     data class AddPost(
@@ -178,4 +179,6 @@ sealed class DialogState {
         val estadoActual: AsistenciaEstado?,
         val onEstadoSelected: (AsistenciaEstado) -> Unit
     ) : DialogState()
+
+    data object Help : DialogState()
 }

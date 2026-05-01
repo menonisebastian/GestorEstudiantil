@@ -2,6 +2,12 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.7] - 2026-04-29
+- **Notificaciones**: Implementado filtrado en `MyFirebaseMessagingService` para evitar que los usuarios reciban notificaciones de sus propias acciones (self-notifications).
+- **Navegación**: Optimizada la gestión del backstack en `HomeState` para prevenir la duplicación de rutas consecutivas al navegar.
+- **Estabilidad**: Mejorada la redirección por notificaciones en `HomeScreen` asegurando que la navegación a la materia específica se realice solo cuando los datos de asignaturas están cargados.
+- **Implementación**: Implementado `HelpDialog` para mostrar la versión de la app.
+
 ## [v0.7.6] - 2026-04-28
 - **Estabilidad**: Refactorizada la lógica de eliminación de usuarios (`eliminarUsuario`) en `AdminRepositoryImpl` para utilizar `whereArrayContains` y `WriteBatch`, garantizando la limpieza total de IDs en todas las clases y evitando registros "fantasma".
 - **Rendimiento**: Implementado el cálculo dinámico "on the fly" de contadores de estudiantes en el panel de Administración, eliminando la necesidad de sincronización manual y reduciendo las operaciones de escritura en Firestore.

@@ -11,8 +11,6 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-// 1. Reemplazamos el bloque 'android { ... }' por 'configure<ApplicationExtension> { ... }'
-// para evitar la advertencia de deprecación de BaseAppModuleExtension.
 configure<ApplicationExtension> {
     namespace = "samf.gestorestudiantil"
     compileSdk = 36
@@ -21,8 +19,8 @@ configure<ApplicationExtension> {
         applicationId = "samf.gestorestudiantil"
         minSdk = 34
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "0.7.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -57,12 +55,10 @@ configure<ApplicationExtension> {
     }
 }
 
-// 3. ¡CORRECCIÓN IMPORTANTE! El bloque ksp DEBE ir fuera de la configuración de Android
 ksp {
     arg("hilt.correctErrorTypes", "true")
 }
 
-// Configuración global de Kotlin fuera de android { }
 kotlin {
     jvmToolchain(17)
 }
@@ -70,7 +66,7 @@ kotlin {
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "io.grpc") {
-            useVersion("1.62.2") // Versión estable compatible con Firestore 26.2.0
+            useVersion("1.62.2")
         }
     }
 }
@@ -98,15 +94,15 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Importar la plataforma Firebase BOM
+    // Firebase BOM
     implementation(platform(libs.firebase.bom))
 
-    // Librerías de Firebase (Auth, Firestore y Messaging)
+    // Firebase (Auth, Firestore y Messaging)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
 
-    // Librería para Google Sign-In
+    // Google Sign-In
     implementation(libs.play.services.auth)
 
     // Navegación en Compose (Navigation 3)
@@ -116,9 +112,11 @@ dependencies {
 
     // Cloudinary para Android
     implementation(libs.cloudinary.android)
+
     // Coil para mostrar la imagen desde la URL
     implementation(libs.coil.compose)
 
+    // ConstraintLayout y DataStore
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.datastore.preferences)
 
@@ -127,8 +125,10 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
 
+    // Gson
     implementation(libs.gson)
 
+    //ColorPicker
     implementation(libs.godaddy.colorpicker)
 
     // Supabase
@@ -143,11 +143,14 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Google Auth Library for FCM HTTP v1 (Teacher app only)
+    // Google Auth Library for FCM HTTP v1
     implementation(libs.google.auth.library) {
         exclude(group = "io.grpc", module = "grpc-netty-shaded")
     }
 
+    //Calendario
     implementation(libs.calendar.compose)
+
+    //SplashScreen
     implementation(libs.androidx.core.splashscreen)
 }

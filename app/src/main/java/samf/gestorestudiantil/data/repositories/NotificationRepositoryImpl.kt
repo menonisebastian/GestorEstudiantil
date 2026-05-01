@@ -19,6 +19,7 @@ class NotificationRepositoryImpl @Inject constructor(
 ) : NotificationRepository {
 
     private val fcmUrl = "https://fcm.googleapis.com/v1/projects/gestorinstituto-tfg/messages:send"
+    private var googleCredentials: GoogleCredentials? = null
 
     override suspend fun sendTopicNotification(
         topic: String,
@@ -28,13 +29,14 @@ class NotificationRepositoryImpl @Inject constructor(
     ) {
         val message = JSONObject().apply {
             put("topic", topic)
-            put("notification", JSONObject().apply {
+            // NOTA: No usamos el campo "notification" para envíos a topics.
+            // Esto convierte la notificación en "data-only", forzando a que pase
+            // siempre por onMessageReceived y podamos filtrar por sender_id.
+            val dataJson = JSONObject(data).apply {
                 put("title", title)
                 put("body", body)
-            })
-            if (data.isNotEmpty()) {
-                put("data", JSONObject(data))
             }
+            put("data", dataJson)
         }
         sendFCMRequest(message)
     }
@@ -85,11 +87,13 @@ class NotificationRepositoryImpl @Inject constructor(
 
     private fun getAccessToken(): String? {
         return try {
-            val inputStream = context.assets.open("service-account.json")
-            val googleCredentials = GoogleCredentials.fromStream(inputStream)
-                .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
-            googleCredentials.refreshIfExpired()
-            googleCredentials.accessToken.tokenValue
+            if (googleCredentials == null) {
+                val inputStream = context.assets.open("service-account.json")
+                googleCredentials = GoogleCredentials.fromStream(inputStream)
+                    .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
+            }
+            googleCredentials?.refreshIfExpired()
+            googleCredentials?.accessToken?.tokenValue
         } catch (e: Exception) {
             e.printStackTrace()
             null

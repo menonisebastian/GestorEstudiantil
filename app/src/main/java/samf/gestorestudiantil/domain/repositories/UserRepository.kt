@@ -14,4 +14,5 @@ interface UserRepository {
     suspend fun updateProfileImage(uid: String, imageUrl: String)
     suspend fun updateName(uid: String, name: String)
     suspend fun getClaseDeEstudiante(estudiante: User.Estudiante): Clase?
+    suspend fun getLatestVersionTag(): String?
 }
