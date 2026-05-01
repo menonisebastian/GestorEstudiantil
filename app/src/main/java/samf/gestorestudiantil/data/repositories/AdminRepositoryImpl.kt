@@ -23,6 +23,8 @@ import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.Entrega
 import com.google.firebase.Timestamp
 import io.github.jan.supabase.storage.Storage
+import samf.gestorestudiantil.data.models.Evaluacion
+import samf.gestorestudiantil.data.enums.tipoEvaluacion as TipoEvaluacionEnum
 import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.R
 import java.util.Date
@@ -668,6 +670,70 @@ class AdminRepositoryImpl @Inject constructor(
         if (ops > 0) batch.commit().await()
     }
 
+    override suspend fun generarCalificacionesParaArturo() {
+        val emailArturo = "arturomenoni@gmail.com"
+        val userSnap = db.collection("usuarios")
+            .whereEqualTo("email", emailArturo)
+            .get().await()
+
+        val arturo = userSnap.documents.firstOrNull()?.toObject(User.Estudiante::class.java) ?: return
+        val arturoId = arturo.id
+
+        // Obtenemos todas las asignaturas de DAM (cursoId: ies_comercio_DAM)
+        val asignaturasSnap = db.collection("asignaturas")
+            .whereEqualTo("cursoId", "ies_comercio_DAM")
+            .get().await()
+
+        val asignaturas = asignaturasSnap.toObjects(Asignatura::class.java)
+
+        val comentarios = listOf(
+            "Buen trabajo, sigue así.",
+            "Debes mejorar la presentación.",
+            "Excelente resolución del problema.",
+            "Faltan algunos apartados obligatorios.",
+            "Conceptos bien asimilados.",
+            "Participación activa en clase.",
+            "Resultado satisfactorio.",
+            "Se nota el esfuerzo en la práctica."
+        )
+
+        var batch = db.batch()
+        var ops = 0
+
+        for (asig in asignaturas) {
+            // Generamos de 2 a 4 evaluaciones por asignatura
+            val numEvaluaciones = (2..4).random()
+            for (i in 1..numEvaluaciones) {
+                val evaluacionId = UUID.randomUUID().toString()
+                val nota = (50..100).random() / 10.0 // Notas entre 5.0 y 10.0
+                
+                val evaluacion = Evaluacion(
+                    id = evaluacionId,
+                    nombre = "Evaluación $i de ${asig.acronimo}",
+                    nota = nota,
+                    estudianteId = arturoId,
+                    asignaturaId = asig.id,
+                    visible = true,
+                    comentario = comentarios.random(),
+                    tipoEvaluacion = TipoEvaluacionEnum.entries.random()
+                )
+
+                batch.set(db.collection("evaluaciones").document(evaluacionId), evaluacion)
+                ops++
+
+                if (ops >= 400) {
+                    batch.commit().await()
+                    batch = db.batch()
+                    ops = 0
+                }
+            }
+        }
+
+        if (ops > 0) {
+            batch.commit().await()
+        }
+    }
+
     private fun extraerNumero(texto: String?): Int {
         if (texto.isNullOrEmpty()) return 0
         return texto.replace(Regex("\\D"), "").toIntOrNull() ?: 0
@@ -679,7 +745,7 @@ class AdminRepositoryImpl @Inject constructor(
     }
 
     override suspend fun limpiarPapelera() {
-        val limite = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)
+        val limite = System.currentTimeMillis() - (24L * 60 * 60 * 1000)
         
         // 1. TAREAS: Borrado físico de marcadas para eliminar
         val tareasABorrar = db.collection("tareas")

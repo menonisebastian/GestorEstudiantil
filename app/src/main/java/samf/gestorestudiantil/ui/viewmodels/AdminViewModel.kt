@@ -299,6 +299,18 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun generarCalificacionesParaArturo() {
+        viewModelScope.launch {
+            _adminState.value = _adminState.value.copy(isLoading = true)
+            try {
+                adminRepository.generarCalificacionesParaArturo()
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = "¡Calificaciones para Arturo generadas!")
+            } catch (e: Exception) {
+                _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = ErrorMapper.getFriendlyMessage(context, e))
+            }
+        }
+    }
+
     fun guardarUsuario(user: User) {
         viewModelScope.launch {
             try {

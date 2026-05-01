@@ -5,7 +5,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 ## [v0.7.7] - 2026-05-01
 - **Estabilidad**: Implementado sistema de **Borrado Lógico (Soft Delete)** para Unidades, Posts y Tareas. Los elementos eliminados se ocultan inmediatamente pero se conservan durante 30 días antes de su borrado físico.
 - **UX**: Mejorada la funcionalidad de "Deshacer" (Undo) en el panel del profesor. Al restaurar un elemento borrado, se recupera ahora todo su contenido íntegro, incluyendo archivos adjuntos en Supabase y entregas de alumnos, al no realizarse un borrado físico inmediato.
-- **Mantenimiento**: Implementada función de **Limpieza Profunda** en el panel de administración para el vaciado definitivo de la papelera (>30 días), gestionando el borrado en cascada de documentos en Firestore y archivos en Supabase Storage.
+- **Mantenimiento**: Implementada función de **Limpieza Profunda** en el panel de administración para el vaciado definitivo de la papelera (>24 horas), gestionando el borrado en cascada de documentos en Firestore y archivos en Supabase Storage.
 - **Arquitectura**: Actualizados los modelos `Unidad`, `Post` y `Tarea` con el campo `fechaEliminacion` y refactorizados los repositorios para filtrar automáticamente el contenido en papelera.
 - **Autenticación**: Rediseñado el flujo de cierre de sesión (`signOut`) para eliminar parpadeos de pantalla blanca/gris.
 - **UI/UX**: Implementado un overlay opaco de nivel superior en `AppNavigation` que cubre la transición de navegación durante el logout.
@@ -14,6 +14,7 @@ Todos los cambios notables en este proyecto se documentarán en este archivo.
 - **Navegación**: Optimizada la gestión del backstack en `HomeState` para prevenir la duplicación de rutas consecutivas al navegar.
 - **Estabilidad**: Mejorada la redirección por notificaciones en `HomeScreen` asegurando que la navegación a la materia específica se realice solo cuando los datos de asignaturas están cargados.
 - **Implementación**: Implementado `HelpDialog` para mostrar la versión de la app.
+- **Mantenimiento**: Añadido botón de generación de calificaciones dummy para el usuario `arturomenoni@gmail.com` en el panel de administración para pruebas de desarrollo.
 
 ## [v0.7.6] - 2026-04-28
 - **Estabilidad**: Refactorizada la lógica de eliminación de usuarios (`eliminarUsuario`) en `AdminRepositoryImpl` para utilizar `whereArrayContains` y `WriteBatch`, garantizando la limpieza total de IDs en todas las clases y evitando registros "fantasma".

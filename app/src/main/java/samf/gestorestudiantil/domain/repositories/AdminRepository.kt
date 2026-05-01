@@ -40,5 +40,6 @@ interface AdminRepository {
     suspend fun generarAlumnosFalsos()
     suspend fun generarProfesoresFalsos()
     suspend fun generarContenidoAcademicoDummy()
+    suspend fun generarCalificacionesParaArturo()
     suspend fun limpiarPapelera()
 }

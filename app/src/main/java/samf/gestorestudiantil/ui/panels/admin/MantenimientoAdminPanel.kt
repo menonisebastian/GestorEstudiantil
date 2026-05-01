@@ -107,12 +107,20 @@ fun MantenimientoAdminPanel(
                     }
                     Button(
                         onClick = { adminViewModel.generarContenidoAcademico() },
-                        enabled = true,
+                        enabled = false,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
                         Text("Generar Contenido Académico (DAM)")
+                    }
+                    Button(
+                        onClick = { adminViewModel.generarCalificacionesParaArturo() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Generar Calificaciones (Arturo)")
                     }
                 }
             }
@@ -121,7 +129,7 @@ fun MantenimientoAdminPanel(
         item {
             MantenimientoCard(
                 titulo = "Limpieza del Sistema",
-                descripcion = "Elimina permanentemente los elementos marcados para borrado que lleven más de 30 días en la papelera."
+                descripcion = "Elimina permanentemente los elementos marcados para borrado que lleven más de 24 horas en la papelera."
             ) {
                 Button(
                     onClick = { adminViewModel.ejecutarLimpiezaProfunda() },
@@ -129,7 +137,7 @@ fun MantenimientoAdminPanel(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
-                    Text("Vaciar Papelera (>30 días)")
+                    Text("Vaciar Papelera (>24 horas)")
                 }
             }
         }

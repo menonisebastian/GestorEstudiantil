@@ -49,10 +49,12 @@ class EstudianteRepositoryImpl @Inject constructor(
         
         val postsSubscription = db.collection("posts")
             .whereIn("asignaturaId", asignaturaIds)
+            .whereEqualTo("fechaEliminacion", null)
             .addSnapshotListener { _, _ -> trySend(Unit) }
             
         val tareasSubscription = db.collection("tareas")
             .whereIn("asignaturaId", asignaturaIds)
+            .whereEqualTo("fechaEliminacion", null)
             .addSnapshotListener { _, _ -> trySend(Unit) }
 
         awaitClose { 
