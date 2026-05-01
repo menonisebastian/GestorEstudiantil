@@ -14,34 +14,42 @@ El proyecto implementa los estándares más exigentes del desarrollo Android act
 *   **Arquitectura:** Clean Architecture + MVVM (Model-View-ViewModel).
 *   **Inyección de Dependencias:** [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) para una gestión de dependencias modular y testeable.
 *   **Servicios en la Nube:**
-    *   **[Firebase](https://firebase.google.com/):** Autenticación (Google/Email), Firestore (DB tiempo real), Cloud Messaging (Notificaciones Push).
+    *   **[Firebase](https://firebase.google.com/):** Autenticación (Google/Github/Email), Firestore (DB tiempo real), Cloud Messaging (Notificaciones Push).
     *   **[Supabase](https://supabase.com/):** Gestión avanzada de archivos (Storage) para tareas y entregas.
     *   **[Cloudinary](https://cloudinary.com/):** Optimización y almacenamiento dinámico de imágenes de perfil.
 *   **Persistencia Local:** DataStore (Preferencias de usuario como temas y notificaciones).
 *   **UI Avanzada:** 
     *   **Floating Pills:** Elementos flotantes dinámicos con transparencia (*glassmorphism*) en la navegación.
+    *   **Calendario Dinámico:** Integración con [Kizitonwose Calendar](https://github.com/kizitonwose/Calendar) para gestión visual de eventos.
     *   **Coil:** Carga eficiente de imágenes asíncronas.
     *   **AnimatedContent/Visibility:** Transiciones fluidas en toda la aplicación.
+    *   **Splash Screen API:** Experiencia de inicio nativa y fluida.
 
 ## 📱 Funcionalidades por Rol
 
 ### 👨‍🎓 Para el Estudiante
 *   **Muro de Asignaturas:** Acceso a unidades didácticas, publicaciones del profesor y tareas académicas.
 *   **Gestión de Entregas:** Subida de archivos directamente a la nube con feedback inmediato.
-*   **Seguimiento de Calificaciones:** Consulta de notas detalladas con comentarios y archivos de feedback del docente.
-*   **Organización Personal:** Calendario interactivo que unifica tareas académicas y recordatorios personales.
-*   **Horarios Dinámicos:** Visualización de clases sincronizada en tiempo real con el centro.
+*   **Seguimiento de Calificaciones:** Consulta de notas detalladas con comentarios y archivos de feedback.
+*   **Organización Personal:** Calendario interactivo y sistema de **Recordatorios** para tareas y notas propias.
+*   **Asistencia:** Consulta del historial de asistencia por asignatura y global.
+*   **Horarios:** Visualización de clases sincronizada en tiempo real.
 
 ### 👨‍🏫 Para el Profesor
 *   **Control de Contenidos:** Creación y edición de unidades, anuncios y materiales de apoyo.
-*   **Gestión de Tareas:** Publicación de evaluaciones con archivos adjuntos y gestión de fechas límite.
 *   **Evaluación 360°:** Calificación de entregas, asignación de notas y envío de feedback personalizado.
-*   **Notificaciones Directas:** Envío de avisos importantes a los estudiantes mediante integración con FCM.
+*   **Gestión de Tareas:** Publicación de evaluaciones y corrección de entregas con feedback personalizado.
+*   **Control de Asistencia:** Sistema digital para pasar lista y registrar ausencias en tiempo real.
+*   **Horarios:** Gestión visual de su propia jornada laboral.
+*   **Notificaciones:** Envío de avisos directos a los alumnos mediante integración con FCM.
 
 ### ️🧑🏻‍💻 Para el Administrador
 *   **Control Institucional:** Configuración jerárquica de Centros, Cursos, Ciclos y Asignaturas.
-*   **Gestión de Usuarios:** Aprobación de cuentas, edición de perfiles y asignación de tutores/profesores.
-*   **Automatización de Datos:** Semillado masivo de la base de datos mediante archivos JSONL y gestión atómica de horarios.
+*   **Gestión de Usuarios:** Aprobación de cuentas, edición de perfiles y asignación de roles.
+*   **Mantenimiento Avanzado:** 
+    *   Semillado masivo de la base de datos mediante archivos JSONL.
+    *   Generación atómica de horarios y gestión de calendarios escolares.
+    *   Limpieza y optimización de datos del sistema.
 
 ## 📂 Estructura del Proyecto (Clean Architecture)
 

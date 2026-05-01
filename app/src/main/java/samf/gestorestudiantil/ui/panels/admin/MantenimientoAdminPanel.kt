@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,13 +26,16 @@ import samf.gestorestudiantil.R
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
+import androidx.compose.ui.tooling.preview.Preview
+import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 
 @Composable
 fun MantenimientoAdminPanel(
-    adminViewModel: AdminViewModel
+    adminViewModel: AdminViewModel,
 ) {
     val adminState by adminViewModel.adminState.collectAsState()
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -71,11 +75,12 @@ fun MantenimientoAdminPanel(
         item {
             MantenimientoCard(
                 titulo = "Generación de Datos de Prueba (Seeding)",
-                descripcion = "Crea usuarios falsos en Authentication y Firestore para pruebas de desarrollo."
+                descripcion = "Crea usuarios falsos en Authentication e inserta cursos y asignaturas en Firestore para pruebas de desarrollo."
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = { adminViewModel.generarAlumnosDummy() },
+                        modifier = Modifier.fillMaxWidth(),
                         enabled = false,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
@@ -90,6 +95,15 @@ fun MantenimientoAdminPanel(
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
                         Text("Generar 20 Profesores")
+                    }
+                    Button(
+                        onClick = { adminViewModel.cargarDatosDesdeJsonl(context) },
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Cargar datos desde JSONL")
                     }
                 }
             }
@@ -113,6 +127,48 @@ fun MantenimientoCard(
             Text(text = titulo, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
             Text(text = descripcion, fontSize = 14.sp, color = textColor.copy(alpha = 0.7f))
             content()
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MantenimientoAdminPanelPreview() {
+    GestorEstudiantilTheme {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            MantenimientoCard(
+                titulo = "Generación de Datos de Prueba (Seeding)",
+                descripcion = "Crea usuarios falsos en Authentication y Firestore para pruebas de desarrollo."
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { },
+                        enabled = false,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Generar 40 Alumnos (DAM)")
+                    }
+                    Button(
+                        onClick = { },
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Generar 20 Profesores")
+                    }
+                    Button(
+                        onClick = { },
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Cargar datos desde JSONL")
+                    }
+                }
+            }
         }
     }
 }
