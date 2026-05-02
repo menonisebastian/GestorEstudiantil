@@ -1,14 +1,22 @@
 package samf.gestorestudiantil.ui.panels.profesor
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.data.models.Asignatura
@@ -65,6 +74,20 @@ fun CalificacionesProfesorPanel(
     }
     val asignaturasOpciones = remember(state.asignaturas) {
         state.asignaturas.map { it.acronimo }.distinct().sorted()
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListStateEstudiantes = rememberLazyListState()
+    val lazyListStateAsignaturas = rememberLazyListState()
+
+    val showScrollToTop by remember {
+        derivedStateOf {
+            if (selectedTab == 0) {
+                lazyListStateEstudiantes.firstVisibleItemIndex > 0 || lazyListStateEstudiantes.firstVisibleItemScrollOffset > 300
+            } else {
+                lazyListStateAsignaturas.firstVisibleItemIndex > 0 || lazyListStateAsignaturas.firstVisibleItemScrollOffset > 300
+            }
+        }
     }
 
     val filteredEstudiantes by remember(state.todosMisEstudiantes, searchText, filtroCurso, filtroAsignatura, state.asignaturas) {
@@ -115,6 +138,7 @@ fun CalificacionesProfesorPanel(
             when (selectedTab) {
                 0 -> { // Pestaña Estudiantes
                     LazyColumn(
+                        state = lazyListStateEstudiantes,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 220.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
                     ) {
@@ -150,6 +174,7 @@ fun CalificacionesProfesorPanel(
                 }
                 1 -> { // Pestaña Asignaturas
                     LazyColumn(
+                        state = lazyListStateAsignaturas,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 220.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
                     ) {
@@ -175,6 +200,37 @@ fun CalificacionesProfesorPanel(
             }
         }
 
+        // Botón "Volver Arriba" en el centro
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 103.dp)
+        ) {
+            Column {
+                AnimatedVisibility(
+                    visible = showScrollToTop,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    SmallFloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                if (selectedTab == 0) {
+                                    lazyListStateEstudiantes.animateScrollToItem(0)
+                                } else {
+                                    lazyListStateAsignaturas.animateScrollToItem(0)
+                                }
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Default.ArrowDropUp, contentDescription = "Ir arriba")
+                    }
+                }
+            }
+        }
 
         // Cabezal Flotante (Título + Barra de Búsqueda + Tabs)
         Column(
@@ -314,8 +370,18 @@ fun EstudiantesAsignaturaLista(
         }
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
+
+    val showScrollToTop by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 300
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
+            state = lazyListState,
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(top = 190.dp, bottom = 120.dp, start = 20.dp, end = 20.dp),
             modifier = Modifier.fillMaxSize()
@@ -380,6 +446,34 @@ fun EstudiantesAsignaturaLista(
                 )
             }
         }
+
+        // Botón "Volver Arriba" en el centro
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 103.dp)
+        ) {
+            Column {
+                AnimatedVisibility(
+                    visible = showScrollToTop,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    SmallFloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                lazyListState.animateScrollToItem(0)
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Default.ArrowDropUp, contentDescription = "Ir arriba")
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -428,6 +522,14 @@ fun CalificacionesDetalleEstudiante(
     viewModel: ProfesorViewModel
 ) {
     val state by viewModel.state.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
+
+    val showScrollToTop by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 300
+        }
+    }
 
     LaunchedEffect(estudiante.id, asignatura.id) {
         viewModel.cargarEvaluacionesEstudiante(estudiante.id, asignatura.id)
@@ -441,6 +543,7 @@ fun CalificacionesDetalleEstudiante(
             }
         } else {
             LazyColumn(
+                state = lazyListState,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(top = 112.dp, bottom = 120.dp, start = 20.dp, end = 20.dp)
             ) {
@@ -492,6 +595,34 @@ fun CalificacionesDetalleEstudiante(
                             }
                         }
                     )
+                }
+            }
+        }
+
+        // Botón "Volver Arriba" en el centro
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 103.dp)
+        ) {
+            Column {
+                AnimatedVisibility(
+                    visible = showScrollToTop,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    SmallFloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                lazyListState.animateScrollToItem(0)
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Default.ArrowDropUp, contentDescription = "Ir arriba")
+                    }
                 }
             }
         }

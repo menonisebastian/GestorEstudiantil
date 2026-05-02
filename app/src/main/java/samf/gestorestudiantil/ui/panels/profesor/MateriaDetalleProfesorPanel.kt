@@ -1,8 +1,17 @@
 package samf.gestorestudiantil.ui.panels.profesor
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +29,7 @@ import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
@@ -33,6 +43,14 @@ fun MateriaDetalleProfesorPanel(
     viewModel: ProfesorViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
+
+    val showScrollToTop by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 300
+        }
+    }
 
     LaunchedEffect(asignatura.id) {
         viewModel.cargarContenidoAsignatura(asignatura.id)
@@ -41,6 +59,7 @@ fun MateriaDetalleProfesorPanel(
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
@@ -278,6 +297,34 @@ fun MateriaDetalleProfesorPanel(
                         ))
                     }
                 )
+            }
+        }
+
+        // Botón "Volver Arriba" en el centro
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 103.dp)
+        ) {
+            Column {
+                AnimatedVisibility(
+                    visible = showScrollToTop,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    SmallFloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                lazyListState.animateScrollToItem(0)
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Default.ArrowDropUp, contentDescription = "Ir arriba")
+                    }
+                }
             }
         }
 

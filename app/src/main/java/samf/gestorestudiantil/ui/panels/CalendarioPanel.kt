@@ -1,19 +1,25 @@
 package samf.gestorestudiantil.ui.panels
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.HorizontalDivider as Divider
@@ -62,7 +68,7 @@ data class EventoCalendario(
     val fechaIso: String, // Formato "yyyy-MM-dd"
     val hora: String?,
     val tipo: TipoEventoVisual,
-    val subtipoRecordatorio: tipoRecordatorio? = null
+    val subtipoRecordatorio: tipoRecordatorio? = null,
 )
 
 enum class TipoEventoVisual {
@@ -127,6 +133,17 @@ fun CalendarioPanel(
     )
     val coroutineScope = rememberCoroutineScope()
 
+    val lazyListState = rememberLazyListState()
+    val showCalendar by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 50
+        }
+    }
+
+    LaunchedEffect(selectedDate) {
+        lazyListState.animateScrollToItem(0)
+    }
+
     val eventosTotales = remember(tareas, recordatorios) {
         mapearEventos(tareas, recordatorios)
     }
@@ -137,51 +154,79 @@ fun CalendarioPanel(
             .padding(paddingValues)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Box(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .shadow(6.dp, RoundedCornerShape(16.dp))
-            .background(surfaceColor.copy(alpha = 0.95f), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-            contentAlignment = Alignment.Center){
-            Text(text = "Mi Calendario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = textColor)
-        }
-        // Cabecera del Calendario
-        MonthHeader(
-            currentMonth = calendarState.firstVisibleMonth.yearMonth,
-            onPreviousMonth = {
-                coroutineScope.launch {
-                    calendarState.animateScrollToMonth(calendarState.firstVisibleMonth.yearMonth.previousMonth)
-                }
-            },
-            onNextMonth = {
-                coroutineScope.launch {
-                    calendarState.animateScrollToMonth(calendarState.firstVisibleMonth.yearMonth.nextMonth)
-                }
-            }
-        )
-
-        HorizontalCalendar(
-            state = calendarState,
-            dayContent = { day ->
-                val isSelected = selectedDate == day.date
-                val tieneEventos = eventosTotales.any { it.fechaIso == day.date.toString() }
-                val isToday = day.date == LocalDate.now()
-                
-                Day(
-                    day = day,
-                    isToday = isToday,
-                    isSelected = isSelected,
-                    tieneEventos = tieneEventos,
-                    onClick = { selectedDate = it.date }
+        AnimatedVisibility(
+            visible = showCalendar,
+            enter = fadeIn(animationSpec = tween(400)) + expandVertically(
+                animationSpec = spring(
+                    dampingRatio = 0.8f,
+                    stiffness = 200f
                 )
-            },
-            monthHeader = {
-                DaysOfWeekTitle(daysOfWeek = daysOfWeek)
-            }
-        )
+            ),
+            exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(
+                animationSpec = spring(
+                    dampingRatio = 1f,
+                    stiffness = 400f
+                )
+            )
+        ) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .shadow(6.dp, RoundedCornerShape(16.dp))
+                        .background(surfaceColor.copy(alpha = 0.95f), RoundedCornerShape(16.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Mi Calendario",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                }
+                // Cabecera del Calendario
+                MonthHeader(
+                    currentMonth = calendarState.firstVisibleMonth.yearMonth,
+                    onPreviousMonth = {
+                        coroutineScope.launch {
+                            calendarState.animateScrollToMonth(calendarState.firstVisibleMonth.yearMonth.previousMonth)
+                        }
+                    },
+                    onNextMonth = {
+                        coroutineScope.launch {
+                            calendarState.animateScrollToMonth(calendarState.firstVisibleMonth.yearMonth.nextMonth)
+                        }
+                    }
+                )
 
-        Divider(modifier = Modifier.padding(vertical = 8.dp), color = surfaceColor.copy(alpha = 0.2f))
+                HorizontalCalendar(
+                    state = calendarState,
+                    dayContent = { day ->
+                        val isSelected = selectedDate == day.date
+                        val tieneEventos = eventosTotales.any { it.fechaIso == day.date.toString() }
+                        val isToday = day.date == LocalDate.now()
+
+                        Day(
+                            day = day,
+                            isToday = isToday,
+                            isSelected = isSelected,
+                            tieneEventos = tieneEventos,
+                            onClick = { selectedDate = it.date }
+                        )
+                    },
+                    monthHeader = {
+                        DaysOfWeekTitle(daysOfWeek = daysOfWeek)
+                    }
+                )
+
+                Divider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = surfaceColor.copy(alpha = 0.2f)
+                )
+            }
+        }
 
         Box(modifier = Modifier.weight(1f)) {
             AnimatedContent(
@@ -192,7 +237,15 @@ fun CalendarioPanel(
                 },
                 modifier = Modifier.fillMaxSize()
             ) { targetDate ->
+                val eventosDelDia by remember(targetDate, eventosTotales) {
+                    derivedStateOf {
+                        val dateStr = targetDate?.toString() ?: ""
+                        eventosTotales.filter { it.fechaIso == dateStr }
+                    }
+                }
+
                 Column(modifier = Modifier.fillMaxSize()) {
+                    // El título se queda fijo arriba de la sección de eventos
                     Text(
                         text = targetDate?.let { "Eventos para el ${formatearFechaParaMostrar(it.toString(), prettyDate = true)}" } ?: "Selecciona un día",
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -200,13 +253,6 @@ fun CalendarioPanel(
                         fontWeight = FontWeight.Bold,
                         color = textColor
                     )
-
-                    val eventosDelDia by remember(targetDate, eventosTotales) {
-                        derivedStateOf {
-                            val dateStr = targetDate?.toString() ?: ""
-                            eventosTotales.filter { it.fechaIso == dateStr }
-                        }
-                    }
 
                     if (eventosDelDia.isEmpty()) {
                         Box(
@@ -222,10 +268,23 @@ fun CalendarioPanel(
                         }
                     } else {
                         LazyColumn(
+                            state = lazyListState,
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             contentPadding = PaddingValues(bottom = 160.dp, start = 16.dp, end = 16.dp)
                         ) {
+                            // Espaciador dinámico que solo aparece cuando el calendario se oculta
+                            // para evitar que el primer item se sienta "saltado" o pegado arriba
+                            item {
+                                AnimatedVisibility(
+                                    visible = !showCalendar,
+                                    enter = expandVertically() + fadeIn(),
+                                    exit = shrinkVertically() + fadeOut()
+                                ) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            }
+
                             items(eventosDelDia) { evento ->
                                 if (evento.tipo == TipoEventoVisual.RECORDATORIO) {
                                     val rec = recordatorios.find { it.id == evento.id }
@@ -271,13 +330,46 @@ fun CalendarioPanel(
                 }
             }
 
+            // FAB de "Volver Arriba" en el centro
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 103.dp)
+            ) {
+                Column {
+                    AnimatedVisibility(
+                        visible = !showCalendar,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        SmallFloatingActionButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    lazyListState.animateScrollToItem(0)
+                                }
+                            },
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            shape = CircleShape
+                        ) {
+                            Icon(Icons.Default.ArrowDropUp, contentDescription = "Ir arriba")
+                        }
+                    }
+                }
+            }
+
+            // FAB de "Añadir Recordatorio" en la esquina inferior derecha
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 16.dp, bottom = 103.dp)
             ) {
                 CustomFAB(
-                    onClick = { onAddRecordatorio(selectedDate?.toString() ?: LocalDate.now().toString()) },
+                    onClick = {
+                        onAddRecordatorio(
+                            selectedDate?.toString() ?: LocalDate.now().toString()
+                        )
+                    },
                     text = "Añadir Recordatorio"
                 )
             }
