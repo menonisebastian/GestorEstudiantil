@@ -254,25 +254,27 @@ fun CalendarioPanel(
                         color = textColor
                     )
 
-                    if (eventosDelDia.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(bottom = 140.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No hay eventos para este día",
-                                color = textColor.copy(alpha = 0.6f)
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            state = lazyListState,
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(bottom = 160.dp, start = 16.dp, end = 16.dp)
-                        ) {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 160.dp, start = 16.dp, end = 16.dp)
+                    ) {
+                        if (eventosDelDia.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillParentMaxHeight(0.8f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No hay eventos para este día",
+                                        color = textColor.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                        } else {
                             // Espaciador dinámico que solo aparece cuando el calendario se oculta
                             // para evitar que el primer item se sienta "saltado" o pegado arriba
                             item {
