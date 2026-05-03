@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,7 +36,7 @@ import samf.gestorestudiantil.ui.components.WeekNavBar
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
-import samf.gestorestudiantil.ui.theme.whiteColor
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun HorariosProfesorPanel(
@@ -54,7 +52,6 @@ fun HorariosProfesorPanel(
             .padding(paddingValues)
             .fillMaxSize()
     ) {
-        // Contenido cambiante con animación
         AnimatedContent(
             targetState = selectedDay,
             label = "HorarioTransition",
@@ -66,7 +63,6 @@ fun HorariosProfesorPanel(
             HorarioDelDiaProfesor(dia, horarios, asignaturas, turno)
         }
 
-        // Cabezal Flotante (Título + Selector de días)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -130,7 +126,7 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
         isReceso -> surfaceDimColor.copy(alpha = 0.5f)
         asignatura != null -> {
             try {
-                Color(android.graphics.Color.parseColor(asignatura.colorFondoHex))
+                Color(asignatura.colorFondoHex.toColorInt())
             } catch (e: Exception) {
                 surfaceDimColor.copy(alpha = 0.2f)
             }
@@ -138,8 +134,8 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
         else -> surfaceDimColor.copy(alpha = 0.1f)
     }
 
-    val contentColor = Color.Black // Título siempre negro
-    val subColor = surfaceDimColor // Subtítulos siempre surfaceDimColor
+    val contentColor = Color.Black
+    val subColor = surfaceDimColor
 
     Card(
         modifier = Modifier.fillMaxWidth(),

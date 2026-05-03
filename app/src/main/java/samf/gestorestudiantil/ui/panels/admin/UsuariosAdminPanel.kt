@@ -118,19 +118,16 @@ fun UsuariosAdminPanel(
         }
     }
 
-    // Observamos el estado del ViewModel
     val adminState by adminViewModel.adminState.collectAsState()
 
     val countActivos by remember(adminState.usuarios) { derivedStateOf { adminState.usuarios.count { it.estado == "ACTIVO" } } }
     val countPendientes by remember(adminState.usuarios) { derivedStateOf { adminState.usuarios.count { it.estado == "PENDIENTE" } } }
 
-    // Cargamos los usuarios y cursos al iniciar la pantalla
     LaunchedEffect(Unit) {
         adminViewModel.cargarUsuariosPorCentro(usuarioActual.centroId)
         adminViewModel.cargarCursosPorCentro(usuarioActual.centroId)
     }
 
-    // Mostramos errores si los hay
     LaunchedEffect(adminState.errorMessage) {
         if (adminState.errorMessage != null) {
             Toast.makeText(context, adminState.errorMessage, Toast.LENGTH_LONG).show()
@@ -138,7 +135,6 @@ fun UsuariosAdminPanel(
         }
     }
 
-    // Filtrar la lista real proveniente de Firebase
     val usuariosFiltrados by remember(textoBusqueda, filtroRol, filtroCurso, filtroCiclo, filtroTurno, selectedTabIndex, adminState.usuarios) {
         derivedStateOf {
             val estadoFiltro = if (selectedTabIndex == 1) "PENDIENTE" else "ACTIVO"
@@ -182,7 +178,6 @@ fun UsuariosAdminPanel(
             .padding(paddingValues)
             .fillMaxSize()
     ) {
-        // Contenido Principal (Pasa por debajo del cabezal)
         if (adminState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -247,7 +242,6 @@ fun UsuariosAdminPanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -275,7 +269,6 @@ fun UsuariosAdminPanel(
             }
         }
 
-        // Cabezal Flotante (Título + Barra de Búsqueda + Tabs)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -349,7 +342,6 @@ fun UsuariosAdminPanel(
                 }
             }
 
-            // Pestañas (TabRow) - Se mantienen fuera de la Card pero dentro del área flotante
             SecondaryTabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = Color.Transparent, // Transparent para usar el fondo de la columna
@@ -417,12 +409,10 @@ fun UsuarioCardAdmin(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Imagen de perfil
                 AccImg(userName = usuario.nombre, imgUrl = usuario.imgUrl, onClick = { onUserDialog() }, size = 48.dp)
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Info del Usuario
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = usuario.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
                     Text(
@@ -435,7 +425,6 @@ fun UsuarioCardAdmin(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // Chips de Rol y Curso
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -460,7 +449,6 @@ fun UsuarioCardAdmin(
                     }
                 }
 
-                // Acciones para usuarios ACTIVOS (Menú de opciones)
                 if (!isPending) {
                     var showMenu by remember { mutableStateOf(false) }
 
@@ -549,7 +537,6 @@ fun UsuarioCardAdmin(
                 }
             }
 
-            // Acciones para usuarios PENDIENTES (Aprobar / Rechazar)
             if (isPending) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(

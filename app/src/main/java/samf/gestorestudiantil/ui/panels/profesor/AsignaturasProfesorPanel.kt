@@ -113,7 +113,6 @@ fun AsignaturasProfesorPanel(
             .padding(paddingValues)
             .fillMaxSize()
     ) {
-        // BLOQUE 2: Contenido Principal
         if (asignaturasFiltradas.isEmpty() && !state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 MensajeVacio()
@@ -155,7 +154,6 @@ fun AsignaturasProfesorPanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -183,7 +181,6 @@ fun AsignaturasProfesorPanel(
             }
         }
 
-        // BLOQUE 1: Cabezal Flotante
         Card(
             modifier = Modifier
                 .fillMaxWidth()

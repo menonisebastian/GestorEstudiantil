@@ -67,7 +67,6 @@ fun AsistenciaPanel(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header con Fecha
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -104,7 +103,6 @@ fun AsistenciaPanel(
                 }
             }
 
-            // Lista de Estudiantes
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier.fillMaxSize(),
@@ -134,7 +132,6 @@ fun AsistenciaPanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

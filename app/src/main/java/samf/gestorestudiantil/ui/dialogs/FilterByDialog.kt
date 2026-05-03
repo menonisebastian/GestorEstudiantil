@@ -75,16 +75,13 @@ fun FilterByContent(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Estado local para manejar múltiples selecciones antes de aplicar
     var tempFilters by remember { mutableStateOf(state.currentFilters) }
 
-    // Opciones estáticas básicas
     val userOptions = listOf("Estudiante", "Admin", "Profesor")
     val recordatorioOptions = listOf("Examen", "Tarea", "Evento")
     val cicloOptions = listOf("1", "2")
     val turnoOptions = listOf("Matutino", "Vespertino")
 
-    // Opciones dinámicas pasadas desde el ViewModel
     val cursoOptions = state.opcionesPersonalizadas["cursos"] ?: emptyList()
     val asignaturaOptions = state.opcionesPersonalizadas["asignaturas"] ?: emptyList()
 
@@ -100,7 +97,6 @@ fun FilterByContent(
             color = textColor
         )
 
-        // Filtro Principal (Depende del contexto)
         val labelPrincipal = when (state.tipo) {
             "Usuario" -> "Tipo de Usuario"
             "Recordatorio" -> "Tipo de Recordatorio"
@@ -136,7 +132,6 @@ fun FilterByContent(
             )
         }
 
-        // Filtros adicionales para Usuarios / Calificaciones / Asignaturas / Asistencia
         if (state.tipo == "Usuario" || state.tipo == "Calificaciones" || state.tipo == "Asignatura" || state.tipo == "Asistencia") {
             if (cursoOptions.isNotEmpty()) {
                 FilterChipGroup(

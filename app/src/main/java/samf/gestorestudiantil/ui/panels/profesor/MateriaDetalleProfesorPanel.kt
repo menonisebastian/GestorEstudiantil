@@ -300,7 +300,6 @@ fun MateriaDetalleProfesorPanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

@@ -25,7 +25,6 @@ object SupabaseModule {
             supabaseUrl = context.getString(R.string.project_url_supa),
             supabaseKey = context.getString(R.string.api_supa)
         ) {
-            // Instalar los módulos necesarios
             install(Postgrest)
             install(Storage)
         }

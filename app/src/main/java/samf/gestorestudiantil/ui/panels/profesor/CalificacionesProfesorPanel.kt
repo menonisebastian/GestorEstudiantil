@@ -131,12 +131,11 @@ fun CalificacionesProfesorPanel(
             .fillMaxSize()
             .padding(paddingValues)
     ) {
-        // Contenido Principal
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
             when (selectedTab) {
-                0 -> { // Pestaña Estudiantes
+                0 -> {
                     LazyColumn(
                         state = lazyListStateEstudiantes,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -172,7 +171,7 @@ fun CalificacionesProfesorPanel(
                         }
                     }
                 }
-                1 -> { // Pestaña Asignaturas
+                1 -> {
                     LazyColumn(
                         state = lazyListStateAsignaturas,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -200,7 +199,6 @@ fun CalificacionesProfesorPanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -232,7 +230,6 @@ fun CalificacionesProfesorPanel(
             }
         }
 
-        // Cabezal Flotante (Título + Barra de Búsqueda + Tabs)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -297,7 +294,6 @@ fun CalificacionesProfesorPanel(
                 }
             }
 
-            // Pestañas (TabRow) - Se mantienen fuera de la Card pero dentro del área flotante
             SecondaryTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.Transparent,
@@ -405,7 +401,6 @@ fun EstudiantesAsignaturaLista(
         }
 
 
-        // Header Flotante (Unificado con el resto de la app)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -447,7 +442,6 @@ fun EstudiantesAsignaturaLista(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -599,7 +593,6 @@ fun CalificacionesDetalleEstudiante(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -627,7 +620,6 @@ fun CalificacionesDetalleEstudiante(
             }
         }
 
-        // Header Flotante (Alumno + Media)
         Card(
             modifier = Modifier
                 .fillMaxWidth()

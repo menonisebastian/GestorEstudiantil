@@ -129,7 +129,6 @@ fun AsignaturasEstudiantePanel(
             .padding(paddingValues)
             .fillMaxSize()
     ) {
-        // BLOQUE 2: Contenido Principal
         if (asignaturasFiltradas.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 MensajeVacio()
@@ -144,7 +143,6 @@ fun AsignaturasEstudiantePanel(
                 modifier = Modifier.fillMaxSize()
             )
             {
-                // Item de espaciado para el cabezal flotante
                 item(span = { GridItemSpan(3) }) {
                     Spacer(modifier = Modifier.height(140.dp))
                 }
@@ -268,7 +266,6 @@ fun AsignaturasEstudiantePanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -296,7 +293,6 @@ fun AsignaturasEstudiantePanel(
             }
         }
 
-        // BLOQUE 1: Cabezal Flotante (al final para estar encima)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
