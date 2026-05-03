@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.dialogs
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -48,23 +46,6 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun FilterByDialog(
-    state: DialogState.Filter,
-    onDismissRequest: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismissRequest) {
-        FilterByContent(
-            state = state,
-            onDismissRequest = onDismissRequest,
-            modifier = Modifier
-                .background(backgroundColor, RoundedCornerShape(16.dp))
-                .padding(16.dp)
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
