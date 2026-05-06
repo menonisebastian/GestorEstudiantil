@@ -272,13 +272,13 @@ fun UsuariosAdminPanel(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(backgroundColor.copy(alpha = 0.95f)) // Fondo para el área del TabRow
+                .background(backgroundColor) // Fondo para el área del TabRow
         ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+                colors = CardDefaults.cardColors(containerColor = surfaceColor),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {

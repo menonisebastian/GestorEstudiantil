@@ -175,7 +175,7 @@ fun CalendarioPanel(
                         .padding(16.dp)
                         .fillMaxWidth()
                         .shadow(6.dp, RoundedCornerShape(16.dp))
-                        .background(surfaceColor.copy(alpha = 0.95f), RoundedCornerShape(16.dp))
+                        .background(surfaceColor, RoundedCornerShape(16.dp))
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {

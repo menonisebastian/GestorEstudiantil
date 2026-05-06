@@ -80,7 +80,7 @@ fun HorariosEstudiantePanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(16.dp)
         ) {

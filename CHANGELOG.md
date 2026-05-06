@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.8] - 2026-05-06
+- **Pruebas**: Implementada suite de **Pruebas Unitarias** para funciones de utilidad en `MappersUI.kt`, incluyendo formateo de fechas, iniciales de nombres y capitalización de texto.
+- **Pruebas**: Implementadas **Pruebas de Integración** para `ProfesorViewModel` verificando la carga reactiva de contenidos (Unidades, Posts, Tareas) y actualización del estado de la UI.
+- **Pruebas**: Implementadas pruebas para el caso de uso `CalculateUnreadNotificationsUseCase` utilizando mocks de repositorios para validar el cálculo dinámico de badges de notificación.
+- **Arquitectura**: Configurada infraestructura de testeo con `MainDispatcherRule` para la gestión de corrutinas en entornos de prueba.
+- **Dependencias**: Incorporadas librerías `MockK`, `Kotlinx Coroutines Test` y `Turbine` para el soporte de pruebas unitarias y reactivas.
+
 ## [v0.7.7] - 2026-05-01
 - **Estabilidad**: Implementado sistema de **Borrado Lógico (Soft Delete)** para Unidades, Posts y Tareas. Los elementos eliminados se ocultan inmediatamente pero se conservan durante 30 días antes de su borrado físico.
 - **UX**: Mejorada la funcionalidad de "Deshacer" (Undo) en el panel del profesor. Al restaurar un elemento borrado, se recupera ahora todo su contenido íntegro, incluyendo archivos adjuntos en Supabase y entregas de alumnos, al no realizarse un borrado físico inmediato.

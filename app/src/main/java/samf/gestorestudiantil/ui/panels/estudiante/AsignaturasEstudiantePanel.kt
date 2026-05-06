@@ -158,7 +158,7 @@ fun AsignaturasEstudiantePanel(
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp),
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+                            colors = CardDefaults.cardColors(containerColor = surfaceColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         )
                         {
@@ -297,7 +297,7 @@ fun AsignaturasEstudiantePanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f)),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
