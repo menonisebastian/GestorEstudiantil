@@ -1,11 +1,10 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.notifications
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
 import java.text.SimpleDateFormat
@@ -37,9 +36,6 @@ object NotificationScheduler {
             if (date != null) {
                 calendar.time = date
                 
-                Log.d("NotificationScheduler", "Intentando programar para: $dateTimeString")
-                Log.d("NotificationScheduler", "Millis programados: ${calendar.timeInMillis}, Actuales: ${System.currentTimeMillis()}")
-
                 if (calendar.timeInMillis > System.currentTimeMillis()) {
                     if (alarmManager.canScheduleExactAlarms()) {
                         alarmManager.setExactAndAllowWhileIdle(
@@ -54,13 +50,9 @@ object NotificationScheduler {
                             pendingIntent
                         )
                     }
-                    Log.d("NotificationScheduler", "Notificación programada con éxito")
-                } else {
-                    Log.w("NotificationScheduler", "La fecha ya ha pasado")
                 }
             }
         } catch (e: Exception) {
-            Log.e("NotificationScheduler", "Error: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -82,25 +74,42 @@ object NotificationScheduler {
         )
 
         val calendar = Calendar.getInstance()
-        calendar.time = tarea.fechaLimiteEntrega.toDate()
+        val limitDate = tarea.fechaLimiteEntrega.toDate()
+        calendar.time = limitDate
+        
         calendar.set(Calendar.HOUR_OF_DAY, 8)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
 
-        if (calendar.timeInMillis > System.currentTimeMillis()) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
+        var scheduleTime = calendar.timeInMillis
+        val currentTime = System.currentTimeMillis()
+
+        if (scheduleTime <= currentTime) {
+            val today = Calendar.getInstance()
+            val limitCal = Calendar.getInstance().apply { time = limitDate }
+            
+            val isSameDay = today.get(Calendar.YEAR) == limitCal.get(Calendar.YEAR) &&
+                           today.get(Calendar.DAY_OF_YEAR) == limitCal.get(Calendar.DAY_OF_YEAR)
+            
+            if (isSameDay && limitDate.time > currentTime) {
+                scheduleTime = currentTime + (2 * 60 * 1000)
             } else {
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
+                return
             }
+        }
+
+        if (alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                scheduleTime,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                scheduleTime,
+                pendingIntent
+            )
         }
     }
 

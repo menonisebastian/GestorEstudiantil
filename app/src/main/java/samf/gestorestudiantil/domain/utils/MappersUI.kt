@@ -1,9 +1,6 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.utils
 
 import android.net.Uri
-import samf.gestorestudiantil.data.models.User
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -16,9 +13,10 @@ import androidx.core.graphics.toColorInt
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
+import kotlin.collections.get
 
 // ==========================================
-// MAPPERS PARA LA INTERFAZ (UI Mappers)
+// MAPPERS PARA LA INTERFAZ
 // ==========================================
 
 // =========================================================
@@ -211,12 +209,6 @@ fun formatearFechaParaMostrar(fechaIso: String, prettyDate: Boolean = false): St
         e.printStackTrace()
         fechaIso
     }
-}
-
-fun compararFechaActual(fecha: String): Boolean {
-    val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-    val fechaActual = LocalDate.now()
-    return LocalDate.parse(fecha, formatter) <= fechaActual
 }
 
 /**

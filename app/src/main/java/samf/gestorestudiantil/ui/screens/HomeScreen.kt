@@ -145,8 +145,6 @@ val itemsAdmin: Map<String, ImageVector> = mapOf(
 @Composable
 fun HomeScreen(
     usuario: User,
-    targetAsignaturaId: String? = null,
-    onNotificationHandled: () -> Unit = {},
     isLoading: Boolean = false,
     onLogout: () -> Unit
 ) {
@@ -234,7 +232,7 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(usuario.id, usuario.rol) {
+    LaunchedEffect(usuario) {
         when (usuario) {
             is User.Estudiante -> {
                 estudianteViewModel.actualizarTiemposLectura(usuario.ultimaVezAsignaturas)
@@ -276,19 +274,30 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(targetAsignaturaId, profesorState.asignaturas, estudianteState.asignaturas) {
-        if (targetAsignaturaId == null) return@LaunchedEffect
+    LaunchedEffect(appState.pendingNotificationData, profesorState.asignaturas, estudianteState.asignaturas) {
+        val data = appState.pendingNotificationData ?: return@LaunchedEffect
         
-        val asignaturas = if (usuario.rol == "PROFESOR") 
-            profesorState.asignaturas else estudianteState.asignaturas
-        val asignatura = asignaturas.find { it.id == targetAsignaturaId }
+        val type = data["type"]
+        val asignaturaId = data["target_asignatura_id"]
 
-        if (asignatura != null) {
-            val tabIndex = tabs.indexOf("Asignaturas")
+        if (type == "nuevo_registro" && usuario.rol == "ADMIN") {
+            val tabIndex = tabs.indexOf("Usuarios")
             if (tabIndex != -1) {
                 pagerState.animateScrollToPage(tabIndex)
-                homeState.navigate("Asignaturas", Routes.HomeRoutes.MateriaDetalle(asignatura))
-                onNotificationHandled()
+                appViewModel.clearNotificationData()
+            }
+        } else if (asignaturaId != null) {
+            val asignaturas = if (usuario.rol == "PROFESOR") 
+                profesorState.asignaturas else estudianteState.asignaturas
+            val asignatura = asignaturas.find { it.id == asignaturaId }
+
+            if (asignatura != null) {
+                val tabIndex = tabs.indexOf("Asignaturas")
+                if (tabIndex != -1) {
+                    pagerState.animateScrollToPage(tabIndex)
+                    homeState.navigate("Asignaturas", Routes.HomeRoutes.MateriaDetalle(asignatura))
+                    appViewModel.clearNotificationData()
+                }
             }
         }
     }
@@ -525,10 +534,8 @@ fun HomeScreen(
                     if (index != -1) {
                         scope.launch {
                             if (pagerState.currentPage == index) {
-                                // Si ya estamos en esta pestaña, volvemos a su raíz
                                 homeState.popToRoot(selectedKey)
                             } else {
-                                // Si es una pestaña nueva, deslizamos hacia ella
                                 pagerState.animateScrollToPage(index)
                             }
                         }
@@ -718,7 +725,7 @@ private fun EstudianteNavContent(
                                         data,
                                         name,
                                         mime,
-                                        "" // Dejamos vacío para que el ViewModel busque el acrónimo correcto
+                                        ""
                                     )
                                 },
                                 onEliminarEntrega = {
@@ -846,7 +853,7 @@ private fun EstudianteNavContent(
                                         data,
                                         name,
                                         mime,
-                                        "" // Dejamos vacío para que el ViewModel busque el acrónimo correcto
+                                        ""
                                     )
                                 },
                                 onEliminarEntrega = {
@@ -859,11 +866,7 @@ private fun EstudianteNavContent(
                                                     appViewModel.showSnackbar(
                                                         message = "Entrega eliminada",
                                                         actionLabel = "Deshacer",
-                                                        onAction = { 
-                                                            // Nota: Reinstaurar una entrega con su archivo requiere el ByteArray original.
-                                                            // Si no lo tenemos, al menos informamos o permitimos restaurar metadatos.
-                                                            // Para simplificar según el plan, mostramos el Snackbar.
-                                                        }
+                                                        onAction = { }
                                                     )
                                                 }
                                             }
@@ -1393,7 +1396,7 @@ private fun AdminNavContent(
             entry<Routes.HomeRoutes.Calendario> {
                 CalendarioPanel(
                     usuarioActual = usuario,
-                    tareas = emptyList(), // Admin no suele ver tareas académicas
+                    tareas = emptyList(),
                     recordatorios = appState.recordatorios,
                     paddingValues = PaddingValues(0.dp),
                     onAddRecordatorio = { fechaSeleccionada ->

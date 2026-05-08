@@ -49,7 +49,7 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.runtime.LaunchedEffect
-import samf.gestorestudiantil.domain.capitalize
+import samf.gestorestudiantil.domain.utils.capitalize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

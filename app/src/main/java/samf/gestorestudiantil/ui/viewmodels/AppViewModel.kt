@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import samf.gestorestudiantil.data.models.Recordatorio
-import samf.gestorestudiantil.domain.NotificationScheduler
+import samf.gestorestudiantil.domain.notifications.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Inject
@@ -36,7 +36,8 @@ data class CurrentUserUiState(
 data class AppState(
     val currentUser: CurrentUserUiState? = null,
     val recordatorios: List<Recordatorio> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val pendingNotificationData: Map<String, String>? = null
 )
 
 @HiltViewModel
@@ -68,9 +69,6 @@ class AppViewModel @Inject constructor(
         cargarRecordatorios(user.id)
     }
 
-    // ====================================================================
-    // RECORDATORIOS (Compartidos por todos los roles, pero privados por usuarioId)
-    // ====================================================================
     private fun cargarRecordatorios(usuarioId: String) {
         viewModelScope.launch {
             recordatorioRepository.getRecordatorios(usuarioId).collect { lista ->
@@ -152,5 +150,25 @@ class AppViewModel @Inject constructor(
 
     fun clearUpdateMessage() {
         _updateMessage.value = null
+    }
+
+    fun handleIntent(intent: android.content.Intent?) {
+        val data = mutableMapOf<String, String>()
+        intent?.extras?.let { extras ->
+            for (key in extras.keySet()) {
+                @Suppress("DEPRECATION")
+                val value = extras.get(key)?.toString()
+                if (value != null) {
+                    data[key] = value
+                }
+            }
+        }
+        if (data.isNotEmpty()) {
+            _state.update { it.copy(pendingNotificationData = data) }
+        }
+    }
+
+    fun clearNotificationData() {
+        _state.update { it.copy(pendingNotificationData = null) }
     }
 }

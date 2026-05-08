@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.utils
 
 import android.content.Context
 import android.util.Log

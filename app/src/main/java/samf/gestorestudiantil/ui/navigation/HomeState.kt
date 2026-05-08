@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import kotlinx.serialization.json.Json
-import samf.gestorestudiantil.domain.tabToRoute
+import samf.gestorestudiantil.domain.utils.tabToRoute
 
 @Composable
 fun rememberHomeState(

@@ -20,16 +20,16 @@
         android:theme="@style/Theme.GestorEstudiantil">
 
         <service
-            android:name=".domain.MyFirebaseMessagingService"
+            android:name=".domain.notifications.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <receiver android:name=".domain.NotificationReceiver" android:exported="false" />
+        <receiver android:name=".domain.notifications.NotificationReceiver" android:exported="false" />
         <receiver
-            android:name=".domain.BootReceiver"
+            android:name=".domain.notifications.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

@@ -59,8 +59,8 @@ import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
-import samf.gestorestudiantil.domain.toComposeColor
-import samf.gestorestudiantil.domain.toComposeIcon
+import samf.gestorestudiantil.domain.utils.toComposeColor
+import samf.gestorestudiantil.domain.utils.toComposeIcon
 import samf.gestorestudiantil.ui.components.CardItem
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar

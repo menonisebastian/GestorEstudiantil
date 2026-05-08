@@ -24,7 +24,7 @@ import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.usecases.AssignSubjectToProfessorUseCase
 import samf.gestorestudiantil.domain.usecases.SeedDatabaseUseCase
-import samf.gestorestudiantil.ui.utils.ErrorMapper
+import samf.gestorestudiantil.domain.utils.ErrorMapper
 import javax.inject.Inject
 
 data class AdminState(

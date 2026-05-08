@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.utils
+package samf.gestorestudiantil.domain.utils
 
 import android.content.Context
 import com.google.firebase.FirebaseNetworkException
@@ -10,7 +10,7 @@ import samf.gestorestudiantil.R
 object ErrorMapper {
     fun getFriendlyMessage(context: Context, exception: Exception?): String {
         if (exception == null) return context.getString(R.string.error_generic)
-        
+
         return when (exception) {
             is FirebaseNetworkException -> context.getString(R.string.error_network)
             is FirebaseAuthInvalidCredentialsException -> context.getString(R.string.error_auth_failed)

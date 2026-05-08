@@ -7,36 +7,33 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
-import samf.gestorestudiantil.domain.FcmTokenManager
-import samf.gestorestudiantil.domain.NotificationPermissionGate
+import samf.gestorestudiantil.domain.notifications.FcmTokenManager
+import samf.gestorestudiantil.domain.notifications.NotificationPermissionGate
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.AppNavigation
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var targetAsignaturaId by mutableStateOf<String?>(null)
     private val authViewModel: AuthViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
+    private val appViewModel: AppViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        handleNotificationIntent(intent)
+        appViewModel.handleIntent(intent)
         enableEdgeToEdge()
         setContent {
             val themePreference by settingsViewModel.themePreference.collectAsState()
@@ -61,31 +58,13 @@ class MainActivity : ComponentActivity() {
 
                 FcmTokenManager(authViewModel)
 
-                AppNavigation(
-                    targetAsignaturaId = targetAsignaturaId,
-                    onNotificationHandled = { targetAsignaturaId = null },
-                    darkTheme = darkTheme
-                )
+                AppNavigation(darkTheme = darkTheme)
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleNotificationIntent(intent)
+        appViewModel.handleIntent(intent)
     }
-
-    private fun handleNotificationIntent(intent: Intent?) {
-        val asignaturaId = intent?.getStringExtra("target_asignatura_id")
-        if (asignaturaId != null) {
-            targetAsignaturaId = asignaturaId
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview()
-{
-
 }

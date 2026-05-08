@@ -47,8 +47,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
-import samf.gestorestudiantil.domain.toComposeColor
-import samf.gestorestudiantil.domain.toComposeIcon
+import samf.gestorestudiantil.domain.utils.toComposeColor
+import samf.gestorestudiantil.domain.utils.toComposeIcon
 import samf.gestorestudiantil.ui.components.CardItem
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.components.MensajeVacio

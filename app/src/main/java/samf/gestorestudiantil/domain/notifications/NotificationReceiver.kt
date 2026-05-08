@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,11 +16,10 @@ class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val title = intent.getStringExtra("title") ?: "Recordatorio"
         val message = intent.getStringExtra("message") ?: ""
-        val targetAsignaturaId = intent.getStringExtra("target_asignatura_id")
-
+        
         val notificationIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("target_asignatura_id", targetAsignaturaId)
+            intent.extras?.let { putExtras(it) }
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -30,13 +29,13 @@ class NotificationReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val channelId = "local_notifications_channel"
+        val channelId = NotificationConstants.CHANNEL_LOCAL_ID
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "Recordatorios y Tareas",
+                NotificationConstants.CHANNEL_LOCAL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
             )
             manager.createNotificationChannel(channel)

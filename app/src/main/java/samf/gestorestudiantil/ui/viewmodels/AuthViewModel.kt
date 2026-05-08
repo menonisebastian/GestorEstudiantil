@@ -19,6 +19,7 @@ import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.signInWithGoogle
 import samf.gestorestudiantil.domain.repositories.AuthRepository
 import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
@@ -215,7 +216,7 @@ class AuthViewModel @Inject constructor(
         try {
             val credentialManager = androidx.credentials.CredentialManager.create(activity)
             val token = activity.getString(samf.gestorestudiantil.R.string.id_token)
-            val googleToken = samf.gestorestudiantil.domain.signInWithGoogle(
+            val googleToken = signInWithGoogle(
                 context = activity,
                 credentialManager = credentialManager,
                 serverClientId = token

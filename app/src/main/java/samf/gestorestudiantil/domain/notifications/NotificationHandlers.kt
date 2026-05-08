@@ -1,10 +1,9 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.notifications
 
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -18,10 +17,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
-/**
- * Gestiona el registro del token de Firebase Cloud Messaging (FCM) 
- * cuando el usuario inicia sesión.
- */
 @Composable
 fun FcmTokenManager(authViewModel: AuthViewModel) {
     val authState by authViewModel.authState.collectAsState()
@@ -39,9 +34,6 @@ fun FcmTokenManager(authViewModel: AuthViewModel) {
     }
 }
 
-/**
- * Maneja la lógica de solicitud de permisos para notificaciones en Android 13+.
- */
 @Composable
 fun NotificationPermissionGate(onShowDialog: (DialogState) -> Unit) {
     val context = LocalContext.current
@@ -50,15 +42,7 @@ fun NotificationPermissionGate(onShowDialog: (DialogState) -> Unit) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && activity != null) {
         val launcher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            if (!isGranted) {
-                Toast.makeText(
-                    context,
-                    "No recibirás notificaciones de nuevas tareas",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
+        ) { _ -> }
 
         LaunchedEffect(Unit) {
             val permission = Manifest.permission.POST_NOTIFICATIONS

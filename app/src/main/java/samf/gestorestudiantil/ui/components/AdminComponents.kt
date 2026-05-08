@@ -18,8 +18,8 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import androidx.compose.ui.res.stringResource
 import samf.gestorestudiantil.R
-import samf.gestorestudiantil.domain.toComposeColor
-import samf.gestorestudiantil.domain.toComposeIcon
+import samf.gestorestudiantil.domain.utils.toComposeColor
+import samf.gestorestudiantil.domain.utils.toComposeIcon
 
 @Composable
 fun ColorPickerField(label: String, value: String, onValueChange: (String) -> Unit) {

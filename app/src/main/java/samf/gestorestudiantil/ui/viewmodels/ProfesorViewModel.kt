@@ -36,7 +36,7 @@ import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
-import samf.gestorestudiantil.ui.utils.FileOpener
+import samf.gestorestudiantil.domain.utils.FileOpener
 import samf.gestorestudiantil.R
 import java.io.File
 import java.io.FileOutputStream

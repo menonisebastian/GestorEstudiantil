@@ -35,8 +35,6 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 
 @Composable
 fun AppNavigation(
-    targetAsignaturaId: String? = null,
-    onNotificationHandled: () -> Unit = {},
     darkTheme: Boolean,
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
@@ -168,8 +166,6 @@ fun AppNavigation(
                     currentUser?.let { user ->
                         HomeScreen(
                             usuario = user,
-                            targetAsignaturaId = targetAsignaturaId,
-                            onNotificationHandled = onNotificationHandled,
                             isLoading = authState.isLoading,
                             onLogout = {
                                 authViewModel.signOut()

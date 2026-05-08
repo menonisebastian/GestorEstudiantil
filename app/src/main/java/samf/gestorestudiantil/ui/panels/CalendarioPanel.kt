@@ -46,7 +46,7 @@ import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
-import samf.gestorestudiantil.domain.formatearFechaParaMostrar
+import samf.gestorestudiantil.domain.utils.formatearFechaParaMostrar
 import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.components.CustomNotificationCard
 import samf.gestorestudiantil.ui.theme.primaryColor

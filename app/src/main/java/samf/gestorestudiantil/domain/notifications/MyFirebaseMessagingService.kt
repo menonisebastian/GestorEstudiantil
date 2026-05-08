@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -38,12 +38,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val senderId = data["sender_id"]
                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-                // 1. Filtrar si es el propio remitente
                 if (senderId != null && senderId == currentUserId) {
                     return@launch
                 }
 
-                // 2. Extraer título y cuerpo (ya sea del objeto notification o del data)
                 val title = remoteMessage.notification?.title ?: data["title"]
                 val body = remoteMessage.notification?.body ?: data["body"]
 
@@ -60,22 +58,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String?, message: String?, data: Map<String, String>) {
-        val asignaturaId = data["target_asignatura_id"] // Coincide con lo enviado desde ProfesorViewModel
-
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            // Pasamos el ID de la asignatura para que MainActivity sepa a dónde ir
-            putExtra("target_asignatura_id", asignaturaId)
+            data.forEach { (key, value) ->
+                putExtra(key, value)
+            }
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
+            this, Random.Default.nextInt(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val channelId = "posts_channel"
+        val channelId = NotificationConstants.CHANNEL_POSTS_ID
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.newicononexoplus) // Usando un icono existente
+            .setSmallIcon(R.drawable.newicononexoplus)
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
@@ -85,7 +82,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "Nuevos Posts",
+                NotificationConstants.CHANNEL_POSTS_NAME,
                 NotificationManager.IMPORTANCE_DEFAULT
             )
             manager.createNotificationChannel(channel)
@@ -94,7 +91,5 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        // El token se actualizará desde MainActivity cuando el usuario inicie sesión
-        // o mediante un Worker si es necesario. Por ahora lo dejamos listo para ser consultado.
     }
 }

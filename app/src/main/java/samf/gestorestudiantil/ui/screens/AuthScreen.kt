@@ -65,9 +65,9 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
-import samf.gestorestudiantil.domain.authRouteToTab
-import samf.gestorestudiantil.domain.authTabToRoute
-import samf.gestorestudiantil.domain.signInWithGoogle
+import samf.gestorestudiantil.domain.utils.authRouteToTab
+import samf.gestorestudiantil.domain.utils.authTabToRoute
+import samf.gestorestudiantil.domain.utils.signInWithGoogle
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField

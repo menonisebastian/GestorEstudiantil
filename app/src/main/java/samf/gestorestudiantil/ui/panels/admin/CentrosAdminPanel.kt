@@ -59,14 +59,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import samf.gestorestudiantil.ui.components.AsignaturaCard
-import java.util.Locale
 import androidx.core.graphics.toColorInt
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
-import samf.gestorestudiantil.domain.toComposeIcon
-import samf.gestorestudiantil.ui.components.AsignaturaCard
+import samf.gestorestudiantil.domain.utils.toComposeIcon
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -76,7 +74,7 @@ import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
-import samf.gestorestudiantil.domain.capitalize
+import samf.gestorestudiantil.domain.utils.capitalize
 
 @Composable
 fun AdminHeader(titulo: String) {

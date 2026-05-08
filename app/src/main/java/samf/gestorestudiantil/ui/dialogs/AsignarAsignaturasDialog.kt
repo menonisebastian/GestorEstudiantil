@@ -22,7 +22,7 @@ import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
-import samf.gestorestudiantil.domain.capitalize
+import samf.gestorestudiantil.domain.utils.capitalize
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 
 @Composable

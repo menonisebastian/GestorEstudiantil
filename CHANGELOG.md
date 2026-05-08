@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.7.9] - 2026-05-08
+- **Notificaciones**: Centralización de identificadores de canales en `NotificationConstants.kt` para evitar inconsistencias.
+- **Arquitectura**: Limpieza total de `MainActivity`, moviendo la lógica de gestión de intents y navegación por notificaciones al `AppViewModel`.
+- **Admin**: Optimización del flujo de alertas por nuevo registro; ahora los administradores son redirigidos automáticamente a la pestaña de Usuarios al pulsar la notificación.
+- **Estabilidad**: Refactorización de `RegisterUserUseCase` para utilizar el repositorio de notificaciones oficial, eliminando duplicidad de código y gestión manual de tokens FCM.
+- **UX**: Mejora en la programación de alarmas para tareas creadas el mismo día de su entrega, asegurando que el estudiante reciba un aviso inmediato.
+- **Rendimiento**: Implementado sistema de filtrado en `EstudianteViewModel` para evitar la reprogramación redundante de notificaciones locales.
+
 ## [v0.7.8] - 2026-05-06
 - **Pruebas**: Implementada suite de **Pruebas Unitarias** para funciones de utilidad en `MappersUI.kt`, incluyendo formateo de fechas, iniciales de nombres y capitalización de texto.
 - **Pruebas**: Implementadas **Pruebas de Integración** para `ProfesorViewModel` verificando la carga reactiva de contenidos (Unidades, Posts, Tareas) y actualización del estado de la UI.

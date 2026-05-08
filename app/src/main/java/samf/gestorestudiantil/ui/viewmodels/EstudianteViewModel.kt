@@ -1,9 +1,7 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
-import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
@@ -24,16 +22,14 @@ import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Tarea
-import samf.gestorestudiantil.domain.NotificationScheduler
+import samf.gestorestudiantil.domain.notifications.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
-import samf.gestorestudiantil.ui.utils.ErrorMapper
-import samf.gestorestudiantil.ui.utils.FileOpener
+import samf.gestorestudiantil.domain.utils.ErrorMapper
+import samf.gestorestudiantil.domain.utils.FileOpener
 import kotlinx.coroutines.FlowPreview
-import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 data class EstudianteState(
@@ -64,6 +60,7 @@ class EstudianteViewModel @Inject constructor(
     private var tareasJob: Job? = null
     private var horariosJob: Job? = null
     private var currentUltimaVez: Map<String, Long> = emptyMap()
+    private var scheduledTareaIds: Set<String> = emptySet()
     private var lastAsignaturasParams: String? = null
     private var lastHorariosParams: String? = null
 
@@ -95,8 +92,16 @@ class EstudianteViewModel @Inject constructor(
         tareasJob = viewModelScope.launch {
             tareaRepository.getTareasPorAsignaturas(asignaturaIds).collect { tareas ->
                 _state.update { it.copy(tareas = tareas) }
-                tareas.forEach { tarea ->
-                    NotificationScheduler.scheduleTareaNotification(context, tarea)
+                
+                // Optimizamos: solo programamos tareas que no hayamos programado ya 
+                // o que hayan cambiado
+                val tareasParaProgramar = tareas.filter { it.id !in scheduledTareaIds }
+                
+                if (tareasParaProgramar.isNotEmpty()) {
+                    tareasParaProgramar.forEach { tarea ->
+                        NotificationScheduler.scheduleTareaNotification(context, tarea)
+                    }
+                    scheduledTareaIds = scheduledTareaIds + tareasParaProgramar.map { it.id }.toSet()
                 }
             }
         }

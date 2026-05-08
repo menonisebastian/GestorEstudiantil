@@ -1,5 +1,6 @@
-package samf.gestorestudiantil.domain
+package samf.gestorestudiantil.domain.utils
 
+import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.navigation.Routes
 
 // Convierte el nombre del tab al NavKey correspondiente
@@ -27,7 +28,7 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
     "EditCentro"      -> Routes.HomeRoutes.EditCentro()
     "EditCurso"       -> Routes.HomeRoutes.EditCurso(null, "")
     "EditAsignatura"  -> Routes.HomeRoutes.EditAsignatura(null, "", "")
-    "EditUser"        -> Routes.HomeRoutes.EditUser(samf.gestorestudiantil.data.models.User.Incompleto())
+    "EditUser"        -> Routes.HomeRoutes.EditUser(User.Incompleto())
     "Perfil"          -> Routes.HomeRoutes.Perfil
     else              -> Routes.HomeRoutes.Materias
 }

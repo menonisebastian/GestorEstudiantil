@@ -72,7 +72,7 @@ app/src/main/java/samf/gestorestudiantil/
 ## 🛠️ Instalación y Configuración
 
 1.  **Firebase:** Es imprescindible incluir el archivo `google-services.json` en el directorio `app/`.
-2.  **FCM (Notificaciones):** El envío de notificaciones administrativas y académicas requiere el archivo `service-account.json` en `app/src/main/resources/` (no incluido por seguridad).
+2.  **FCM (Notificaciones):** El envío de notificaciones administrativas y académicas requiere el archivo `service-account.json` en `app/src/main/assets/` (no incluido por seguridad).
 3.  **Supabase:** Configura tus credenciales (URL/Key) en los recursos de strings o mediante variables de entorno.
 4.  **Entorno:** Recomendado Android Studio **Ladybug** o superior y dispositivos con **API 34+** para soporte total de notificaciones y temas dinámicos.
 
