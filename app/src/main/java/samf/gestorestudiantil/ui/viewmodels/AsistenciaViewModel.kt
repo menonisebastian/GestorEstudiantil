@@ -29,7 +29,7 @@ data class AsistenciaUiState(
 class AsistenciaViewModel @Inject constructor(
     private val asistenciaRepository: AsistenciaRepository,
     private val profesorRepository: ProfesorRepository,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AsistenciaUiState())
@@ -93,12 +93,11 @@ class AsistenciaViewModel @Inject constructor(
         }
         
         _state.update { it.copy(asistencias = currentList) }
-        
-        // Auto-guardar solo este registro
+
         viewModelScope.launch {
             try {
                 asistenciaRepository.guardarAsistencias(listOf(asistencia))
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(context, "Error al guardar asistencia automáticamente", Toast.LENGTH_SHORT).show()
             }
         }

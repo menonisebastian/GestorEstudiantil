@@ -26,7 +26,7 @@ class TareaViewModel @Inject constructor(
     private val tareaRepository: TareaRepository,
     private val notificationRepository: NotificationRepository,
     private val snackbarManager: SnackbarManager,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     var titulo by mutableStateOf("")

@@ -117,7 +117,7 @@ class UserRepositoryImpl @Inject constructor(
                     val body = response.body?.string() ?: ""
                     val json = JSONObject(body)
                     val tag = json.optString("tag_name", "")
-                    return@withContext if (tag.isNotEmpty()) tag else null
+                    return@withContext tag.ifEmpty { null }
                 }
             }
         } catch (e: Exception) {
@@ -135,7 +135,7 @@ class UserRepositoryImpl @Inject constructor(
                     val body = response.body?.string() ?: ""
                     val tagsArray = JSONArray(body)
                     if (tagsArray.length() > 0) {
-                        return@withContext tagsArray.getJSONObject(0).optString("name", null)
+                        return@withContext tagsArray.getJSONObject(0).optString("name").ifEmpty { null }
                     }
                 }
             }

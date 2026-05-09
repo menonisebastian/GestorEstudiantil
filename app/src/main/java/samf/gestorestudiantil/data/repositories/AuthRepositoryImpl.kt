@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : AuthRepository {
 
     override fun getAuthStateFlow(): Flow<String?> = callbackFlow {
@@ -51,7 +51,7 @@ class AuthRepositoryImpl @Inject constructor(
                 auth.signInWithEmailAndPassword(email, pass).await()
             }
             result?.user?.uid ?: throw Exception(context.getString(R.string.error_auth_failed))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw Exception(context.getString(R.string.error_auth_failed))
         }
     }
@@ -90,8 +90,7 @@ class AuthRepositoryImpl @Inject constructor(
             if (auth.currentUser != null && credential != null) {
                 try {
                     auth.currentUser?.linkWithCredential(credential)?.await()
-                } catch (linkEx: Exception) {
-                }
+                } catch (_: Exception) { }
             }
 
             result?.user?.uid ?: throw Exception(context.getString(R.string.error_github_signin))
@@ -106,6 +105,7 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d("GithubAuth", "email es null: ${email == null}")
 
             if (email != null) {
+                @Suppress("DEPRECATION")
                 val methods = auth.fetchSignInMethodsForEmail(email).await().signInMethods
                 Log.d("GithubAuth", "methods: $methods")
             }

@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 class NotificationRepositoryImpl @Inject constructor(
     private val client: OkHttpClient,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : NotificationRepository {
 
     private val fcmUrl = "https://fcm.googleapis.com/v1/projects/gestorinstituto-tfg/messages:send"

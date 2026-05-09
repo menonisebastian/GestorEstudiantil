@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,6 @@ import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.AdminRepository
-import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.usecases.AssignSubjectToProfessorUseCase
 import samf.gestorestudiantil.domain.usecases.SeedDatabaseUseCase
 import samf.gestorestudiantil.domain.utils.ErrorMapper
@@ -44,11 +44,10 @@ data class AdminState(
 @HiltViewModel
 class AdminViewModel @Inject constructor(
     private val adminRepository: AdminRepository,
-    private val courseRepository: CourseRepository,
     private val seedDatabaseUseCase: SeedDatabaseUseCase,
     private val assignSubjectToProfessorUseCase: AssignSubjectToProfessorUseCase,
     private val snackbarManager: SnackbarManager,
-    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _adminState = MutableStateFlow(AdminState())
@@ -62,7 +61,7 @@ class AdminViewModel @Inject constructor(
                 val inputStream = context.assets.open("extract.jsonl")
                 val lines = inputStream.bufferedReader().readLines()
                 seedDatabaseUseCase(lines)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = context.getString(R.string.error_load_data))
             }
         }
@@ -268,7 +267,7 @@ class AdminViewModel @Inject constructor(
             try {
                 adminRepository.generarClasesPorDefecto(centroId)
                 _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.success_classes_generated))
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _adminState.value = _adminState.value.copy(isLoading = false, errorMessage = context.getString(R.string.error_generate_classes))
             }
         }
