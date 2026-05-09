@@ -12,8 +12,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import samf.gestorestudiantil.data.models.Asignatura
+import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.HomeState
 import samf.gestorestudiantil.ui.navigation.Routes
@@ -77,7 +79,7 @@ fun EstudianteNavContent(
                                 estudianteNombre = usuario.nombre,
                                 onEntregar = { data, name, mime ->
                                     estudianteViewModel.realizarEntrega(
-                                        samf.gestorestudiantil.data.models.Entrega(
+                                        Entrega(
                                             tareaId = tarea.id,
                                             estudianteId = usuario.id,
                                             estudianteNombre = usuario.nombre,
@@ -93,8 +95,8 @@ fun EstudianteNavContent(
                                 onEliminarEntrega = {
                                     estudianteViewModel.state.value.miEntrega?.let { entrega ->
                                         onOpenDialog(DialogState.Confirmation(
-                                            title = "Eliminar entrega",
-                                            content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                            title = UiText.DynamicString("Eliminar entrega"),
+                                            content = UiText.DynamicString("¿Estás seguro de que deseas eliminar tu entrega?"),
                                             onConfirm = {
                                                 estudianteViewModel.eliminarEntrega(entrega) {
                                                     appViewModel.showSnackbar(
@@ -205,7 +207,7 @@ fun EstudianteNavContent(
                                 estudianteNombre = usuario.nombre,
                                 onEntregar = { data, name, mime ->
                                     estudianteViewModel.realizarEntrega(
-                                        samf.gestorestudiantil.data.models.Entrega(
+                                        Entrega(
                                             tareaId = tarea.id,
                                             estudianteId = usuario.id,
                                             estudianteNombre = usuario.nombre,
@@ -221,8 +223,8 @@ fun EstudianteNavContent(
                                 onEliminarEntrega = {
                                     estudianteViewModel.state.value.miEntrega?.let { entrega ->
                                         onOpenDialog(DialogState.Confirmation(
-                                            title = "Eliminar entrega",
-                                            content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                            title = UiText.DynamicString("Eliminar entrega"),
+                                            content = UiText.DynamicString("¿Estás seguro de que deseas eliminar tu entrega?"),
                                             onConfirm = {
                                                 estudianteViewModel.eliminarEntrega(entrega) {
                                                     appViewModel.showSnackbar(

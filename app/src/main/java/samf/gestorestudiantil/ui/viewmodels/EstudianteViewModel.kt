@@ -45,8 +45,49 @@ data class EstudianteState(
     val selectedFileData: ByteArray? = null,
     val selectedFileName: String = "",
     val selectedFileSize: Long = 0L,
-    val selectedMimeType: String = ""
-)
+    val selectedMimeType: String = "",
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as EstudianteState
+
+        if (isLoading != other.isLoading) return false
+        if (asignaturas != other.asignaturas) return false
+        if (evaluaciones != other.evaluaciones) return false
+        if (evaluacionesGlobales != other.evaluacionesGlobales) return false
+        if (tareas != other.tareas) return false
+        if (miEntrega != other.miEntrega) return false
+        if (horarios != other.horarios) return false
+        if (errorMessage != other.errorMessage) return false
+        if (selectedFileData != null) {
+            if (other.selectedFileData == null) return false
+            if (!selectedFileData.contentEquals(other.selectedFileData)) return false
+        } else if (other.selectedFileData != null) return false
+        if (selectedFileName != other.selectedFileName) return false
+        if (selectedFileSize != other.selectedFileSize) return false
+        if (selectedMimeType != other.selectedMimeType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = isLoading.hashCode()
+        result = 31 * result + asignaturas.hashCode()
+        result = 31 * result + evaluaciones.hashCode()
+        result = 31 * result + evaluacionesGlobales.hashCode()
+        result = 31 * result + tareas.hashCode()
+        result = 31 * result + (miEntrega?.hashCode() ?: 0)
+        result = 31 * result + horarios.hashCode()
+        result = 31 * result + (errorMessage?.hashCode() ?: 0)
+        result = 31 * result + (selectedFileData?.contentHashCode() ?: 0)
+        result = 31 * result + selectedFileName.hashCode()
+        result = 31 * result + selectedFileSize.hashCode()
+        result = 31 * result + selectedMimeType.hashCode()
+        return result
+    }
+}
 
 @HiltViewModel
 class EstudianteViewModel @Inject constructor(
@@ -55,7 +96,7 @@ class EstudianteViewModel @Inject constructor(
     private val notificationRepository: NotificationRepository,
     private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase,
     private val snackbarManager: SnackbarManager,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EstudianteState())
@@ -98,16 +139,14 @@ class EstudianteViewModel @Inject constructor(
         tareasJob = viewModelScope.launch {
             tareaRepository.getTareasPorAsignaturas(asignaturaIds).collect { tareas ->
                 _state.update { it.copy(tareas = tareas) }
-                
-                // Optimizamos: solo programamos tareas que no hayamos programado ya 
-                // o que hayan cambiado
+
                 val tareasParaProgramar = tareas.filter { it.id !in scheduledTareaIds }
                 
                 if (tareasParaProgramar.isNotEmpty()) {
                     tareasParaProgramar.forEach { tarea ->
                         NotificationScheduler.scheduleTareaNotification(context, tarea)
                     }
-                    scheduledTareaIds = scheduledTareaIds + tareasParaProgramar.map { it.id }.toSet()
+                    scheduledTareaIds += tareasParaProgramar.asSequence().map { it.id }.toSet()
                 }
             }
         }
@@ -159,7 +198,7 @@ class EstudianteViewModel @Inject constructor(
                     }
                     currentState.copy(asignaturas = nuevas)
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_mark_as_read)) }
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_mark_as_read), Toast.LENGTH_SHORT).show()
@@ -174,7 +213,7 @@ class EstudianteViewModel @Inject constructor(
             try {
                 val evaluations = estudianteRepository.getEvaluaciones(asignaturaId, estudianteId)
                 _state.update { it.copy(isLoading = false, evaluaciones = evaluations) }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = context.getString(R.string.error_load_evaluations)) }
             }
         }
@@ -190,7 +229,7 @@ class EstudianteViewModel @Inject constructor(
                     allEvaluations.addAll(evals)
                 }
                 _state.update { it.copy(isLoading = false, evaluacionesGlobales = allEvaluations) }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _state.update { it.copy(isLoading = false, errorMessage = context.getString(R.string.error_load_evaluations)) }
             }
         }
@@ -212,10 +251,6 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _state.update { it.copy(errorMessage = null) }
-    }
-
     // ====================================================================
     // GESTIÓN DE TAREAS Y ENTREGAS (Estudiante)
     // ====================================================================
@@ -224,12 +259,9 @@ class EstudianteViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             try {
                 val entregaId = tareaRepository.realizarEntrega(entrega, fileData, fileName, mimeType)
-                
-                // Si no viene acrónimo, intentamos buscarlo en el estado
-                val finalAcronimo = if (acronimoAsignatura.isBlank()) {
+
+                val finalAcronimo = acronimoAsignatura.ifBlank {
                     _state.value.asignaturas.find { it.id == entrega.asignaturaId }?.acronimo ?: ""
-                } else {
-                    acronimoAsignatura
                 }
 
                 enviarNotificacionAlProfesor(entrega, finalAcronimo)
@@ -237,12 +269,11 @@ class EstudianteViewModel @Inject constructor(
                 snackbarManager.showSnackbar(
                     message = context.getString(R.string.success_delivery),
                     actionLabel = context.getString(R.string.label_undo),
-                    onAction = {
-                        viewModelScope.launch {
-                            tareaRepository.eliminarEntrega(entrega.copy(id = entregaId))
-                        }
+                ) {
+                    viewModelScope.launch {
+                        tareaRepository.eliminarEntrega(entrega.copy(id = entregaId))
                     }
-                )
+                }
             } catch (e: Exception) {
                 val errorMsg = ErrorMapper.getFriendlyMessage(context, e)
                 _state.update { it.copy(errorMessage = errorMsg) }
@@ -258,7 +289,7 @@ class EstudianteViewModel @Inject constructor(
     private fun enviarNotificacionAlProfesor(entrega: Entrega, acronimo: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Las entregas deben notificar a los PROFESORES
+
                 val topic = "asignatura_${entrega.asignaturaId}_profesores"
                 val title = if (acronimo.isNotBlank()) "Nueva Entrega: $acronimo" else "Nueva Entrega"
                 val body = "${entrega.estudianteNombre} ha entregado una tarea."
@@ -280,7 +311,7 @@ class EstudianteViewModel @Inject constructor(
             try {
                 tareaRepository.eliminarEntrega(entrega)
                 onUndo()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_delivery)) }
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_delete_delivery), Toast.LENGTH_LONG).show()
@@ -310,7 +341,7 @@ class EstudianteViewModel @Inject constructor(
                 } else {
                     FileOpener.openFile(context, bytes, nombreArchivo)
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, context.getString(R.string.error_open_file), Toast.LENGTH_SHORT).show()
                 }
@@ -334,7 +365,7 @@ class EstudianteViewModel @Inject constructor(
                     cursor?.use { c ->
                         val nameIndex = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
                         val sizeIndex = c.getColumnIndex(android.provider.OpenableColumns.SIZE)
-                        if (nameIndex != -1 && c.moveToFirst()) {
+                        if (nameIndex != -1 && (c.moveToFirst())) {
                             fileName = c.getString(nameIndex)
                         }
                         if (sizeIndex != -1) {

@@ -1,10 +1,7 @@
 package samf.gestorestudiantil.domain.usecases
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.AuthRepository
-import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Inject
@@ -12,15 +9,13 @@ import javax.inject.Inject
 class RegisterUserUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val courseRepository: CourseRepository,
     private val notificationRepository: NotificationRepository,
-    @ApplicationContext private val context: Context
 ) {
     suspend operator fun invoke(
         email: String, pass: String, name: String,
         rolSeleccionado: String, centroId: String, cursoId: String,
         cursoNombre: String, turno: String, ciclo: Int, imgUrl: String,
-        departamento: String = ""
+        departamento: String = "",
     ): User {
         var finalRol = rolSeleccionado
         var estadoInicial = "ACTIVO"
@@ -30,7 +25,7 @@ class RegisterUserUseCase @Inject constructor(
         if (rolSeleccionado == "ESTUDIANTE") {
             estadoInicial = "PENDIENTE"
             val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-            cursoGenerado = "${cursoNombre}${letraTurno}${ciclo}"
+            cursoGenerado = "$cursoNombre$letraTurno$ciclo"
         } else if (rolSeleccionado == "PROFESOR") {
             val hasAdmins = userRepository.checkAdminsInCenter(centroId)
             if (!hasAdmins) {
@@ -67,7 +62,7 @@ class RegisterUserUseCase @Inject constructor(
 
     private suspend fun notificarAdminNuevoRegistro(nuevoUsuario: User) {
         val admins = userRepository.getAdminsInCenter(nuevoUsuario.centroId)
-        val tokens = admins.map { it.fcmToken }.filter { it.isNotEmpty() }
+        val tokens = admins.asSequence().map { it.fcmToken }.filter { it.isNotEmpty() }.toList()
         
         if (tokens.isEmpty()) return
 

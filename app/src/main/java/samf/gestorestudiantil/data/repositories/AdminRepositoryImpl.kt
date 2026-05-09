@@ -34,7 +34,7 @@ import javax.inject.Inject
 class AdminRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
     private val storage: Storage,
-    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
+    @param:dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
 ) : AdminRepository {
 
     private val gson = Gson()
@@ -43,10 +43,9 @@ class AdminRepositoryImpl @Inject constructor(
         val subscription = db.collection("usuarios")
             .whereEqualTo("centroId", centroId)
             .addSnapshotListener { snapshot, _ ->
-                if (snapshot != null) {
-                    val users = snapshot.documents.mapNotNull { doc ->
-                        val rol = doc.getString("rol")
-                        when (rol) {
+                snapshot?.let {
+                    val users = it.documents.mapNotNull { doc ->
+                        when (doc.getString("rol")) {
                             "ESTUDIANTE" -> doc.toObject(User.Estudiante::class.java)
                             "PROFESOR" -> doc.toObject(User.Profesor::class.java)
                             "ADMIN" -> doc.toObject(User.Admin::class.java)
@@ -116,7 +115,11 @@ class AdminRepositoryImpl @Inject constructor(
         // 2. Eliminar el usuario del array 'estudiantesIds' en los documentos encontrados
         val batch = db.batch()
         for (doc in clasesQuery.documents) {
-            batch.update(doc.reference, "estudiantesIds", FieldValue.arrayRemove(usuarioId))
+            batch.update(
+                doc.reference,
+                "estudiantesIds",
+                FieldValue.arrayRemove(usuarioId)
+            )
         }
         batch.commit().await()
 
@@ -130,8 +133,8 @@ class AdminRepositoryImpl @Inject constructor(
 
     override fun getCentros(): Flow<List<Centro>> = callbackFlow {
         val subscription = db.collection("centros").addSnapshotListener { snapshot, _ ->
-            if (snapshot != null) {
-                trySend(snapshot.toObjects(Centro::class.java))
+            snapshot?.let {
+                trySend(it.toObjects(Centro::class.java))
             }
         }
         awaitClose { subscription.remove() }
@@ -286,7 +289,7 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun guardarCentro(centro: Centro) {
         val ref = if (centro.id.isEmpty()) db.collection("centros").document() else db.collection("centros").document(centro.id)
         if (centro.id.isEmpty()) centro.id = ref.id
-        ref.set(centro, com.google.firebase.firestore.SetOptions.merge()).await()
+        ref.set(centro, SetOptions.merge()).await()
     }
 
     override suspend fun eliminarCentro(centroId: String) {
@@ -296,7 +299,7 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun guardarCurso(curso: Curso) {
         val ref = if (curso.id.isEmpty()) db.collection("cursos").document() else db.collection("cursos").document(curso.id)
         if (curso.id.isEmpty()) curso.id = ref.id
-        ref.set(curso, com.google.firebase.firestore.SetOptions.merge()).await()
+        ref.set(curso, SetOptions.merge()).await()
     }
 
     override suspend fun eliminarCurso(cursoId: String) {
@@ -306,7 +309,7 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun guardarAsignatura(asignatura: Asignatura) {
         val ref = if (asignatura.id.isEmpty()) db.collection("asignaturas").document() else db.collection("asignaturas").document(asignatura.id)
         if (asignatura.id.isEmpty()) asignatura.id = ref.id
-        ref.set(asignatura, com.google.firebase.firestore.SetOptions.merge()).await()
+        ref.set(asignatura, SetOptions.merge()).await()
     }
 
     override suspend fun eliminarAsignatura(asignaturaId: String) {
@@ -326,7 +329,7 @@ class AdminRepositoryImpl @Inject constructor(
 
         val ref = if (horario.id.isEmpty()) db.collection("horarios").document() else db.collection("horarios").document(horario.id)
         if (horario.id.isEmpty()) horario.id = ref.id
-        ref.set(horario, com.google.firebase.firestore.SetOptions.merge()).await()
+        ref.set(horario, SetOptions.merge()).await()
     }
 
     override suspend fun eliminarHorario(horarioId: String) {
@@ -370,7 +373,7 @@ class AdminRepositoryImpl @Inject constructor(
                 "colorIconoHex"     to (sc.colorIconoHex ?: "#2563EB")
             )
 
-            batch.set(cursoRef, cursoData, com.google.firebase.firestore.SetOptions.merge())
+            batch.set(cursoRef, cursoData, SetOptions.merge())
             operationCount++
 
             val ciclos = sc.ciclos ?: emptyList()
@@ -382,7 +385,7 @@ class AdminRepositoryImpl @Inject constructor(
                     val cicloNum = cicloAInt(cicloRaw)
 
                     for (asig in cicloBloque.asignaturas) {
-                        val asigId = "${cursoId}_${cicloNum}_${asig.acronimo}_${turno}".replace(" ", "_").lowercase()
+                        val asigId = "${cursoId}_${cicloNum}_${asig.acronimo}_$turno".replace(" ", "_").lowercase()
                         val asigRef = db.collection("asignaturas").document(asigId)
 
                         val asigData = hashMapOf(
@@ -401,7 +404,7 @@ class AdminRepositoryImpl @Inject constructor(
                             "colorIconoHex"  to (asig.colorIconoHex ?: "#6B7280")
                         )
 
-                        batch.set(asigRef, asigData, com.google.firebase.firestore.SetOptions.merge())
+                        batch.set(asigRef, asigData, SetOptions.merge())
                         operationCount++
 
                         if (operationCount >= 400) {
@@ -462,17 +465,17 @@ class AdminRepositoryImpl @Inject constructor(
             val acronimoReal = cursoReal?.acronimo ?: return@forEach
 
             val letraTurno = turnoMayuscula.first().uppercaseChar()
-            val idClase = "${acronimoReal}${letraTurno}${cicloNum}"
+            val idClase = "$acronimoReal$letraTurno$cicloNum"
 
-            val idsEstudiantes = estudiantesSnapshots.filter { doc ->
+            val idsEstudiantes = estudiantesSnapshots.asSequence().filter { doc ->
                 val docCursoId = doc.getString("cursoId") ?: ""
                 val docTurno = doc.getString("turno") ?: ""
                 val docCicloNum = doc.getLong("cicloNum")?.toInt() ?: -1
 
-                docCursoId == cursoId &&
+                (docCursoId == cursoId &&
                         docTurno.uppercase() == turnoMayuscula &&
-                        docCicloNum == cicloNum
-            }.map { it.id }
+                        docCicloNum == cicloNum)
+            }.map { it.id }.toList()
 
             val claseRef = db.collection("clases").document(idClase)
 
@@ -502,7 +505,7 @@ class AdminRepositoryImpl @Inject constructor(
                 val options = FirebaseApp.getInstance().options
                 secondaryApp = FirebaseApp.initializeApp(context, options, "SecondaryAuthApp")
             }
-            val secondaryAuth = FirebaseAuth.getInstance(secondaryApp!!)
+            val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
             val result = secondaryAuth.createUserWithEmailAndPassword(email, pass).await()
             val uid = result.user?.uid ?: UUID.randomUUID().toString()
             secondaryAuth.signOut() // Cerramos la secundaria
@@ -809,11 +812,11 @@ class AdminRepositoryImpl @Inject constructor(
         // Entregas
         val entregas = db.collection("entregas").whereEqualTo("tareaId", tarea.id).get().await().toObjects(Entrega::class.java)
         for (entrega in entregas) {
-            try { bucket.delete(entrega.adjunto.supabasePath) } catch (e: Exception) {}
+            try { bucket.delete(entrega.adjunto.supabasePath) } catch (_: Exception) {}
             db.collection("entregas").document(entrega.id).delete().await()
         }
         // Archivo tarea
-        tarea.adjunto?.let { try { bucket.delete(it.supabasePath) } catch (e: Exception) {} }
+        tarea.adjunto?.let { try { bucket.delete(it.supabasePath) } catch (_: Exception) {} }
         // Documento tarea
         db.collection("tareas").document(tarea.id).delete().await()
     }

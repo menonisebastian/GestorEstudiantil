@@ -43,30 +43,32 @@ fun AppNavigation(
     val rootRoute = when {
         authState.isCheckingSession -> null
         authState.isSigningOut -> null
-        authState.user == null && !authState.requireGooglePasswordSetup -> Routes.Auth
+        (authState.user == null && !authState.requireGooglePasswordSetup) -> Routes.Auth
         authState.requireGooglePasswordSetup -> Routes.GooglePasswordSetup
         authState.user?.estado == "PENDIENTE" -> Routes.Pending
         else -> Routes.Home
     }
 
-    val backStack = rememberSaveable(saver = Saver<MutableList<Any>, List<String>>(
-        save = { stack -> 
-            try {
-                stack.map { Json.encodeToString(Routes.serializer(), it as Routes) }
-            } catch (_: Exception) {
-                emptyList()
-            }
-        },
-        restore = { saved ->
-            val list = mutableStateListOf<Any>()
-            try {
-                list.addAll(saved.map { Json.decodeFromString(Routes.serializer(), it) })
-            } catch (_: Exception) {
+    val backStack = rememberSaveable(
+        saver = Saver<MutableList<Any>, List<String>>(
+            save = { stack ->
+                try {
+                    stack.map { Json.encodeToString(Routes.serializer(), it as Routes) }
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            },
+            restore = { saved ->
+                val list = mutableStateListOf<Any>()
+                try {
+                    list.addAll(saved.map { Json.decodeFromString(Routes.serializer(), it) })
+                } catch (_: Exception) {
 
+                }
+                list
             }
-            list
-        }
-    )) {
+        )
+    ) {
         mutableStateListOf()
     }
 
@@ -169,7 +171,7 @@ fun AppNavigation(
                             isLoading = authState.isLoading,
                             onLogout = {
                                 authViewModel.signOut()
-                            }
+                            },
                         )
                     } ?: run {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

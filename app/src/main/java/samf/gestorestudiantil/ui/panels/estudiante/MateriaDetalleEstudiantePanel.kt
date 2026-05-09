@@ -25,6 +25,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.UnidadCard
 import samf.gestorestudiantil.ui.dialogs.DialogState
@@ -168,7 +169,7 @@ fun MateriaDetalleEstudiantePanel(
                     unidad = unidad,
                     posts = postsVisibles,
                     tareas = tareasVisibles,
-                    onAddPost = null, // Estudiantes no pueden añadir posts
+                    onAddPost = null,
                     onTareaClick = { tarea ->
                         onOpenDialog(
                             DialogState.TareaDetalleEstudiante(
@@ -193,17 +194,14 @@ fun MateriaDetalleEstudiantePanel(
                                 onEliminarEntrega = {
                                     viewModel.state.value.miEntrega?.let { entrega ->
                                         onOpenDialog(DialogState.Confirmation(
-                                            title = "Eliminar entrega",
-                                            content = "¿Estás seguro de que deseas eliminar tu entrega?",
+                                            title = UiText.DynamicString("Eliminar entrega"),
+                                            content = UiText.DynamicString("¿Estás seguro de que deseas eliminar tu entrega?"),
                                             onConfirm = { 
                                                 viewModel.eliminarEntrega(entrega) {
                                                     appViewModel.showSnackbar(
                                                         message = "Entrega eliminada",
                                                         actionLabel = "Deshacer",
-                                                        onAction = {
-                                                            // Reinstaurar requiere el archivo original que no tenemos aquí, 
-                                                            // pero al menos mostramos el mensaje.
-                                                        }
+                                                        onAction = { }
                                                     )
                                                 }
                                             }
@@ -225,7 +223,6 @@ fun MateriaDetalleEstudiantePanel(
             }
         }
 
-        // Botón "Volver Arriba" en el centro
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

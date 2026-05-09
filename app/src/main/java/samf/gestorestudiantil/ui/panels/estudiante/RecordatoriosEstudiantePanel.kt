@@ -72,7 +72,6 @@ fun RecordatoriosEstudiantePanel(
             .padding(paddingValues)
             .fillMaxSize()
     ) {
-        // BLOQUE 2: Contenido Principal
         if (recordatoriosFiltrados.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(text = "No hay recordatorios", color = surfaceDimColor, fontSize = 16.sp)
@@ -110,7 +109,6 @@ fun RecordatoriosEstudiantePanel(
             }
         }
 
-        // BLOQUE 1: Cabezal Flotante (Título + Barra de Búsqueda con Filtros)
         Card(
             modifier = Modifier
                 .fillMaxWidth()

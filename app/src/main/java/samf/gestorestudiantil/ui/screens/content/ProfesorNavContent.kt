@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.HomeState
 import samf.gestorestudiantil.ui.navigation.Routes
@@ -36,7 +36,7 @@ fun ProfesorNavContent(
     asistenciaViewModel: AsistenciaViewModel,
     appViewModel: AppViewModel,
     isLoading: Boolean,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
 ) {
     NavDisplay(
         backStack = backStack,
@@ -124,8 +124,8 @@ fun ProfesorNavContent(
                     onDeleteRecordatorio = { appViewModel.eliminarRecordatorio(it) },
                     onDeleteTarea = { tarea ->
                         onOpenDialog(DialogState.Confirmation(
-                            title = "Eliminar Tarea",
-                            content = "¿Estás seguro de que deseas eliminar la tarea '${tarea.titulo}'? Esta acción es irreversible.",
+                            title = UiText.DynamicString("Eliminar Tarea"),
+                            content = UiText.DynamicString("¿Estás seguro de que deseas eliminar la tarea '${tarea.titulo}'? Esta acción es irreversible."),
                             onConfirm = {
                                 profesorViewModel.eliminarTarea(tarea) {
                                     appViewModel.showSnackbar(
@@ -148,9 +148,7 @@ fun ProfesorNavContent(
                         }
                     },
                     onTareaClick = { tarea ->
-                        val asignatura = (usuario as? User.Profesor)?.let {
-                            profesorViewModel.state.value.asignaturas.find { a -> a.id == tarea.asignaturaId }
-                        }
+                        val asignatura = profesorViewModel.state.value.asignaturas.find { it.id == tarea.asignaturaId }
                         onOpenDialog(
                             DialogState.AddTarea(
                                 asignaturaId = tarea.asignaturaId,

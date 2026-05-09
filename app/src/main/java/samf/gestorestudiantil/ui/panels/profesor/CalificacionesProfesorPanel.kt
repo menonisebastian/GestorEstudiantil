@@ -32,6 +32,7 @@ import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.components.AsignaturaCard
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.dialogs.DialogState
@@ -52,7 +53,7 @@ fun CalificacionesProfesorPanel(
     onOpenDialog: (DialogState) -> Unit,
     onAsignaturaClick: (Asignatura) -> Unit,
     onEstudianteClick: (User, Asignatura) -> Unit,
-    viewModel: ProfesorViewModel = hiltViewModel() // Se cambió de viewModel() a hiltViewModel() por consistencia si se usa solo
+    viewModel: ProfesorViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -530,7 +531,6 @@ fun CalificacionesDetalleEstudiante(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Contenido
         if (state.evaluaciones.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("No hay calificaciones registradas", color = surfaceDimColor)
@@ -562,8 +562,8 @@ fun CalificacionesDetalleEstudiante(
                         },
                         onDelete = {
                             onOpenDialog(DialogState.Confirmation(
-                                title = "Eliminar calificación",
-                                content = "¿Estás seguro de que deseas eliminar esta calificación?",
+                                title = UiText.DynamicString("Eliminar calificación"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar esta calificación?"),
                                 onConfirm = {
                                     viewModel.eliminarEvaluacion(eval) {
                                         appViewModel.showSnackbar(

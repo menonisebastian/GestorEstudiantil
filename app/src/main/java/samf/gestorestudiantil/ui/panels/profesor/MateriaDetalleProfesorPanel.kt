@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomFAB
 import samf.gestorestudiantil.ui.components.UnidadCard
@@ -197,8 +198,8 @@ fun MateriaDetalleProfesorPanel(
                     onDeleteUnidad = {
                         onOpenDialog(
                             DialogState.Confirmation(
-                                title = "Eliminar Unidad",
-                                content = "¿Estás seguro de que deseas eliminar esta unidad y todo su contenido?",
+                                title = UiText.DynamicString("Eliminar Unidad"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar esta unidad y todo su contenido?"),
                                 onConfirm = {
                                     viewModel.eliminarUnidad(unidad) {
                                         appViewModel.showSnackbar(
@@ -231,8 +232,8 @@ fun MateriaDetalleProfesorPanel(
                     onDeletePost = { post ->
                         onOpenDialog(
                             DialogState.Confirmation(
-                                title = "Eliminar Publicación",
-                                content = "¿Estás seguro de que deseas eliminar esta publicación?",
+                                title = UiText.DynamicString("Eliminar Publicación"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar esta publicación?"),
                                 onConfirm = {
                                     viewModel.eliminarPost(post) {
                                         appViewModel.showSnackbar(
@@ -263,8 +264,8 @@ fun MateriaDetalleProfesorPanel(
                     onDeleteTarea = { tarea ->
                         onOpenDialog(
                             DialogState.Confirmation(
-                                title = "Eliminar Tarea",
-                                content = "¿Estás seguro de que deseas eliminar esta tarea y todas sus entregas?",
+                                title = UiText.DynamicString("Eliminar Tarea"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar esta tarea y todas sus entregas?"),
                                 onConfirm = {
                                     viewModel.eliminarTarea(tarea) {
                                         appViewModel.showSnackbar(

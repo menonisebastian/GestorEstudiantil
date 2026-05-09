@@ -69,7 +69,6 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AdminState
-import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -94,7 +93,6 @@ fun AdminHeader(titulo: String) {
 @Composable
 fun CentrosListScreen(
     adminState: AdminState,
-    adminViewModel: AdminViewModel,
     onCentroClick: (Centro) -> Unit,
     onEditCentro: (Centro) -> Unit
 ) {
@@ -136,7 +134,6 @@ fun CentrosListScreen(
             }
         }
 
-        // Header Flotante
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -161,7 +158,7 @@ fun TiposCursoScreen(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         val tipos by remember(adminState.cursos) {
-            derivedStateOf { adminState.cursos.mapNotNull { it.tipo }.distinct().sorted() }
+            derivedStateOf { adminState.cursos.map { it.tipo }.distinct().sorted() }
         }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -171,7 +168,6 @@ fun TiposCursoScreen(
             items(tipos) { tipo -> TipoCursoCard(tipo) { onTipoClick(tipo) } }
         }
 
-        // Header Flotante
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -211,7 +207,6 @@ fun CursosScreen(
             items(cursos) { curso -> CursoCard(curso = curso, onClick = { onCursoClick(curso) }, onEdit = { onEditCurso(curso) }) }
         }
 
-        // Header Flotante
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -295,7 +290,7 @@ fun CiclosScreen(
                 ) { asignatura ->
                     val claseCorrespondiente = adminState.clases.find { clase ->
                         clase.cursoGlobalId == asignatura.cursoId &&
-                                clase.turno.equals(asignatura.turno, ignoreCase = true) &&
+                                clase.turno.lowercase().trim() == asignatura.turno.lowercase().trim() &&
                                 clase.cicloNum == asignatura.cicloNum
                     }
                     val numEstudiantes = claseCorrespondiente?.estudiantesIds?.size ?: 0
@@ -315,7 +310,6 @@ fun CiclosScreen(
                 }
             }
 
-            // Cabezal Flotante (Título + Tabs + Tutor)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -332,7 +326,6 @@ fun CiclosScreen(
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(text = stringResource(R.string.admin_cycles_of, idClaseTitulo), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = textColor)
                         
-                        // Tarjeta del Tutor dentro del área flotante
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = backgroundColor.copy(alpha = 0.5f)),
@@ -430,7 +423,7 @@ fun AsignaturasScreen(
             ) { asignatura ->
                 val claseCorrespondiente = adminState.clases.find { clase ->
                     clase.cursoGlobalId == asignatura.cursoId &&
-                            clase.turno.equals(asignatura.turno, ignoreCase = true) &&
+                            clase.turno.lowercase().trim() == asignatura.turno.lowercase().trim() &&
                             clase.cicloNum == asignatura.cicloNum
                 }
                 val numEstudiantes = claseCorrespondiente?.estudiantesIds?.size ?: 0
@@ -450,7 +443,6 @@ fun AsignaturasScreen(
             }
         }
 
-        // Header Flotante
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -479,7 +471,6 @@ fun HorariosAdminScreen(
     val dias = Horario.DIAS_SEMANA
     val cicloNumInt = ciclo.trim().firstOrNull()?.toString()?.toIntOrNull() ?: 1
 
-    // Buscamos la clase real en el estado para usar su ID
     val claseReal = adminState.clases.find {
         it.cursoGlobalId == curso.id &&
                 it.turno.lowercase().trim() == turno.lowercase().trim() &&
@@ -549,7 +540,7 @@ fun CentroCard(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = centro.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
-                val addressStr = try { centro.direccion } catch (e: Exception) { "" }
+                val addressStr = try { centro.direccion } catch (_: Exception) { "" }
                 if (addressStr.isNotEmpty()) {
                     Text(text = addressStr, fontSize = 12.sp, color = Color.Gray)
                 }
@@ -597,12 +588,12 @@ fun TipoCursoCard(tipo: String, onClick: () -> Unit) {
 fun CursoCard(curso: Curso, onClick: () -> Unit, onEdit: (() -> Unit)? = null) {
     val containerColor = try {
         Color(curso.colorFondoHex.toColorInt())
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         surfaceColor
     }
     val iconColor = try {
         Color(curso.colorIconoHex.toColorInt())
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         primaryColor
     }
 

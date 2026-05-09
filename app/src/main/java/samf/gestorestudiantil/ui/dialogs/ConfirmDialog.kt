@@ -15,8 +15,8 @@ fun ConfirmDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         containerColor = backgroundColor,
-        title = { Text(text = state.title) },
-        text = { Text(text = state.content) },
+        title = { Text(text = state.title.asString()) },
+        text = { Text(text = state.content.asString()) },
         confirmButton = {
             Button(onClick = {
                 state.onConfirm()

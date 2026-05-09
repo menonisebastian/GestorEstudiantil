@@ -15,6 +15,7 @@ import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.dialogs.DialogState
 import samf.gestorestudiantil.ui.navigation.HomeState
 import samf.gestorestudiantil.ui.navigation.Routes
@@ -76,9 +77,9 @@ fun AdminNavContent(
                 }
                 CentrosListScreen(
                     adminState = adminState,
-                    adminViewModel = adminViewModel,
                     onCentroClick = { centro: Centro ->
                         adminViewModel.cargarCursosPorCentro(centro.id)
+                        adminViewModel.cargarClasesPorCentro(centro.id)
                         homeState.navigate(pageTab, Routes.HomeRoutes.AdminTiposCurso(centro))
                     },
                     onEditCentro = { centro: Centro -> homeState.navigate(pageTab, Routes.HomeRoutes.EditCentro(centro)) }
@@ -106,6 +107,9 @@ fun AdminNavContent(
                 )
             }
             entry<Routes.HomeRoutes.AdminTurnos> { route ->
+                LaunchedEffect(route.centroId) {
+                    adminViewModel.cargarClasesPorCentro(route.centroId)
+                }
                 TurnosScreen(
                     curso = route.curso,
                     onTurnoClick = { turno: String ->
@@ -139,6 +143,9 @@ fun AdminNavContent(
                 )
             }
             entry<Routes.HomeRoutes.AdminAsignaturas> { route ->
+                LaunchedEffect(route.centroId) {
+                    adminViewModel.cargarClasesPorCentro(route.centroId)
+                }
                 AsignaturasScreen(
                     ciclo = route.ciclo,
                     adminState = adminState,
@@ -164,8 +171,8 @@ fun AdminNavContent(
                                 onSave = { adminViewModel.guardarHorario(it) },
                                 onDelete = { h ->
                                     onOpenDialog(DialogState.Confirmation(
-                                        title = "Eliminar Horario",
-                                        content = "¿Estás seguro de que deseas eliminar este horario?",
+                                        title = UiText.DynamicString("Eliminar Horario"),
+                                        content = UiText.DynamicString("¿Estás seguro de que deseas eliminar este horario?"),
                                             onConfirm = {
                                                 adminViewModel.eliminarHorario(h) {
                                                     appViewModel.showSnackbar(
@@ -189,8 +196,8 @@ fun AdminNavContent(
                         onSave = { adminViewModel.guardarCentro(it) },
                         onDelete = { centro ->
                             onOpenDialog(DialogState.Confirmation(
-                                title = "Eliminar Centro",
-                                content = "¿Estás seguro de que deseas eliminar el centro '${centro.nombre}'? Esta acción eliminará también sus cursos y asignaturas.",
+                                title = UiText.DynamicString("Eliminar Centro"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar el centro '${centro.nombre}'? Esta acción eliminará también sus cursos y asignaturas."),
                                 onConfirm = {
                                     adminViewModel.eliminarCentro(centro) {
                                         appViewModel.showSnackbar(
@@ -214,8 +221,8 @@ fun AdminNavContent(
                         onSave = { adminViewModel.guardarCurso(it) },
                         onDelete = { curso ->
                             onOpenDialog(DialogState.Confirmation(
-                                title = "Eliminar Curso",
-                                content = "¿Estás seguro de que deseas eliminar el curso '${curso.acronimo}'? Se eliminarán todas sus asignaturas y horarios.",
+                                title = UiText.DynamicString("Eliminar Curso"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar el curso '${curso.acronimo}'? Se eliminarán todas sus asignaturas y horarios."),
                                 onConfirm = {
                                     adminViewModel.eliminarCurso(curso) {
                                         appViewModel.showSnackbar(
@@ -240,8 +247,8 @@ fun AdminNavContent(
                         onSave = { adminViewModel.guardarAsignatura(it) },
                         onDelete = { asignatura ->
                             onOpenDialog(DialogState.Confirmation(
-                                title = "Eliminar Asignatura",
-                                content = "¿Estás seguro de que deseas eliminar la asignatura '${asignatura.acronimo}'?",
+                                title = UiText.DynamicString("Eliminar Asignatura"),
+                                content = UiText.DynamicString("¿Estás seguro de que deseas eliminar la asignatura '${asignatura.acronimo}'?"),
                                 onConfirm = {
                                     adminViewModel.eliminarAsignatura(asignatura) {
                                         appViewModel.showSnackbar(

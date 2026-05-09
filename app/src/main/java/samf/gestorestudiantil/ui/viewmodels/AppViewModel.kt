@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.notifications.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
@@ -26,14 +24,14 @@ data class CurrentUserUiState(
     val name: String = "",
     val role: String = "",
     val photoUrl: String = "",
-    val curso: String = ""
+    val curso: String = "",
 )
 
 data class AppState(
     val currentUser: CurrentUserUiState? = null,
     val recordatorios: List<Recordatorio> = emptyList(),
     val errorMessage: String? = null,
-    val pendingNotificationData: Map<String, String>? = null
+    val pendingNotificationData: Map<String, String>? = null,
 )
 
 @HiltViewModel
@@ -41,12 +39,12 @@ class AppViewModel @Inject constructor(
     private val recordatorioRepository: RecordatorioRepository,
     private val userRepository: UserRepository,
     private val snackbarManager: SnackbarManager,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
 
-    private val _isCheckingUpdate = MutableStateFlow(false)
+    private val _isCheckingUpdate = MutableStateFlow(value = false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate.asStateFlow()
 
     private val _updateMessage = MutableStateFlow<String?>(null)
@@ -89,13 +87,12 @@ class AppViewModel @Inject constructor(
                 showSnackbar(
                     message = "Recordatorio guardado",
                     actionLabel = "Deshacer",
-                    onAction = {
-                        viewModelScope.launch {
-                            recordatorioRepository.eliminarRecordatorio(finalRecordatorio.id)
-                            NotificationScheduler.cancelNotification(context, finalRecordatorio.id)
-                        }
+                ) {
+                    viewModelScope.launch {
+                        recordatorioRepository.eliminarRecordatorio(finalRecordatorio.id)
+                        NotificationScheduler.cancelNotification(context, finalRecordatorio.id)
                     }
-                )
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar recordatorio: ${e.localizedMessage}") }
             }
@@ -110,10 +107,9 @@ class AppViewModel @Inject constructor(
                 showSnackbar(
                     message = "Recordatorio eliminado",
                     actionLabel = "Deshacer",
-                    onAction = {
-                        agregarRecordatorio(recordatorio)
-                    }
-                )
+                ) {
+                    agregarRecordatorio(recordatorio)
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al eliminar recordatorio: ${e.localizedMessage}") }
             }
@@ -129,10 +125,6 @@ class AppViewModel @Inject constructor(
                 _state.update { it.copy(errorMessage = "Error al actualizar recordatorio: ${e.localizedMessage}") }
             }
         }
-    }
-
-    fun clearError() {
-        _state.update { it.copy(errorMessage = null) }
     }
 
     fun checkLatestVersion(currentVersion: String) {
@@ -168,9 +160,9 @@ class AppViewModel @Inject constructor(
         intent?.extras?.let { extras ->
             for (key in extras.keySet()) {
                 @Suppress("DEPRECATION")
-                val value = extras.get(key)?.toString()
-                if (value != null) {
-                    data[key] = value
+                val value = extras[key]?.toString()
+                value?.let {
+                    data[key] = it
                 }
             }
         }

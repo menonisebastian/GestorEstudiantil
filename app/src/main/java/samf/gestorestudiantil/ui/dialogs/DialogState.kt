@@ -8,14 +8,15 @@ import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.data.models.Tarea
+import samf.gestorestudiantil.domain.utils.UiText
 
 sealed class DialogState {
     data object None : DialogState()
 
     // 1. Diálogo de Confirmación (Usado en AdminPanel)
     data class Confirmation(
-        val title: String,
-        val content: String,
+        val title: UiText,
+        val content: UiText,
         val onConfirm: () -> Unit
     ) : DialogState()
 

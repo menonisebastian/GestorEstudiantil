@@ -72,6 +72,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.components.AccImg
 import samf.gestorestudiantil.ui.components.CustomSearchBar
 import samf.gestorestudiantil.ui.dialogs.DialogState
@@ -215,8 +216,8 @@ fun UsuariosAdminPanel(
                             onRechazar = {
                                 onOpenDialog(
                                     DialogState.Confirmation(
-                                        title = R.string.admin_delete_user_title.toString(),
-                                        content = R.string.admin_delete_user_confirm.toString() + " ${usuario.nombre}?",
+                                        title = UiText.StringResource(R.string.admin_delete_user_title),
+                                        content = UiText.StringResource(R.string.admin_delete_user_confirm, usuario.nombre),
                                         onConfirm = {
                                             adminViewModel.rechazarOEliminarUsuario(usuario) {
                                                 appViewModel.showSnackbar(

@@ -46,14 +46,14 @@ class MainActivity : ComponentActivity() {
             GestorEstudiantilTheme(darkTheme = darkTheme) {
                 val dialogStates = remember { mutableStateListOf<DialogState>() }
                 
-                NotificationPermissionGate(
-                    onShowDialog = { dialogStates.add(it) }
-                )
+                NotificationPermissionGate {
+                    dialogStates.add(it)
+                }
                 
                 DialogOrchestrator(
                     states = dialogStates,
                     onShowDialog = { dialogStates.add(it) },
-                    onDismiss = { dialogStates.remove(it) }
+                    onDismiss = { dialogStates.remove(it) },
                 )
 
                 FcmTokenManager(authViewModel)
