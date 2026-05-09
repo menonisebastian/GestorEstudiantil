@@ -167,7 +167,6 @@ fun DialogOrchestrator(
                     TareaDetalleEstudianteBottomSheet(
                         state = state,
                         estudianteId = state.estudianteId,
-                        estudianteNombre = state.estudianteNombre,
                         onDismissRequest = dismissAction
                     )
                 }

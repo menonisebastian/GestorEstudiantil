@@ -17,7 +17,7 @@ interface TareaRepository {
     // Entregas
     fun getEntregasPorTarea(tareaId: String): Flow<List<Entrega>>
     fun getEntregaEstudiante(tareaId: String, estudianteId: String): Flow<Entrega?>
-    suspend fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String, mimeType: String? = null)
+    suspend fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String, mimeType: String? = null): String
     suspend fun eliminarEntrega(entrega: Entrega)
     suspend fun calificarEntrega(entregaId: String, nota: Float, comentario: String?)
 

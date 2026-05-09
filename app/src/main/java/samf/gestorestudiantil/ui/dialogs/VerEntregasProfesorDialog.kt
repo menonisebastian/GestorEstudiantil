@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import samf.gestorestudiantil.data.enums.tipoEvaluacion
+import samf.gestorestudiantil.data.enums.TipoEvaluacion
 import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.ui.components.AccImg
@@ -111,7 +111,7 @@ fun VerEntregasProfesorContent(
                                         asignaturaId = entrega.asignaturaId,
                                         comentario = entrega.comentarioProfesor,
                                         adjunto = entrega.adjunto,
-                                        tipoEvaluacion = tipoEvaluacion.Tarea
+                                        tipoEvaluacion = TipoEvaluacion.Tarea
                                     ),
                                     onSave = { evaluacion ->
                                         state.onCalificar(evaluacion)

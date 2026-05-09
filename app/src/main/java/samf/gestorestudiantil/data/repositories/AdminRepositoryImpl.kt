@@ -24,7 +24,7 @@ import samf.gestorestudiantil.data.models.Entrega
 import com.google.firebase.Timestamp
 import io.github.jan.supabase.storage.Storage
 import samf.gestorestudiantil.data.models.Evaluacion
-import samf.gestorestudiantil.data.enums.tipoEvaluacion as TipoEvaluacionEnum
+import samf.gestorestudiantil.data.enums.TipoEvaluacion as TipoEvaluacionEnum
 import samf.gestorestudiantil.domain.repositories.AdminRepository
 import samf.gestorestudiantil.R
 import java.util.Date
@@ -78,6 +78,29 @@ class AdminRepositoryImpl @Inject constructor(
 
             for (doc in clasesQuery.documents) {
                 doc.reference.update("estudiantesIds", FieldValue.arrayUnion(usuarioId))
+            }
+        }
+    }
+
+    override suspend fun desaprobarUsuario(usuarioId: String) {
+        val userRef = db.collection("usuarios").document(usuarioId)
+        val userSnap = userRef.get().await()
+
+        userRef.update("estado", "PENDIENTE").await()
+
+        if (userSnap.getString("rol") == "ESTUDIANTE") {
+            val cursoId = userSnap.getString("cursoId") ?: ""
+            val turno = userSnap.getString("turno") ?: ""
+            val cicloNum = userSnap.getLong("cicloNum")?.toInt() ?: 1
+
+            val clasesQuery = db.collection("clases")
+                .whereEqualTo("cursoGlobalId", cursoId)
+                .whereEqualTo("turno", turno.lowercase().trim())
+                .whereEqualTo("cicloNum", cicloNum)
+                .get().await()
+
+            for (doc in clasesQuery.documents) {
+                doc.reference.update("estudiantesIds", FieldValue.arrayRemove(usuarioId))
             }
         }
     }

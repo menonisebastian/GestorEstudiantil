@@ -42,7 +42,7 @@ import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.nextMonth
 import com.kizitonwose.calendar.core.previousMonth
 import kotlinx.coroutines.launch
-import samf.gestorestudiantil.data.enums.tipoRecordatorio
+import samf.gestorestudiantil.data.enums.TipoRecordatorio
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
@@ -68,7 +68,7 @@ data class EventoCalendario(
     val fechaIso: String, // Formato "yyyy-MM-dd"
     val hora: String?,
     val tipo: TipoEventoVisual,
-    val subtipoRecordatorio: tipoRecordatorio? = null,
+    val subtipoRecordatorio: TipoRecordatorio? = null,
 )
 
 enum class TipoEventoVisual {
@@ -313,7 +313,7 @@ fun CalendarioPanel(
                                                 "HH:mm",
                                                 Locale.getDefault()
                                             ).format(tar.fechaLimiteEntrega.toDate()),
-                                            tipo = tipoRecordatorio.TAREA
+                                            tipo = TipoRecordatorio.TAREA
                                         )
                                         CustomNotificationCard(
                                             recordatorio = syntheticRec,

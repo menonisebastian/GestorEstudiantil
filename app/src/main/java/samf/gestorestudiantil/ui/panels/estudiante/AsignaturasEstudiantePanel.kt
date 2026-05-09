@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import samf.gestorestudiantil.data.enums.tipoRecordatorio
+import samf.gestorestudiantil.data.enums.TipoRecordatorio
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.data.models.Tarea
@@ -221,7 +221,7 @@ fun AsignaturasEstudiantePanel(
                                                     "HH:mm",
                                                     Locale.getDefault()
                                                 ).format(tarea.fechaLimiteEntrega.toDate()),
-                                                tipo = tipoRecordatorio.TAREA
+                                                tipo = TipoRecordatorio.TAREA
                                             )
                                             CustomNotificationCard(
                                                 isAsignaturaPanel = true,

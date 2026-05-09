@@ -11,11 +11,11 @@ import samf.gestorestudiantil.data.models.User
 interface ProfesorRepository {
     fun getUnidades(asignaturaId: String): Flow<List<Unidad>>
     fun getPosts(asignaturaId: String): Flow<List<Post>>
-    suspend fun crearUnidad(unidad: Unidad)
+    suspend fun crearUnidad(unidad: Unidad): String
     suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int)
     suspend fun eliminarUnidad(unidadId: String)
     suspend fun restaurarUnidad(unidadId: String)
-    suspend fun crearPost(post: Post)
+    suspend fun crearPost(post: Post): String
     suspend fun editarPost(postId: String, titulo: String, contenido: String, visible: Boolean)
     suspend fun eliminarPost(postId: String)
     suspend fun restaurarPost(postId: String)
@@ -28,7 +28,7 @@ interface ProfesorRepository {
     suspend fun getEstudiantesEspecificos(cursoId: String, cicloNum: Int, turno: String): List<User>
     
     fun getEvaluacionesEstudiante(estudianteId: String, asignaturaId: String): Flow<List<Evaluacion>>
-    suspend fun guardarEvaluacion(evaluacion: Evaluacion)
+    suspend fun guardarEvaluacion(evaluacion: Evaluacion): String
     suspend fun eliminarEvaluacion(evaluacionId: String)
     
     fun getHorarios(profesorId: String): Flow<List<Horario>>

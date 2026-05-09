@@ -1,6 +1,6 @@
 package samf.gestorestudiantil.data.models
 
-import samf.gestorestudiantil.data.enums.tipoEvaluacion as TipoEvaluacionEnum
+import samf.gestorestudiantil.data.enums.TipoEvaluacion as TipoEvaluacionEnum
 
 data class Evaluacion(
     var id: String = "",

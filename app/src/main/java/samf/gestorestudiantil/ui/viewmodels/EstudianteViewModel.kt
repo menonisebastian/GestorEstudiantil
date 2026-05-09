@@ -29,6 +29,7 @@ import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.usecases.CalculateUnreadNotificationsUseCase
 import samf.gestorestudiantil.domain.utils.ErrorMapper
 import samf.gestorestudiantil.domain.utils.FileOpener
+import samf.gestorestudiantil.domain.utils.SnackbarManager
 import kotlinx.coroutines.FlowPreview
 import javax.inject.Inject
 
@@ -40,7 +41,11 @@ data class EstudianteState(
     val tareas: List<Tarea> = emptyList(),
     val miEntrega: Entrega? = null,
     val horarios: List<Horario> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val selectedFileData: ByteArray? = null,
+    val selectedFileName: String = "",
+    val selectedFileSize: Long = 0L,
+    val selectedMimeType: String = ""
 )
 
 @HiltViewModel
@@ -49,6 +54,7 @@ class EstudianteViewModel @Inject constructor(
     private val tareaRepository: TareaRepository,
     private val notificationRepository: NotificationRepository,
     private val calculateUnreadNotificationsUseCase: CalculateUnreadNotificationsUseCase,
+    private val snackbarManager: SnackbarManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -217,7 +223,7 @@ class EstudianteViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                tareaRepository.realizarEntrega(entrega, fileData, fileName, mimeType)
+                val entregaId = tareaRepository.realizarEntrega(entrega, fileData, fileName, mimeType)
                 
                 // Si no viene acrónimo, intentamos buscarlo en el estado
                 val finalAcronimo = if (acronimoAsignatura.isBlank()) {
@@ -228,9 +234,15 @@ class EstudianteViewModel @Inject constructor(
 
                 enviarNotificacionAlProfesor(entrega, finalAcronimo)
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_delivery), Toast.LENGTH_SHORT).show()
-                }
+                snackbarManager.showSnackbar(
+                    message = context.getString(R.string.success_delivery),
+                    actionLabel = context.getString(R.string.label_undo),
+                    onAction = {
+                        viewModelScope.launch {
+                            tareaRepository.eliminarEntrega(entrega.copy(id = entregaId))
+                        }
+                    }
+                )
             } catch (e: Exception) {
                 val errorMsg = ErrorMapper.getFriendlyMessage(context, e)
                 _state.update { it.copy(errorMessage = errorMsg) }
@@ -304,6 +316,74 @@ class EstudianteViewModel @Inject constructor(
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun onFileSelected(uri: android.net.Uri?) {
+        uri?.let { it ->
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    _state.update { it.copy(isLoading = true) }
+                    val contentResolver = context.contentResolver
+                    
+                    var fileName = ""
+                    var fileSize = 0L
+                    
+                    val cursor = contentResolver.query(it, null, null, null, null)
+                    cursor?.use { c ->
+                        val nameIndex = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                        val sizeIndex = c.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                        if (nameIndex != -1 && c.moveToFirst()) {
+                            fileName = c.getString(nameIndex)
+                        }
+                        if (sizeIndex != -1) {
+                            fileSize = c.getLong(sizeIndex)
+                        }
+                    }
+                    if (fileName.isEmpty()) {
+                        fileName = it.lastPathSegment ?: "archivo"
+                    }
+
+                    val initialMimeType = contentResolver.getType(it) ?: FileOpener.getMimeType(fileName)
+                    var finalMimeType = initialMimeType
+                    var fileData: ByteArray? = null
+
+                    if (initialMimeType.contains("google-apps")) {
+                        val streamTypes = contentResolver.getStreamTypes(it, "*/*")
+                        val hasDocx = streamTypes?.any { type -> type.contains("wordprocessingml.document") } == true
+                        
+                        val exportType = when {
+                            initialMimeType.contains("document") && hasDocx -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            initialMimeType.contains("document") -> "application/msword"
+                            initialMimeType.contains("spreadsheet") -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            initialMimeType.contains("presentation") -> "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                            else -> "application/pdf"
+                        }
+                        
+                        contentResolver.openTypedAssetFileDescriptor(it, exportType, null)?.use { ad ->
+                            finalMimeType = exportType
+                            fileData = ad.createInputStream().use { stream -> stream.readBytes() }
+                        }
+                    } else {
+                        fileData = contentResolver.openInputStream(it)?.use { stream -> stream.readBytes() }
+                    }
+
+                    _state.update { s -> 
+                        s.copy(
+                            selectedFileData = fileData,
+                            selectedFileName = fileName,
+                            selectedFileSize = fileData?.size?.toLong() ?: fileSize,
+                            selectedMimeType = finalMimeType,
+                            isLoading = false
+                        )
+                    }
+                } catch (e: Exception) {
+                    _state.update { it.copy(isLoading = false) }
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Error al cargar archivo: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }

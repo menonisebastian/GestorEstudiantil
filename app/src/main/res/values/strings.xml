@@ -111,6 +111,7 @@
     <string name="admin_delete_user_title">Eliminar Usuario</string>
     <string name="admin_delete_user_confirm">¿Desea eliminar a %s? Esta acción no se puede deshacer.</string>
     <string name="admin_user_deleted">Usuario eliminado</string>
+    <string name="admin_user_approved">Usuario aprobado con éxito</string>
     <string name="label_undo">Deshacer</string>
     <string name="admin_reject">Rechazar</string>
     <string name="admin_approve">Aprobar</string>

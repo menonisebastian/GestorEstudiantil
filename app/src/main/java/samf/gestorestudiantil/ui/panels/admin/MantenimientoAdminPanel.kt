@@ -116,6 +116,7 @@ fun MantenimientoAdminPanel(
                     }
                     Button(
                         onClick = { adminViewModel.generarCalificacionesParaArturo() },
+                        enabled = false,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)

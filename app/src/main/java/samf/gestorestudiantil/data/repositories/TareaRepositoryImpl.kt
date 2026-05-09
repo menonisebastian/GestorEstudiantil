@@ -188,7 +188,7 @@ class TareaRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String, mimeType: String?) {
+    override suspend fun realizarEntrega(entrega: Entrega, fileData: ByteArray, fileName: String, mimeType: String?): String {
         val entregaId = "entrega_${entrega.tareaId}_${entrega.estudianteId}"
         val path = "entregas/${entrega.tareaId}/${entrega.estudianteId}/$fileName"
         
@@ -215,6 +215,7 @@ class TareaRepositoryImpl @Inject constructor(
         val finalEntrega = entrega.copy(id = entregaId, adjunto = adjunto)
         try {
             db.collection("entregas").document(entregaId).set(finalEntrega).await()
+            return entregaId
         } catch (e: Exception) {
             // Compensación
             try {

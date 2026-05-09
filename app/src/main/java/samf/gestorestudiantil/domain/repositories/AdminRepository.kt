@@ -11,6 +11,7 @@ import samf.gestorestudiantil.data.models.User
 interface AdminRepository {
     fun getUsuariosPorCentro(centroId: String): Flow<List<User>>
     suspend fun aprobarUsuario(usuarioId: String)
+    suspend fun desaprobarUsuario(usuarioId: String)
     suspend fun eliminarUsuario(usuarioId: String)
     suspend fun actualizarDatosUsuario(usuarioId: String, updates: Map<String, Any?>)
     

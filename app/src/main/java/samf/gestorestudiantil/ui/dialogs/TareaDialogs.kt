@@ -28,29 +28,6 @@ import samf.gestorestudiantil.ui.viewmodels.TareaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Composable
-fun AddTareaDialog(
-    state: DialogState.AddTarea,
-    onShowDialog: (DialogState) -> Unit,
-    onDismissRequest: () -> Unit,
-    viewModel: TareaViewModel = hiltViewModel()
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(if (state.tareaExistente == null) "Nueva Tarea" else "Editar Tarea") },
-        containerColor = backgroundColor,
-        text = {
-            AddTareaContent(
-                state = state,
-                onShowDialog = onShowDialog,
-                onDismissRequest = onDismissRequest,
-                viewModel = viewModel
-            )
-        },
-        confirmButton = {},
-        dismissButton = {}
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +71,7 @@ fun AddTareaContent(
     }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         viewModel.onFileSelected(uri)
     }
@@ -147,7 +124,7 @@ fun AddTareaContent(
 
         // Selector de Archivo
         OutlinedCard(
-            onClick = { filePickerLauncher.launch("*/*") },
+            onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.outlinedCardColors(containerColor = backgroundColor)
         ) {
@@ -211,15 +188,23 @@ fun AddTareaContent(
             }
             Button(
                 onClick = {
-                    viewModel.save(state.asignaturaId, state.unidadId) { tarea, data, name, mime ->
-                        state.onSave(tarea, data, name, mime)
+                    viewModel.save(
+                        asignaturaId = state.asignaturaId,
+                        unidadId = state.unidadId,
+                        acronimoAsignatura = state.acronimoAsignatura,
+                        profesorId = state.profesorId,
+                    ) {
                         onDismissRequest()
                     }
                 },
-                enabled = viewModel.titulo.isNotBlank(),
+                enabled = viewModel.titulo.isNotBlank() && !viewModel.isLoading,
                 modifier = Modifier.weight(1f)
             ) {
-                Text(if (state.tareaExistente == null) "Crear" else "Guardar")
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = whiteColor)
+                } else {
+                    Text(if (state.tareaExistente == null) "Crear" else "Guardar")
+                }
             }
         }
     }

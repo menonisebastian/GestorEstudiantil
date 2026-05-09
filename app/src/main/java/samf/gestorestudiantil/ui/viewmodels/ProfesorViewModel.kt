@@ -37,6 +37,7 @@ import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import samf.gestorestudiantil.domain.utils.FileOpener
+import samf.gestorestudiantil.domain.utils.SnackbarManager
 import samf.gestorestudiantil.R
 import java.io.File
 import java.io.FileOutputStream
@@ -61,6 +62,7 @@ class ProfesorViewModel @Inject constructor(
     private val tareaRepository: TareaRepository,
     private val notificationRepository: NotificationRepository,
     private val userRepository: UserRepository,
+    private val snackbarManager: SnackbarManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -121,14 +123,18 @@ class ProfesorViewModel @Inject constructor(
                     visible = visible,
                     orden = orden ?: ((_state.value.unidades.maxOfOrNull { it.orden } ?: 0) + 1)
                 )
-                profesorRepository.crearUnidad(nuevaUnidad)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.success_unit_created, Toast.LENGTH_SHORT).show()
-                }
+                val unidadId = profesorRepository.crearUnidad(nuevaUnidad)
+                snackbarManager.showSnackbar(
+                    message = context.getString(R.string.success_unit_created),
+                    actionLabel = context.getString(R.string.label_undo),
+                    onAction = {
+                        viewModelScope.launch {
+                            profesorRepository.eliminarUnidad(unidadId)
+                        }
+                    }
+                )
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -186,18 +192,22 @@ class ProfesorViewModel @Inject constructor(
                     fechaCreacion = System.currentTimeMillis(),
                     visible = visible
                 )
-                profesorRepository.crearPost(nuevoPost)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_post_published), Toast.LENGTH_SHORT).show()
-                }
+                val postId = profesorRepository.crearPost(nuevoPost)
+                snackbarManager.showSnackbar(
+                    message = context.getString(R.string.success_post_published),
+                    actionLabel = context.getString(R.string.label_undo),
+                    onAction = {
+                        viewModelScope.launch {
+                            profesorRepository.eliminarPost(postId)
+                        }
+                    }
+                )
                 if (visible) {
                     val asignatura = _state.value.asignaturas.find { it.id == asignaturaId }
                     enviarNotificacion(asignaturaId, titulo, autorNombre, asignatura?.acronimo ?: "")
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -268,7 +278,7 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                tareaRepository.crearTarea(tarea, fileData, fileName, mimeType)
+                val tareaId = tareaRepository.crearTarea(tarea, fileData, fileName, mimeType)
                 
                 val asignatura = _state.value.asignaturas.find { it.id == tarea.asignaturaId }
                 val acronimo = asignatura?.acronimo ?: ""
@@ -276,14 +286,17 @@ class ProfesorViewModel @Inject constructor(
                 
                 enviarNotificacion(tarea.asignaturaId, "Nueva Tarea: ${tarea.titulo}", nombreProf, acronimo)
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_task_created), Toast.LENGTH_SHORT).show()
-                }
+                snackbarManager.showSnackbar(
+                    message = context.getString(R.string.success_task_created),
+                    actionLabel = context.getString(R.string.label_undo),
+                    onAction = {
+                        viewModelScope.launch {
+                            tareaRepository.eliminarTarea(tarea.copy(id = tareaId))
+                        }
+                    }
+                )
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
-                }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -570,16 +583,25 @@ class ProfesorViewModel @Inject constructor(
     fun guardarEvaluacion(evaluacion: Evaluacion) {
         viewModelScope.launch {
             try {
-                profesorRepository.guardarEvaluacion(evaluacion)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_save), Toast.LENGTH_SHORT).show()
+                val isNew = evaluacion.id.isEmpty()
+                val evalId = profesorRepository.guardarEvaluacion(evaluacion)
+                
+                if (isNew) {
+                    snackbarManager.showSnackbar(
+                        message = context.getString(R.string.success_save),
+                        actionLabel = context.getString(R.string.label_undo),
+                        onAction = {
+                            viewModelScope.launch {
+                                profesorRepository.eliminarEvaluacion(evalId)
+                            }
+                        }
+                    )
+                } else {
+                    snackbarManager.showSnackbar(context.getString(R.string.success_save))
                 }
-                enviarNotificacionCalificacion(evaluacion)
+                enviarNotificacionCalificacion(evaluacion.copy(id = evalId))
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
-                }
             }
         }
     }

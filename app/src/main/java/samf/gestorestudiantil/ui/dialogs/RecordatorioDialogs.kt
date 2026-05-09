@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import samf.gestorestudiantil.data.enums.tipoRecordatorio
+import samf.gestorestudiantil.data.enums.TipoRecordatorio
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.ui.components.CustomDateField
 import samf.gestorestudiantil.ui.components.CustomTextField
@@ -86,7 +86,7 @@ fun RecordatorioContent(
     var descripcion by remember { mutableStateOf(recordatorio?.descripcion ?: "") }
     var fecha by remember { mutableStateOf(recordatorio?.fecha ?: state.initialDate) }
     var hora by remember { mutableStateOf(recordatorio?.hora ?: "") }
-    var tipo by remember { mutableStateOf(recordatorio?.tipo ?: tipoRecordatorio.EXAMEN) }
+    var tipo by remember { mutableStateOf(recordatorio?.tipo ?: TipoRecordatorio.EXAMEN) }
 
     Column(
         modifier = modifier,
@@ -146,7 +146,7 @@ fun RecordatorioContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                tipoRecordatorio.entries.forEach { entry ->
+                TipoRecordatorio.entries.forEach { entry ->
                     val isSelected = tipo == entry
                     Box(
                         modifier = Modifier

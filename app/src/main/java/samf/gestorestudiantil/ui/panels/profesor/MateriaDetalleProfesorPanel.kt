@@ -168,13 +168,14 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.AddTarea(
                                 asignaturaId = asignatura.id,
                                 unidadId = unidad.id,
+                                acronimoAsignatura = asignatura.acronimo,
+                                profesorId = profesor.id,
+                                profesorNombre = profesor.nombre,
                                 tareaExistente = Tarea(
                                     profesorId = profesor.id,
                                     centroId = asignatura.centroId
                                 ),
-                                onSave = { nuevaTarea, fileData, fileName, mimeType ->
-                                    viewModel.crearTarea(nuevaTarea, fileData, fileName, mimeType)
-                                }
+                                onSave = { }
                             )
                         )
                     },
@@ -251,10 +252,11 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.AddTarea(
                                 asignaturaId = asignatura.id,
                                 unidadId = unidad.id,
+                                acronimoAsignatura = asignatura.acronimo,
+                                profesorId = profesor.id,
+                                profesorNombre = profesor.nombre,
                                 tareaExistente = tarea,
-                                onSave = { tareaEditada, fileData, fileName, mimeType ->
-                                    viewModel.editarTarea(tareaEditada, fileData, fileName, mimeType)
-                                }
+                                onSave = { }
                             )
                         )
                     },

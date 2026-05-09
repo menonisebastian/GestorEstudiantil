@@ -17,13 +17,9 @@ import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.domain.notifications.NotificationScheduler
 import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
+import samf.gestorestudiantil.domain.utils.SnackbarEvent
+import samf.gestorestudiantil.domain.utils.SnackbarManager
 import javax.inject.Inject
-
-data class SnackbarEvent(
-    val message: String,
-    val actionLabel: String? = null,
-    val onAction: (() -> Unit)? = null
-)
 
 data class CurrentUserUiState(
     val id: String = "",
@@ -44,6 +40,7 @@ data class AppState(
 class AppViewModel @Inject constructor(
     private val recordatorioRepository: RecordatorioRepository,
     private val userRepository: UserRepository,
+    private val snackbarManager: SnackbarManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
@@ -55,12 +52,11 @@ class AppViewModel @Inject constructor(
     private val _updateMessage = MutableStateFlow<String?>(null)
     val updateMessage: StateFlow<String?> = _updateMessage.asStateFlow()
 
-    private val _snackbarEvents = MutableSharedFlow<SnackbarEvent>()
-    val snackbarEvents: SharedFlow<SnackbarEvent> = _snackbarEvents.asSharedFlow()
+    val snackbarEvents: SharedFlow<SnackbarEvent> = snackbarManager.events
 
     fun showSnackbar(message: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
         viewModelScope.launch {
-            _snackbarEvents.emit(SnackbarEvent(message, actionLabel, onAction))
+            snackbarManager.showSnackbar(message, actionLabel, onAction)
         }
     }
 
@@ -83,8 +79,23 @@ class AppViewModel @Inject constructor(
     fun agregarRecordatorio(recordatorio: Recordatorio) {
         viewModelScope.launch {
             try {
-                recordatorioRepository.guardarRecordatorio(recordatorio)
-                NotificationScheduler.scheduleRecordatorioNotification(context, recordatorio)
+                val finalRecordatorio = if (recordatorio.id.isEmpty()) {
+                    recordatorio.copy(id = "rec_${System.currentTimeMillis()}")
+                } else {
+                    recordatorio
+                }
+                recordatorioRepository.guardarRecordatorio(finalRecordatorio)
+                NotificationScheduler.scheduleRecordatorioNotification(context, finalRecordatorio)
+                showSnackbar(
+                    message = "Recordatorio guardado",
+                    actionLabel = "Deshacer",
+                    onAction = {
+                        viewModelScope.launch {
+                            recordatorioRepository.eliminarRecordatorio(finalRecordatorio.id)
+                            NotificationScheduler.cancelNotification(context, finalRecordatorio.id)
+                        }
+                    }
+                )
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar recordatorio: ${e.localizedMessage}") }
             }

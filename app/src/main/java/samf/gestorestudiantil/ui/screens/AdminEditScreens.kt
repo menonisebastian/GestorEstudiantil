@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.ui.screens.admin
+package samf.gestorestudiantil.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

@@ -66,8 +66,11 @@ class ProfesorRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun crearUnidad(unidad: Unidad) {
-        db.collection("unidades").add(unidad).await()
+    override suspend fun crearUnidad(unidad: Unidad): String {
+        val docRef = db.collection("unidades").document()
+        val finalUnidad = unidad.copy(id = docRef.id)
+        docRef.set(finalUnidad).await()
+        return docRef.id
     }
 
     override suspend fun editarUnidad(unidadId: String, nombre: String, descripcion: String, visible: Boolean, orden: Int) {
@@ -87,8 +90,11 @@ class ProfesorRepositoryImpl @Inject constructor(
         db.collection("unidades").document(unidadId).update("fechaEliminacion", null).await()
     }
 
-    override suspend fun crearPost(post: Post) {
-        db.collection("posts").add(post).await()
+    override suspend fun crearPost(post: Post): String {
+        val docRef = db.collection("posts").document()
+        val finalPost = post.copy(id = docRef.id)
+        docRef.set(finalPost).await()
+        return docRef.id
     }
 
     override suspend fun editarPost(postId: String, titulo: String, contenido: String, visible: Boolean) {
@@ -200,10 +206,11 @@ class ProfesorRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override suspend fun guardarEvaluacion(evaluacion: Evaluacion) {
+    override suspend fun guardarEvaluacion(evaluacion: Evaluacion): String {
         val docRef = if (evaluacion.id.isEmpty()) db.collection("evaluaciones").document() else db.collection("evaluaciones").document(evaluacion.id)
         val finalEval = evaluacion.copy(id = docRef.id)
         docRef.set(finalEval).await()
+        return docRef.id
     }
 
     override suspend fun eliminarEvaluacion(evaluacionId: String) {

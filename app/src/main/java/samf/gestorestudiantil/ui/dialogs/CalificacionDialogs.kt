@@ -20,9 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import samf.gestorestudiantil.data.enums.tipoEvaluacion
+import samf.gestorestudiantil.data.enums.TipoEvaluacion
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.ui.components.CustomDropDownMenu
 import samf.gestorestudiantil.ui.components.CustomTextField
@@ -367,7 +366,7 @@ fun AddEditCalificacionContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                tipoEvaluacion.entries.forEach { tipo ->
+                TipoEvaluacion.entries.forEach { tipo ->
                     val isSelected = tipoSeleccionado == tipo
                     Box(
                         modifier = Modifier

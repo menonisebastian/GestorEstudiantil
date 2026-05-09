@@ -61,13 +61,17 @@ object FileOpener {
         }
     }
 
-    private fun getMimeType(fileName: String): String {
+    fun getMimeType(fileName: String): String {
         return when (fileName.substringAfterLast('.', "").lowercase()) {
             "pdf" -> "application/pdf"
-            "doc", "docx" -> "application/msword"
+            "doc" -> "application/msword"
+            "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             "jpg", "jpeg" -> "image/jpeg"
             "png" -> "image/png"
-            "xls", "xlsx" -> "application/vnd.ms-excel"
+            "xls" -> "application/vnd.ms-excel"
+            "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "ppt" -> "application/vnd.ms-powerpoint"
+            "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation"
             "zip" -> "application/zip"
             else -> "*/*"
         }

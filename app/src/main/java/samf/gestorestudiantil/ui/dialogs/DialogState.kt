@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.dialogs
 
-import samf.gestorestudiantil.data.enums.tipoRecordatorio
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.AsistenciaEstado
 import samf.gestorestudiantil.data.models.Centro
@@ -132,8 +131,11 @@ sealed class DialogState {
     data class AddTarea(
         val asignaturaId: String,
         val unidadId: String,
+        val acronimoAsignatura: String = "",
+        val profesorId: String = "",
+        val profesorNombre: String = "",
         val tareaExistente: Tarea? = null,
-        val onSave: (Tarea, ByteArray?, String?, String?) -> Unit // Tarea, fileData, fileName, mimeType
+        val onSave: () -> Unit
     ) : DialogState()
 
     data class TareaDetalleEstudiante(

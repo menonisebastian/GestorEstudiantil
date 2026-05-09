@@ -25,6 +25,7 @@ import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.usecases.AssignSubjectToProfessorUseCase
 import samf.gestorestudiantil.domain.usecases.SeedDatabaseUseCase
 import samf.gestorestudiantil.domain.utils.ErrorMapper
+import samf.gestorestudiantil.domain.utils.SnackbarManager
 import javax.inject.Inject
 
 data class AdminState(
@@ -46,6 +47,7 @@ class AdminViewModel @Inject constructor(
     private val courseRepository: CourseRepository,
     private val seedDatabaseUseCase: SeedDatabaseUseCase,
     private val assignSubjectToProfessorUseCase: AssignSubjectToProfessorUseCase,
+    private val snackbarManager: SnackbarManager,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -79,6 +81,15 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 adminRepository.aprobarUsuario(usuario.id)
+                snackbarManager.showSnackbar(
+                    message = context.getString(R.string.admin_user_approved),
+                    actionLabel = context.getString(R.string.label_undo),
+                    onAction = {
+                        viewModelScope.launch {
+                            adminRepository.desaprobarUsuario(usuario.id)
+                        }
+                    }
+                )
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
