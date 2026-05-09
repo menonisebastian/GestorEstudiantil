@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.data.models
 
 import kotlinx.serialization.Serializable
+import samf.gestorestudiantil.domain.utils.toTurnoLetra
 
 @Serializable
 data class Horario(
@@ -18,6 +19,12 @@ data class Horario(
     var profesorNombre: String = "",
     var aula: String = ""
 ) {
+    val cursoAcronimo: String
+        get() = cursoId.substringAfterLast("_").uppercase()
+
+    val turnoLetra: String
+        get() = turno.toTurnoLetra()
+
     companion object {
         val HORAS_MATUTINO = listOf(
             "08:30 - 09:20",

@@ -153,6 +153,7 @@ fun ProfesorNavContent(
                             DialogState.AddTarea(
                                 asignaturaId = tarea.asignaturaId,
                                 unidadId = tarea.unidadId,
+                                centroId = tarea.centroId,
                                 acronimoAsignatura = asignatura?.acronimo ?: "",
                                 profesorId = usuario.id,
                                 profesorNombre = usuario.nombre,

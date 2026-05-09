@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
@@ -72,17 +73,23 @@ fun RegisterStep2Screen(
         }
     }
 
-    var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
+    val selectRoleLabel = stringResource(R.string.placeholder_select_role)
+    val selectInstituteLabel = stringResource(R.string.placeholder_select_institute)
+    val selectCourseLabel = stringResource(R.string.placeholder_select_course)
+    val selectShiftLabel = stringResource(R.string.placeholder_select_shift)
+    val teacherGenericLabel = stringResource(R.string.label_teacher_generic)
+
+    var rolSeleccionado by remember { mutableStateOf(selectRoleLabel) }
     val roles = listOf("ESTUDIANTE", "PROFESOR")
 
-    var centroNombre by remember { mutableStateOf("Seleccionar Instituto...") }
+    var centroNombre by remember { mutableStateOf(selectInstituteLabel) }
     var centroId by remember { mutableStateOf("") }
 
-    var cursoNombre by remember { mutableStateOf("Seleccionar Curso...") }
+    var cursoNombre by remember { mutableStateOf(selectCourseLabel) }
     var cursoId by remember { mutableStateOf("") }
     var cursoAcronimo by remember { mutableStateOf("") }
 
-    var turno by remember { mutableStateOf("Seleccionar Turno...") }
+    var turno by remember { mutableStateOf(selectShiftLabel) }
     var cicloSeleccionado by remember { mutableStateOf("Primer Año") }
     var departamento by remember { mutableStateOf("") }
     val ciclos = listOf("Primer Año", "Segundo Año")
@@ -100,10 +107,10 @@ fun RegisterStep2Screen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Paso 2", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                title = { Text(stringResource(R.string.title_step_2), fontWeight = FontWeight.ExtraBold, color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Atrás", tint = textColor)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = stringResource(R.string.label_back), tint = textColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -138,7 +145,7 @@ fun RegisterStep2Screen(
                         texto = rolSeleccionado,
                         onValueChange = { rolSeleccionado = it },
                         opciones = roles,
-                        label = "¿Eres Estudiante o Profesor?",
+                        label = stringResource(R.string.label_role_selection),
                         icon = Icons.Outlined.Person
                     )
 
@@ -150,13 +157,13 @@ fun RegisterStep2Screen(
                             if (centroSel != null) {
                                 centroId = centroSel.id
                                 authViewModel.loadCursosPorCentro(centroSel.id)
-                                cursoNombre = "Seleccionar Curso..."
+                                cursoNombre = selectCourseLabel
                                 cursoId = ""
-                                turno = "Seleccionar Turno..."
+                                turno = selectShiftLabel
                             }
                         },
                         opciones = centrosList.map { it.nombre },
-                        label = "Instituto",
+                        label = stringResource(R.string.label_institute),
                         icon = Icons.Default.Business
                     )
 
@@ -170,11 +177,11 @@ fun RegisterStep2Screen(
                                     if (cursoSel != null) {
                                         cursoId = cursoSel.id
                                         cursoAcronimo = cursoSel.acronimo
-                                        turno = "Seleccionar Turno..."
+                                        turno = selectShiftLabel
                                     }
                                 },
                                 opciones = cursosList.map { it.nombre },
-                                label = "Curso a matricular",
+                                label = stringResource(R.string.label_course_enroll),
                                 icon = Icons.Default.Class
                             )
 
@@ -185,7 +192,7 @@ fun RegisterStep2Screen(
                                         turno = selected.lowercase()
                                     },
                                     opciones = turnosDisponibles.map { it.capitalize() },
-                                    label = "Turno",
+                                    label = stringResource(R.string.label_shift),
                                     icon = Icons.Default.Schedule
                                 )
 
@@ -193,7 +200,7 @@ fun RegisterStep2Screen(
                                     texto = cicloSeleccionado,
                                     onValueChange = { cicloSeleccionado = it },
                                     opciones = ciclos,
-                                    label = "Año / Ciclo",
+                                    label = stringResource(R.string.label_year_cycle),
                                     icon = Icons.Default.Class
                                 )
                             }
@@ -204,7 +211,7 @@ fun RegisterStep2Screen(
                                     turno = selected.lowercase()
                                 },
                                 opciones = listOf("Matutino", "Vespertino"),
-                                label = "Turno de trabajo",
+                                label = stringResource(R.string.label_shift_work),
                                 icon = Icons.Default.Schedule
                             )
 
@@ -212,7 +219,7 @@ fun RegisterStep2Screen(
                                 texto = departamento,
                                 onValueChange = { departamento = it },
                                 opciones = departamentos,
-                                label = "Departamento",
+                                label = stringResource(R.string.label_department_selection),
                                 icon = Icons.Outlined.WorkOutline
                             )
                         }
@@ -227,8 +234,8 @@ fun RegisterStep2Screen(
                         },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Crea tu cuenta", color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("Paso 2 de 2: Datos académicos", color = surfaceDimColor, fontSize = 14.sp)
+                    Text(stringResource(R.string.title_create_account), color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.subtitle_step_2_academic), color = surfaceDimColor, fontSize = 14.sp)
                 }
 
                 Row(
@@ -248,17 +255,17 @@ fun RegisterStep2Screen(
                         shape = RoundedCornerShape(16.dp),
                         enabled = !isLoading
                     ) {
-                        Text("Atrás", color = textColor)
+                        Text(stringResource(R.string.label_back), color = textColor)
                     }
 
                     Button(
                         onClick = {
-                            if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
+                            if (rolSeleccionado == selectRoleLabel || centroId.isEmpty()) {
                                 Toast.makeText(context, R.string.error_selection_role_center, Toast.LENGTH_SHORT).show()
                             } else if (rolSeleccionado == "ESTUDIANTE") {
                                 if (cursoId.isEmpty()) {
                                     Toast.makeText(context, R.string.error_selection_course, Toast.LENGTH_SHORT).show()
-                                } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
+                                } else if (turnosDisponibles.isNotEmpty() && turno == selectShiftLabel) {
                                     Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
                                 } else {
                                     val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
@@ -276,7 +283,7 @@ fun RegisterStep2Screen(
                                     )
                                 }
                             } else if (rolSeleccionado == "PROFESOR") {
-                                if (turno == "Seleccionar Turno...") {
+                                if (turno == selectShiftLabel) {
                                     Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
                                 } else if (departamento.isEmpty()) {
                                     Toast.makeText(context, R.string.error_selection_department, Toast.LENGTH_SHORT).show()
@@ -288,7 +295,7 @@ fun RegisterStep2Screen(
                                         rolSeleccionado = rolSeleccionado,
                                         centroId = centroId,
                                         cursoId = "",
-                                        cursoNombre = "Docente",
+                                        cursoNombre = teacherGenericLabel,
                                         turno = turno,
                                         ciclo = 1,
                                         imgUrl = route.imgUrl,
@@ -303,7 +310,7 @@ fun RegisterStep2Screen(
                             .weight(1f)
                             .height(50.dp)
                     ) {
-                        Text(if (rolSeleccionado == "ESTUDIANTE") "Matricularme" else "Finalizar")
+                        Text(if (rolSeleccionado == "ESTUDIANTE") stringResource(R.string.action_enroll) else stringResource(R.string.action_finish))
                     }
                 }
             }

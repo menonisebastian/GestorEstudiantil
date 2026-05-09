@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.data.models
 
 import kotlinx.serialization.Serializable
+import samf.gestorestudiantil.domain.utils.toTurnoLetra
 
 @Serializable
 sealed class User {
@@ -28,7 +29,16 @@ sealed class User {
         val turno: String = "",
         val cicloNum: Int = 1,
         val ultimaVezAsignaturas: Map<String, Long> = emptyMap()
-    ) : User()
+    ) : User() {
+        val turnoLetra: String
+            get() = turno.toTurnoLetra()
+
+        val cursoAcronimo: String
+            get() = cursoId.substringAfterLast("_").uppercase()
+
+        val codigoCurso: String
+            get() = "$cursoAcronimo$turnoLetra$cicloNum"
+    }
 
     @Serializable
     data class Profesor(
@@ -45,6 +55,9 @@ sealed class User {
         val asignaturasImpartidas: List<String> = emptyList(),
         val ultimaVezAsignaturas: Map<String, Long> = emptyMap()
     ) : User() {
+        val turnoLetra: String
+            get() = turno.toTurnoLetra()
+
         companion object {
             val DEPARTAMENTOS = listOf(
                 "Actividades complementarias y extraescolares",

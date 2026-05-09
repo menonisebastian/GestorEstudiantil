@@ -46,8 +46,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.capitalize
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
 import samf.gestorestudiantil.ui.theme.backgroundColor
@@ -61,7 +63,6 @@ import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
 fun GooglePasswordSetupScreen(
     onBack: () -> Unit,
     onNext: (String) -> Unit,
-    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val passwordState = rememberTextFieldState()
@@ -71,12 +72,12 @@ fun GooglePasswordSetupScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Seguridad", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                title = { Text(stringResource(R.string.title_security), fontWeight = FontWeight.ExtraBold, color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                            contentDescription = "Atrás",
+                            contentDescription = stringResource(R.string.label_back),
                             tint = textColor
                         )
                     }
@@ -106,7 +107,7 @@ fun GooglePasswordSetupScreen(
                     tint = primaryColor
                 )
                 Text(
-                    text = "Crea una contraseña",
+                    text = stringResource(R.string.title_create_password),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor,
@@ -114,7 +115,7 @@ fun GooglePasswordSetupScreen(
                     modifier = Modifier.padding(top = 16.dp)
                 )
                 Text(
-                    text = "Para poder iniciar sesión con tu email en el futuro.",
+                    text = stringResource(R.string.subtitle_create_password),
                     color = surfaceDimColor,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
@@ -143,7 +144,7 @@ fun GooglePasswordSetupScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Siguiente")
+                    Text(stringResource(R.string.action_next))
                 }
                 Spacer(Modifier.height(100.dp))
             }
@@ -162,17 +163,23 @@ fun GoogleAcademicSetupScreen(
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
 
-    var rolSeleccionado by remember { mutableStateOf("Seleccionar Rol...") }
+    val selectRoleLabel = stringResource(R.string.placeholder_select_role)
+    val selectInstituteLabel = stringResource(R.string.placeholder_select_institute)
+    val selectCourseLabel = stringResource(R.string.placeholder_select_course)
+    val selectShiftLabel = stringResource(R.string.placeholder_select_shift)
+    val teacherGenericLabel = stringResource(R.string.label_teacher_generic)
+
+    var rolSeleccionado by remember { mutableStateOf(selectRoleLabel) }
     val roles = listOf("ESTUDIANTE", "PROFESOR")
 
-    var centroNombre by remember { mutableStateOf("Seleccionar Instituto...") }
+    var centroNombre by remember { mutableStateOf(selectInstituteLabel) }
     var centroId by remember { mutableStateOf("") }
 
-    var cursoNombre by remember { mutableStateOf("Seleccionar Curso...") }
+    var cursoNombre by remember { mutableStateOf(selectCourseLabel) }
     var cursoId by remember { mutableStateOf("") }
     var cursoAcronimo by remember { mutableStateOf("") }
 
-    var turno by remember { mutableStateOf("Seleccionar Turno...") }
+    var turno by remember { mutableStateOf(selectShiftLabel) }
     var departamento by remember { mutableStateOf("") }
     var cicloSeleccionado by remember { mutableStateOf("Primer Año") }
     val ciclos = listOf("Primer Año", "Segundo Año")
@@ -200,12 +207,12 @@ fun GoogleAcademicSetupScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Datos Académicos", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                title = { Text(stringResource(R.string.title_academic_data), fontWeight = FontWeight.ExtraBold, color = textColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                            contentDescription = "Atrás",
+                            contentDescription = stringResource(R.string.label_back),
                             tint = textColor
                         )
                     }
@@ -239,7 +246,7 @@ fun GoogleAcademicSetupScreen(
                         tint = primaryColor
                     )
                     Text(
-                        text = "Casi terminamos",
+                        text = stringResource(R.string.title_almost_done),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColor,
@@ -256,7 +263,7 @@ fun GoogleAcademicSetupScreen(
                         onValueChange = { rolSeleccionado = it },
                         opciones = roles,
                         icon = Icons.Outlined.Person,
-                        label = "¿Eres Estudiante o Profesor?"
+                        label = stringResource(R.string.label_role_selection)
                     )
 
                     CustomOptionsTextField(
@@ -267,15 +274,19 @@ fun GoogleAcademicSetupScreen(
                             if (centroSel != null) {
                                 centroId = centroSel.id
                                 authViewModel.loadCursosPorCentro(centroSel.id)
-                                cursoNombre = "Seleccionar Curso..."
+                                cursoNombre = selectCourseLabel
+                                centroNombre = nombreSeleccionado
+                                centroId = centroSel.id
+                                authViewModel.loadCursosPorCentro(centroSel.id)
+                                cursoNombre = selectCourseLabel
                                 cursoId = ""
                                 cursoAcronimo = ""
-                                turno = "Seleccionar Turno..."
+                                turno = selectShiftLabel
                             }
                         },
                         opciones = centrosList.map { it.nombre },
                         icon = Icons.Default.Business,
-                        label = "Instituto"
+                        label = stringResource(R.string.label_institute)
                     )
 
                     if (centroId.isNotEmpty()) {
@@ -288,28 +299,30 @@ fun GoogleAcademicSetupScreen(
                                     if (cursoSel != null) {
                                         cursoId = cursoSel.id
                                         cursoAcronimo = cursoSel.acronimo
-                                        turno = "Seleccionar Turno..."
+                                        turno = selectShiftLabel
                                     }
                                 },
                                 opciones = cursosList.map { it.nombre },
                                 icon = Icons.Default.Class,
-                                label = "Curso a matricular"
+                                label = stringResource(R.string.label_course_enroll)
                             )
 
                             if (cursoId.isNotEmpty() && turnosDisponibles.isNotEmpty()) {
                                 CustomOptionsTextField(
-                                    texto = turno,
-                                    onValueChange = { turno = it },
+                                    texto = if (turno == "matutino" || turno == "vespertino") turno.capitalize() else turno,
+                                    onValueChange = { selected ->
+                                        turno = selected.lowercase()
+                                    },
                                     opciones = turnosDisponibles,
                                     icon = Icons.Default.Schedule,
-                                    label = "Turno"
+                                    label = stringResource(R.string.label_shift)
                                 )
 
                                 CustomOptionsTextField(
                                     texto = cicloSeleccionado,
                                     onValueChange = { cicloSeleccionado = it },
                                     opciones = ciclos,
-                                    label = "Año / Ciclo",
+                                    label = stringResource(R.string.label_year_cycle),
                                     icon = Icons.Default.Class
                                 )
                             }
@@ -319,7 +332,7 @@ fun GoogleAcademicSetupScreen(
                                 onValueChange = { turno = it },
                                 opciones = listOf("matutino", "vespertino"),
                                 icon = Icons.Default.Schedule,
-                                label = "Turno de trabajo"
+                                label = stringResource(R.string.label_shift_work)
                             )
 
                             CustomOptionsTextField(
@@ -327,7 +340,7 @@ fun GoogleAcademicSetupScreen(
                                 onValueChange = { departamento = it },
                                 opciones = departamentos,
                                 icon = Icons.Outlined.WorkOutline,
-                                label = "Departamento"
+                                label = stringResource(R.string.label_department_selection)
                             )
                         }
                     }
@@ -340,12 +353,12 @@ fun GoogleAcademicSetupScreen(
                 ) {
                     Button(
                         onClick = {
-                            if (rolSeleccionado == "Seleccionar Rol..." || centroId.isEmpty()) {
+                            if (rolSeleccionado == selectRoleLabel || centroId.isEmpty()) {
                                 Toast.makeText(context, R.string.error_selection_role_center, Toast.LENGTH_SHORT).show()
                             } else if (rolSeleccionado == "ESTUDIANTE") {
                                 if (cursoId.isEmpty()) {
                                     Toast.makeText(context, R.string.error_selection_course, Toast.LENGTH_SHORT).show()
-                                } else if (turnosDisponibles.isNotEmpty() && turno == "Seleccionar Turno...") {
+                                } else if (turnosDisponibles.isNotEmpty() && turno == selectShiftLabel) {
                                     Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
                                 } else {
                                     val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
@@ -364,7 +377,7 @@ fun GoogleAcademicSetupScreen(
                                     )
                                 }
                             } else if (rolSeleccionado == "PROFESOR") {
-                                if (turno == "Seleccionar Turno...") {
+                                if (turno == selectShiftLabel) {
                                     Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
                                 } else if (departamento.isEmpty()) {
                                     Toast.makeText(context, R.string.error_selection_department, Toast.LENGTH_SHORT).show()
@@ -374,7 +387,7 @@ fun GoogleAcademicSetupScreen(
                                         rolSeleccionado = rolSeleccionado,
                                         centroId = centroId,
                                         cursoId = "",
-                                        cursoNombre = "Docente",
+                                        cursoNombre = teacherGenericLabel,
                                         turno = turno,
                                         ciclo = 1,
                                         name = authState.user?.nombre ?: "",
@@ -394,7 +407,7 @@ fun GoogleAcademicSetupScreen(
                         if (authState.isLoading) {
                             CircularProgressIndicator(color = textColor, modifier = Modifier.size(24.dp))
                         } else {
-                            Text("Finalizar Registro")
+                            Text(stringResource(R.string.action_finish_registration))
                         }
                     }
                 }

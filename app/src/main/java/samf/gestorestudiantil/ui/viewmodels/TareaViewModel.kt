@@ -147,6 +147,7 @@ class TareaViewModel @Inject constructor(
     fun save(
         asignaturaId: String, 
         unidadId: String,
+        centroId: String,
         acronimoAsignatura: String,
         profesorId: String,
         onComplete: () -> Unit
@@ -160,7 +161,7 @@ class TareaViewModel @Inject constructor(
                     asignaturaId = asignaturaId,
                     unidadId = unidadId,
                     profesorId = profesorId.ifBlank { tareaOriginal?.profesorId ?: "" },
-                    centroId = tareaOriginal?.centroId ?: "",
+                    centroId = centroId.ifBlank { tareaOriginal?.centroId ?: "" },
                     fechaLimiteEntrega = Timestamp(fechaLimite),
                     visible = visible
                 )

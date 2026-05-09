@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,11 +16,9 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.School
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,44 +30,17 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.toTurnoLetra
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.textColor
-
-@Composable
-fun EditUserDialog(
-    state: DialogState.EditUser,
-    onDismissRequest: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        containerColor = backgroundColor,
-        title = {
-            Text(
-                text = "Editar Usuario",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
-        },
-        text = {
-            EditUserContent(
-                state = state,
-                onDismissRequest = onDismissRequest
-            )
-        },
-        confirmButton = {},
-        dismissButton = {}
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,8 +114,7 @@ fun EditUserContent(
         if (rol == "ESTUDIANTE") {
             val cursoObj = state.cursos.find { it.id == cursoId }
             if (cursoObj != null) {
-                val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                cursoInput = "${cursoObj.acronimo}${letraTurno}${ciclo}"
+                cursoInput = "${cursoObj.acronimo}${turno.toTurnoLetra()}${ciclo}"
             }
         }
     }
@@ -243,8 +212,8 @@ fun EditUserContent(
 
             Button(
                 onClick = {
-                    val updatedUser = when {
-                        rol == "ESTUDIANTE" -> {
+                    val updatedUser = when (rol) {
+                        "ESTUDIANTE" -> {
                             User.Estudiante(
                                 id = state.user.id,
                                 nombre = nombre,
@@ -260,7 +229,7 @@ fun EditUserContent(
                                 curso = cursoInput
                             )
                         }
-                        rol == "PROFESOR" -> {
+                        "PROFESOR" -> {
                             User.Profesor(
                                 id = state.user.id,
                                 nombre = nombre,

@@ -17,6 +17,7 @@ import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
 import samf.gestorestudiantil.data.models.Curso
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.toTurnoLetra
 import samf.gestorestudiantil.ui.components.ColorPickerField
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomTextField
@@ -490,8 +491,7 @@ fun EditUserScreen(
         if (rol == "ESTUDIANTE") {
             val cursoObj = state.cursos.find { it.id == cursoId }
             if (cursoObj != null) {
-                val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-                cursoInput = "${cursoObj.acronimo}${letraTurno}${cicloNum}"
+                cursoInput = "${cursoObj.acronimo}${turno.toTurnoLetra()}${cicloNum}"
             }
         }
     }

@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.domain.notifications
 
+import android.util.Log
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -17,7 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.MainActivity
 import samf.gestorestudiantil.R
-import samf.gestorestudiantil.data.repositories.SettingsRepository
+import samf.gestorestudiantil.domain.repositories.SettingsRepository
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -31,14 +32,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d("FCM_Service", "Mensaje recibido de: ${remoteMessage.from}")
         scope.launch {
             val enabled = settingsRepository.notificationsEnabled.first()
             if (enabled) {
                 val data = remoteMessage.data
+                Log.d("FCM_Service", "Datos del mensaje: $data")
+                
                 val senderId = data["sender_id"]
                 val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
                 if (senderId != null && senderId == currentUserId) {
+                    Log.d("FCM_Service", "El emisor es el usuario actual, ignorando.")
                     return@launch
                 }
 
@@ -46,8 +51,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val body = remoteMessage.notification?.body ?: data["body"]
 
                 if (title != null || body != null) {
+                    Log.d("FCM_Service", "Mostrando notificación: $title")
                     showNotification(title, body, data)
+                } else {
+                    Log.d("FCM_Service", "El mensaje no tiene título ni cuerpo.")
                 }
+            } else {
+                Log.d("FCM_Service", "Las notificaciones están desactivadas en los ajustes.")
             }
         }
     }
@@ -66,7 +76,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            this, Random.Default.nextInt(), intent,
+            this, Random.nextInt(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -83,11 +93,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val channel = NotificationChannel(
                 channelId,
                 NotificationConstants.CHANNEL_POSTS_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             )
             manager.createNotificationChannel(channel)
         }
-        manager.notify(Random.Default.nextInt(), notificationBuilder.build())
+        manager.notify(Random.nextInt(), notificationBuilder.build())
     }
 
     override fun onNewToken(token: String) {

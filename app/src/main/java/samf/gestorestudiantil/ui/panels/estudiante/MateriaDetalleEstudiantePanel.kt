@@ -113,12 +113,8 @@ fun MateriaDetalleEstudiantePanel(
                         modifier = Modifier.widthIn(max = 150.dp),
                         horizontalAlignment = Alignment.End
                     ) {
-                        val titulo =
-                            "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${
-                                asignatura.ciclo.take(1)
-                            }"
                         Text(
-                            text = titulo,
+                            text = asignatura.codigoFormateado,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = textColor,

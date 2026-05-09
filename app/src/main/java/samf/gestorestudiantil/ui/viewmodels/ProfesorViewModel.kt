@@ -28,6 +28,7 @@ import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
+import android.util.Log
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
@@ -209,6 +210,7 @@ class ProfesorViewModel @Inject constructor(
     private fun enviarNotificacion(asignaturaId: String, tituloPost: String, acronimoAsignatura: String) {
         viewModelScope.launch {
             try {
+                Log.d("ProfesorVM", "Preparando notificación para asignatura $asignaturaId")
                 // Los posts y tareas deben notificar a los ESTUDIANTES
                 val topic = "asignatura_${asignaturaId}_estudiantes"
                 val title = "Nuevo post en $acronimoAsignatura"
@@ -219,6 +221,7 @@ class ProfesorViewModel @Inject constructor(
 
                 notificationRepository.sendTopicNotification(topic, title, tituloPost, data)
             } catch (e: Exception) {
+                Log.e("ProfesorVM", "Error al enviar notificación: ${e.message}")
                 e.printStackTrace()
             }
         }

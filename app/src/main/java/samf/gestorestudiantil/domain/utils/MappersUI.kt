@@ -233,3 +233,8 @@ fun obtenerInicialesDeNombre(nombre: String?): String {
 fun String.capitalize(): String {
     return this.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 }
+
+/**
+ * Convierte un turno (matutino/vespertino) a su letra correspondiente (M/V).
+ */
+fun String.toTurnoLetra(): String = if (this.lowercase().contains("matutino")) "M" else "V"

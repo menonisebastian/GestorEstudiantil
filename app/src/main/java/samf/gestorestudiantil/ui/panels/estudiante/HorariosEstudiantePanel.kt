@@ -30,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.ui.components.WeekNavBar
@@ -85,7 +87,7 @@ fun HorariosEstudiantePanel(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Mi Horario Personal",
+                    text = stringResource(R.string.title_my_schedule_student),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = textColor,
@@ -118,7 +120,7 @@ fun HorarioDelDia(dia: String, horarios: List<Horario>, asignaturas: List<Asigna
         if (horarios.isEmpty()) {
             item {
                 Text(
-                    text = "No hay clases programadas para este curso.",
+                    text = stringResource(R.string.schedule_no_classes),
                     style = androidx.compose.ui.text.TextStyle(color = Color.Gray, fontSize = 12.sp),
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -173,8 +175,8 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = when {
-                        isReceso -> "RECREO"
-                        horario != null -> horario.asignaturaAcronimo.ifEmpty { "Materia Asignada" }
+                        isReceso -> stringResource(R.string.schedule_recess)
+                        horario != null -> horario.asignaturaAcronimo.ifEmpty { stringResource(R.string.schedule_assigned_subject) }
                         else -> "---"
                     },
                     fontWeight = FontWeight.Bold,
@@ -208,7 +210,7 @@ fun ItemHorario(slot: String, horario: Horario?, asignatura: Asignatura?) {
                     }
                     if (horario.aula.isNotEmpty()) {
                         Text(
-                            text = "Aula: ${horario.aula}",
+                            text = stringResource(R.string.label_classroom_format, horario.aula),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = surfaceDimColor

@@ -37,6 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.ui.theme.GestorEstudiantilTheme
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -91,7 +93,7 @@ fun FilterByContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            "Filtrar búsqueda",
+            stringResource(R.string.filter_search_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
             color = textColor
@@ -100,7 +102,7 @@ fun FilterByContent(
         val labelPrincipal = when (state.tipo) {
             "Usuario" -> "Tipo de Usuario"
             "Recordatorio" -> "Tipo de Recordatorio"
-            "Asignatura" -> "Asignatura"
+            "Asignatura" -> stringResource(R.string.label_subjects)
             "Asistencia" -> "Estado de Asistencia"
             else -> "Categoría"
         }
@@ -135,7 +137,7 @@ fun FilterByContent(
         if (state.tipo == "Usuario" || state.tipo == "Calificaciones" || state.tipo == "Asignatura" || state.tipo == "Asistencia") {
             if (cursoOptions.isNotEmpty()) {
                 FilterChipGroup(
-                    label = "Curso",
+                    label = stringResource(R.string.label_course),
                     options = cursoOptions,
                     selectedOptions = tempFilters["curso"]?.split(",")?.filter { it.isNotEmpty() }
                         ?: emptyList(),
@@ -149,7 +151,7 @@ fun FilterByContent(
 
             if (state.tipo == "Usuario" || state.tipo == "Asignatura") {
                 FilterChipGroup(
-                    label = "Ciclo",
+                    label = stringResource(R.string.label_cycle),
                     options = cicloOptions,
                     selectedOptions = tempFilters["ciclo"]?.split(",")?.filter { it.isNotEmpty() }
                         ?: emptyList(),
@@ -161,7 +163,7 @@ fun FilterByContent(
                 )
 
                 FilterChipGroup(
-                    label = "Turno",
+                    label = stringResource(R.string.label_shift),
                     options = turnoOptions,
                     selectedOptions = tempFilters["turno"]?.split(",")?.filter { it.isNotEmpty() }
                         ?.map { opt -> opt.replaceFirstChar { it.uppercase() } } ?: emptyList(),
@@ -175,7 +177,7 @@ fun FilterByContent(
 
             if ((state.tipo == "Calificaciones" || state.tipo == "Asistencia") && asignaturaOptions.isNotEmpty()) {
                 FilterChipGroup(
-                    label = "Asignatura",
+                    label = stringResource(R.string.label_subjects),
                     options = asignaturaOptions,
                     selectedOptions = tempFilters["asignatura"]?.split(",")?.filter { it.isNotEmpty() }
                         ?: emptyList(),
@@ -201,7 +203,7 @@ fun FilterByContent(
                     contentColor = tertiaryColor
                 )
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = "Limpiar filtros")
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_clear_filters))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -213,7 +215,7 @@ fun FilterByContent(
                     contentColor = secondaryColor
                 )
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Cancelar")
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.label_cancel))
             }
 
             Button(
@@ -228,7 +230,7 @@ fun FilterByContent(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Done, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-                Text("Aplicar")
+                Text(stringResource(R.string.action_apply))
             }
         }
     }

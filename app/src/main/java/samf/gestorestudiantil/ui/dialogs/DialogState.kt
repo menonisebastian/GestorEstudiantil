@@ -132,6 +132,7 @@ sealed class DialogState {
     data class AddTarea(
         val asignaturaId: String,
         val unidadId: String,
+        val centroId: String = "",
         val acronimoAsignatura: String = "",
         val profesorId: String = "",
         val profesorNombre: String = "",

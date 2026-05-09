@@ -125,7 +125,7 @@ class EstudianteViewModel @Inject constructor(
         asignaturasJob = viewModelScope.launch {
             estudianteRepository.getAsignaturas(cursoId, turno, cicloNum).collect { asignaturas ->
                 _state.update { it.copy(isLoading = false, asignaturas = asignaturas) }
-                val ids = asignaturas.map { it.id }
+                val ids = asignaturas.map { it.id.ifEmpty { it.idDocumento } }
                 subscribeToAsignaturas(ids)
                 observarCambiosEnPostsYTareas(ids)
                 observarTodasLasTareas(ids)

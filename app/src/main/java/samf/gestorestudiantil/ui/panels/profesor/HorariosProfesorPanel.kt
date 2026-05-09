@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.ui.components.WeekNavBar
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
@@ -76,7 +78,7 @@ fun HorariosProfesorPanel(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Mi Horario Docente",
+                    text = stringResource(R.string.title_my_schedule_teacher),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = textColor,
@@ -127,7 +129,7 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
         asignatura != null -> {
             try {
                 Color(asignatura.colorFondoHex.toColorInt())
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 surfaceDimColor.copy(alpha = 0.2f)
             }
         }
@@ -150,8 +152,8 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = when {
-                        isReceso -> "RECREO"
-                        horario != null -> horario.asignaturaAcronimo.ifEmpty { "Materia Asignada" }
+                        isReceso -> stringResource(R.string.schedule_recess)
+                        horario != null -> horario.asignaturaAcronimo.ifEmpty { stringResource(R.string.schedule_assigned_subject) }
                         else -> "---"
                     },
                     fontWeight = FontWeight.Bold,
@@ -175,22 +177,15 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
             
             if (horario != null && !isReceso) {
                 Column(horizontalAlignment = Alignment.End) {
-                    val inicialTurno = when(horario.turno.lowercase().trim()) {
-                        "matutino" -> "M"
-                        "vespertino" -> "V"
-                        else -> horario.turno.take(1).uppercase()
-                    }
-                    val acronimoCurso = horario.cursoId.substringAfterLast("_").uppercase()
-
                     Text(
-                        text = "$acronimoCurso $inicialTurno${horario.cicloNum}",
+                        text = "${horario.cursoAcronimo} ${horario.turnoLetra}${horario.cicloNum}",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = contentColor
                     )
                     if (horario.aula.isNotEmpty()) {
                         Text(
-                            text = "Aula: ${horario.aula}",
+                            text = stringResource(R.string.label_classroom_format, horario.aula),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = subColor

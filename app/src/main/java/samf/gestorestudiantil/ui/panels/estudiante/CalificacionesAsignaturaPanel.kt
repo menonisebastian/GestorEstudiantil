@@ -116,8 +116,6 @@ fun CalificacionesAsignaturaPanel(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(horizontalAlignment = Alignment.End) {
-                    val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                    val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                     Text(
                         text = asignatura.acronimo.uppercase(),
                         fontSize = 16.sp,
@@ -126,7 +124,7 @@ fun CalificacionesAsignaturaPanel(
                         textAlign = TextAlign.End
                     )
                     Text(
-                        text = "$cursoAcronimo$turnoLetra${asignatura.cicloNum}",
+                        text = "${asignatura.cursoAcronimo}${asignatura.turnoLetra}${asignatura.cicloNum}",
                         fontSize = 11.sp,
                         color = Color.Gray,
                         textAlign = TextAlign.End

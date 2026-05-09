@@ -138,6 +138,23 @@ fun HomeScreen(
                 }
             )
         )
+
+        when (usuario) {
+            is User.Estudiante -> {
+                if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
+                    estudianteViewModel.cargarAsignaturas(
+                        usuario.cursoId,
+                        usuario.turno,
+                        usuario.cicloNum,
+                        usuario.ultimaVezAsignaturas
+                    )
+                }
+            }
+            is User.Profesor -> {
+                profesorViewModel.cargarAsignaturas(usuario.id, usuario.ultimaVezAsignaturas)
+            }
+            else -> {}
+        }
     }
 
     LaunchedEffect(pagerState.currentPage, usuario.id) {
@@ -147,6 +164,7 @@ fun HomeScreen(
                 if (usuario.cursoId.isNotEmpty() && usuario.turno.isNotEmpty()) {
                     when (activeTab) {
                         "Asignaturas" -> {
+
                             estudianteViewModel.cargarAsignaturas(
                                 usuario.cursoId,
                                 usuario.turno,

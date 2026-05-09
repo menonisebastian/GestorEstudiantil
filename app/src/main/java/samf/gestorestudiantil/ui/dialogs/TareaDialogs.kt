@@ -191,6 +191,7 @@ fun AddTareaContent(
                     viewModel.save(
                         asignaturaId = state.asignaturaId,
                         unidadId = state.unidadId,
+                        centroId = state.centroId,
                         acronimoAsignatura = state.acronimoAsignatura,
                         profesorId = state.profesorId,
                     ) {

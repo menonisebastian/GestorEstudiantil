@@ -14,7 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import samf.gestorestudiantil.R
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
@@ -25,37 +28,13 @@ import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.domain.utils.capitalize
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 
-@Composable
-fun AsignarAsignaturasDialog(
-    state: DialogState.AsignarAsignaturas,
-    onDismissRequest: () -> Unit,
-    adminViewModel: AdminViewModel = viewModel()
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = onDismissRequest) { Text("Cerrar") }
-        },
-        containerColor = backgroundColor,
-        title = {
-            Text(text = "Asignaturas de ${state.profesor.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        },
-        text = {
-            AsignarAsignaturasContent(
-                state = state,
-                onDismissRequest = onDismissRequest,
-                adminViewModel = adminViewModel
-            )
-        }
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AsignarAsignaturasBottomSheet(
     state: DialogState.AsignarAsignaturas,
     onDismissRequest: () -> Unit,
-    adminViewModel: AdminViewModel = viewModel()
+    adminViewModel: AdminViewModel = hiltViewModel()
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
@@ -73,7 +52,6 @@ fun AsignarAsignaturasBottomSheet(
             )
             AsignarAsignaturasContent(
                 state = state,
-                onDismissRequest = onDismissRequest,
                 adminViewModel = adminViewModel
             )
         }
@@ -83,27 +61,29 @@ fun AsignarAsignaturasBottomSheet(
 @Composable
 fun AsignarAsignaturasContent(
     state: DialogState.AsignarAsignaturas,
-    onDismissRequest: () -> Unit,
-    adminViewModel: AdminViewModel = viewModel()
+    adminViewModel: AdminViewModel = hiltViewModel()
 ) {
-    val adminState by adminViewModel.adminState.collectAsState()
+    val adminState by adminViewModel.adminState.collectAsStateWithLifecycle()
 
     // Filtros
-    var cursoFiltro by remember { mutableStateOf("Todos los cursos") }
-    var turnoFiltro by remember { mutableStateOf("Todos los turnos") }
-    var cicloFiltro by remember { mutableStateOf("Todos los ciclos") }
+    val todosLosCursosLabel = stringResource(R.string.filter_all_courses)
+    val todosLosTurnosLabel = stringResource(R.string.filter_all_shifts)
+    val todosLosCiclosLabel = stringResource(R.string.filter_all_cycles)
+
+    var cursoFiltro by remember { mutableStateOf(todosLosCursosLabel) }
+    var turnoFiltro by remember { mutableStateOf(todosLosTurnosLabel) }
+    var cicloFiltro by remember { mutableStateOf(todosLosCiclosLabel) }
 
     val cursosDisponibles = remember(adminState.cursos) {
-        listOf("Todos los cursos") + adminState.cursos.map { it.nombre }
+        listOf(todosLosCursosLabel) + adminState.cursos.map { it.nombre }
     }
-    val turnosOpciones = listOf("Todos los turnos") + listOf("matutino", "vespertino").map { it.capitalize() }
-    val ciclosDisponibles = listOf("Todos los ciclos", "Ciclo 1", "Ciclo 2")
+    val turnosOpciones = listOf(todosLosTurnosLabel) + listOf("matutino", "vespertino").map { it.capitalize() }
+    val ciclosDisponibles = listOf(todosLosCiclosLabel, stringResource(R.string.admin_cycle_n, "1"), stringResource(R.string.admin_cycle_n, "2"))
+    val ciclo1Label = stringResource(R.string.admin_cycle_n, "1")
 
-    // Al abrir, cargamos las asignaturas del profesor y las que no tienen profesor
     LaunchedEffect(state.profesor.id) {
         adminViewModel.cargarAsignaturasSinProfesor("")
         adminViewModel.cargarAsignaturasProfesor(state.profesor.id)
-        // Aseguramos que tenemos cursos cargados para el filtro
         adminViewModel.cargarCursosPorCentro(state.profesor.centroId)
     }
 
@@ -111,13 +91,13 @@ fun AsignarAsignaturasContent(
 
     val asignaturasDisponiblesFiltradas = remember(adminState.asignaturasDisponibles, cursoFiltro, turnoFiltro, cicloFiltro) {
         adminState.asignaturasDisponibles.filter { asig ->
-            val matchCurso = if (cursoFiltro == "Todos los cursos") true else {
+            val matchCurso = if (cursoFiltro == todosLosCursosLabel) true else {
                 val cursoObj = adminState.cursos.find { it.nombre == cursoFiltro }
                 asig.cursoId == cursoObj?.id
             }
-            val matchTurno = if (turnoFiltro == "Todos los turnos") true else asig.turno.lowercase() == turnoFiltro.lowercase()
-            val matchCiclo = if (cicloFiltro == "Todos los ciclos") true else {
-                val cicloNum = if (cicloFiltro == "Ciclo 1") 1 else 2
+            val matchTurno = if (turnoFiltro == todosLosTurnosLabel) true else asig.turno.equals(turnoFiltro, ignoreCase = true)
+            val matchCiclo = if (cicloFiltro == todosLosCiclosLabel) true else {
+                val cicloNum = if (cicloFiltro == ciclo1Label) 1 else 2
                 asig.cicloNum == cicloNum
             }
             matchCurso && matchTurno && matchCiclo
@@ -127,7 +107,7 @@ fun AsignarAsignaturasContent(
     Column(modifier = Modifier.heightIn(max = 550.dp)) {
         // Sección de Filtros
         Text(
-            "Filtrar disponibles",
+            stringResource(R.string.filter_available),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = surfaceDimColor,
@@ -166,7 +146,7 @@ fun AsignarAsignaturasContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         if (asignaturasProfesor.isNotEmpty()) {
-            Text("Asignadas", fontWeight = FontWeight.Bold, color = primaryColor, modifier = Modifier.padding(vertical = 8.dp))
+            Text(stringResource(R.string.label_assigned), fontWeight = FontWeight.Bold, color = primaryColor, modifier = Modifier.padding(vertical = 8.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                 items(asignaturasProfesor) { asig ->
                     Card(
@@ -179,9 +159,7 @@ fun AsignarAsignaturasContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
-                                val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
-                                Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = primaryColor)
+                                Text(asig.codigoFormateado, fontWeight = FontWeight.Bold, color = primaryColor)
                                 Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
                             }
                             IconButton(onClick = { 
@@ -196,7 +174,7 @@ fun AsignarAsignaturasContent(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Text("Disponibles (${asignaturasDisponiblesFiltradas.size})", fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
+        Text(stringResource(R.string.label_available_n, asignaturasDisponiblesFiltradas.size), fontWeight = FontWeight.Bold, color = tertiaryColor, modifier = Modifier.padding(bottom = 8.dp))
         
         if (adminState.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = primaryColor)
@@ -213,9 +191,7 @@ fun AsignarAsignaturasContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                val turnoLetra = if (asig.turno.lowercase() == "matutino") "M" else "V"
-                                val cursoAcronimo = asig.cursoId.substringAfterLast("_").uppercase()
-                                Text("${asig.acronimo} $cursoAcronimo$turnoLetra${asig.cicloNum}", fontWeight = FontWeight.Bold, color = tertiaryColor)
+                                Text(asig.codigoFormateado, fontWeight = FontWeight.Bold, color = tertiaryColor)
                                 Text(asig.nombre, fontSize = 10.sp, color = textColor.copy(alpha = 0.7f))
                             }
                             IconButton(onClick = { 

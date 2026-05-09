@@ -1,14 +1,11 @@
 package samf.gestorestudiantil.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.domain.repositories.EstudianteRepository
@@ -18,14 +15,6 @@ class EstudianteRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore
 ) : EstudianteRepository {
 
-    fun getMiClase(estudianteId: String): Flow<Clase?> {
-        return db.collection("clases")
-            .whereArrayContains("estudiantesIds", estudianteId)
-            .snapshots()
-            .map { snapshot ->
-                snapshot.toObjects(Clase::class.java).firstOrNull()
-            }
-    }
 
     override fun getAsignaturas(cursoId: String, turno: String, cicloNum: Int): Flow<List<Asignatura>> = callbackFlow {
         val subscription = db.collection("asignaturas")
@@ -34,7 +23,10 @@ class EstudianteRepositoryImpl @Inject constructor(
             .whereEqualTo("cicloNum", cicloNum)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(Asignatura::class.java))
+                    val asignaturas = snapshot.toObjects(Asignatura::class.java).onEach { 
+                        if (it.id.isEmpty()) it.id = it.idDocumento 
+                    }
+                    trySend(asignaturas)
                 }
             }
         awaitClose { subscription.remove() }

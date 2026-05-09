@@ -100,6 +100,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import samf.gestorestudiantil.domain.utils.obtenerInicialesDeNombre
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.ui.theme.textColor
@@ -222,7 +223,13 @@ fun BottomNavBar(
 
 @Composable
 fun WeekNavBar(selectedItem: String, onItemSelected: (String) -> Unit) {
-    val weekDays = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes")
+    val weekDays = listOf(
+        stringResource(R.string.day_monday),
+        stringResource(R.string.day_tuesday),
+        stringResource(R.string.day_wednesday),
+        stringResource(R.string.day_thursday),
+        stringResource(R.string.day_friday)
+    )
 
     Row(
         modifier = Modifier
@@ -451,7 +458,7 @@ fun AsignaturaCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val turnoSigla = if (asignatura.turno.lowercase().contains("matutino")) "M" else "V"
+                    val turnoSigla = asignatura.turnoLetra
                     val turnoColor = if (turnoSigla == "M") Color(0xFFF59E0B) else Color(0xFF6366F1)
 
                     Surface(
@@ -472,9 +479,7 @@ fun AsignaturaCard(
                     val nombreAMostrar = if (userRole == "ESTUDIANTE") {
                         asignatura.profesorNombre.ifEmpty { "Sin asignar" }
                     } else {
-                        val turnoSiglaProf = if (asignatura.turno.lowercase().contains("matutino")) "M" else "V"
-                        val cursoAcronimoProf = asignatura.cursoId.substringAfterLast("_").uppercase()
-                        "$cursoAcronimoProf $turnoSiglaProf${asignatura.cicloNum}"
+                        asignatura.codigoFormateado.substringAfter(" ")
                     }
                     Text(
                         text = nombreAMostrar,
@@ -660,7 +665,7 @@ fun CustomPasswordTextField(state: TextFieldState, isLast: Boolean? = false) {
     SecureTextField(
         state = state,
         shape = RoundedCornerShape(16.dp),
-        label = { Text("Contraseña") },
+        label = { Text(stringResource(R.string.label_password)) },
         textObfuscationMode = if (isPasswordVisible) {
             TextObfuscationMode.Visible
         } else {
@@ -672,7 +677,7 @@ fun CustomPasswordTextField(state: TextFieldState, isLast: Boolean? = false) {
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                     Icon(
                         imageVector = if (!isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = if (!isPasswordVisible) "Mostrar contraseña" else "Ocultar contraseña"
+                        contentDescription = if (!isPasswordVisible) stringResource(R.string.desc_show_password) else stringResource(R.string.desc_hide_password)
                     )
                 }
             }
@@ -791,9 +796,9 @@ fun CustomSearchBar(
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp)),
-        placeholder = { Text("Buscar", color = surfaceDimColor) },
+        placeholder = { Text(stringResource(R.string.filter_search_hint), color = surfaceDimColor) },
         leadingIcon = {
-            Icon(Icons.Default.Search, "Buscar", tint = Color.Gray)
+            Icon(Icons.Default.Search, stringResource(R.string.filter_search_hint), tint = Color.Gray)
         },
         trailingIcon = {
             Row(
@@ -815,7 +820,7 @@ fun CustomSearchBar(
                                 trailingIcon = {
                                     Icon(
                                         Icons.Default.Close,
-                                        contentDescription = "Quitar filtro",
+                                        contentDescription = stringResource(R.string.desc_remove_filter),
                                         modifier = Modifier
                                             .size(16.dp)
                                             .clickable {
@@ -842,13 +847,13 @@ fun CustomSearchBar(
 
                 if (textoBusqueda.isNotEmpty()) {
                     IconButton(onClick = { onValueChange("") }) {
-                        Icon(Icons.Outlined.Close, "Cerrar", tint = Color.Gray)
+                        Icon(Icons.Outlined.Close, stringResource(R.string.label_close), tint = Color.Gray)
                     }
                 }
 
                 if (onFilterClick != null) {
                     IconButton(onClick = { onFilterClick() }) {
-                        Icon(Icons.Outlined.FilterList, "Filtrar", tint = Color.Gray)
+                        Icon(Icons.Outlined.FilterList, stringResource(R.string.filter_search_title), tint = Color.Gray)
                     }
                 }
             }
@@ -922,7 +927,7 @@ fun CustomDropDownMenu(
         IconButton(onClick = { expanded = true }) {
             Icon(
                 imageVector = baseIcon,
-                contentDescription = "Opciones",
+                contentDescription = stringResource(R.string.desc_options),
                 tint = iconTint
             )
         }
@@ -1019,7 +1024,7 @@ fun MensajeVacio() {
             .padding(top = 50.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text("No se encontraron cursos", color = Color.Gray)
+        Text(stringResource(R.string.empty_courses), color = Color.Gray)
     }
 }
 
@@ -1041,13 +1046,13 @@ fun AccImg(userName: String = "", imgUrl: String = "", onClick: () -> Unit = {},
                     .data(imgUrl)
                     .crossfade(true)
                     .build(),
-                contentDescription = "Foto de perfil",
+                contentDescription = stringResource(R.string.desc_profile_photo),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
             if (userName.isEmpty()) {
-                Icon(Icons.Filled.Person, "Foto de perfil", tint = primaryColor, modifier = Modifier.size(size * 0.6f))
+                Icon(Icons.Filled.Person, stringResource(R.string.desc_profile_photo), tint = primaryColor, modifier = Modifier.size(size * 0.6f))
             }
             else
             {

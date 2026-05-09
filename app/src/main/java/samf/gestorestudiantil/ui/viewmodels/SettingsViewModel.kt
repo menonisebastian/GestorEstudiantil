@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import samf.gestorestudiantil.data.repositories.SettingsRepository
+import samf.gestorestudiantil.domain.repositories.SettingsRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import javax.inject.Inject
 

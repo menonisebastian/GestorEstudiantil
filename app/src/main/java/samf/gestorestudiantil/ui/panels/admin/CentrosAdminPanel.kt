@@ -275,7 +275,8 @@ fun CiclosScreen(
                 it.turno.lowercase().trim() == turno.lowercase().trim() &&
                 it.cicloNum == currentCicloNum
     }
-    val idClaseTitulo = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim() == "matutino") "M" else "V"}${currentCicloNum}".uppercase()
+    val turnoLetraCalculada = if (turno.lowercase().trim() == "matutino") "M" else "V"
+    val idClaseTitulo = claseReal?.id ?: "${curso.acronimo}${turnoLetraCalculada}${currentCicloNum}".uppercase()
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (ciclos.isNotEmpty()) {
@@ -476,7 +477,8 @@ fun HorariosAdminScreen(
                 it.turno.lowercase().trim() == turno.lowercase().trim() &&
                 it.cicloNum == cicloNumInt
     }
-    val claseId = claseReal?.id ?: "${curso.acronimo}${if (turno.lowercase().trim().contains("matutino")) "M" else "V"}${cicloNumInt}".uppercase()
+    val turnoLetraHorario = if (turno.lowercase().trim().contains("matutino")) "M" else "V"
+    val claseId = claseReal?.id ?: "${curso.acronimo}${turnoLetraHorario}${cicloNumInt}".uppercase()
 
     val horarioMap by remember(adminState.horarios, adminState.asignaturas) {
         derivedStateOf {

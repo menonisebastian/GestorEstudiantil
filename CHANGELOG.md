@@ -2,6 +2,9 @@
 
 Todos los cambios notables en este proyecto se documentarán en este archivo.
 
+## [v0.8.0] - 2026-05-08
+- **Estabilidad**: Últimas optimizaciones y pulido del proyecto.
+
 ## [v0.7.9] - 2026-05-08
 - **Notificaciones**: Centralización de identificadores de canales en `NotificationConstants.kt` para evitar inconsistencias.
 - **Arquitectura**: Limpieza total de `MainActivity`, moviendo la lógica de gestión de intents y navegación por notificaciones al `AppViewModel`.

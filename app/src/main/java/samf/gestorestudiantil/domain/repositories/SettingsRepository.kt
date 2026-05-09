@@ -1,4 +1,4 @@
-package samf.gestorestudiantil.data.repositories
+package samf.gestorestudiantil.domain.repositories
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey

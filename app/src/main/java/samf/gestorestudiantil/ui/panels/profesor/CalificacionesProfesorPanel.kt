@@ -425,10 +425,8 @@ fun EstudiantesAsignaturaLista(
                             fontWeight = FontWeight.ExtraBold,
                             color = textColor
                         )
-                        val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                        val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                         Text(
-                            text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
+                            text = asignatura.codigoFormateado,
                             fontSize = 12.sp,
                             color = surfaceDimColor
                         )
@@ -646,10 +644,8 @@ fun CalificacionesDetalleEstudiante(
                         fontWeight = FontWeight.Bold,
                         color = textColor
                     )
-                    val turnoLetra = if (asignatura.turno.lowercase() == "matutino") "M" else "V"
-                    val cursoAcronimo = asignatura.cursoId.substringAfterLast("_").uppercase()
                     Text(
-                        text = "${asignatura.acronimo} $cursoAcronimo$turnoLetra${asignatura.cicloNum}",
+                        text = asignatura.codigoFormateado,
                         fontSize = 11.sp,
                         color = surfaceDimColor
                     )

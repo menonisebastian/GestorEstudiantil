@@ -174,7 +174,10 @@ class AdminRepositoryImpl @Inject constructor(
 
         val subscription = finalQuery.addSnapshotListener { snapshot, _ ->
             if (snapshot != null) {
-                trySend(snapshot.toObjects(Asignatura::class.java))
+                val asignaturas = snapshot.toObjects(Asignatura::class.java).onEach { 
+                    if (it.id.isEmpty()) it.id = it.idDocumento 
+                }
+                trySend(asignaturas)
             }
         }
         awaitClose { subscription.remove() }
@@ -185,7 +188,10 @@ class AdminRepositoryImpl @Inject constructor(
             .whereEqualTo("profesorId", profesorId)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(Asignatura::class.java))
+                    val asignaturas = snapshot.toObjects(Asignatura::class.java).onEach { 
+                        if (it.id.isEmpty()) it.id = it.idDocumento 
+                    }
+                    trySend(asignaturas)
                 }
             }
         awaitClose { subscription.remove() }
@@ -197,7 +203,10 @@ class AdminRepositoryImpl @Inject constructor(
             .whereEqualTo("turno", turno.lowercase().trim())
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(Asignatura::class.java))
+                    val asignaturas = snapshot.toObjects(Asignatura::class.java).onEach { 
+                        if (it.id.isEmpty()) it.id = it.idDocumento 
+                    }
+                    trySend(asignaturas)
                 }
             }
         awaitClose { subscription.remove() }

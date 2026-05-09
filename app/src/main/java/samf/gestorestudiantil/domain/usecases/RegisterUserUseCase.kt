@@ -1,6 +1,7 @@
 package samf.gestorestudiantil.domain.usecases
 
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.toTurnoLetra
 import samf.gestorestudiantil.domain.repositories.AuthRepository
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
@@ -24,8 +25,7 @@ class RegisterUserUseCase @Inject constructor(
 
         if (rolSeleccionado == "ESTUDIANTE") {
             estadoInicial = "PENDIENTE"
-            val letraTurno = if (turno.lowercase().contains("matutino")) "M" else "V"
-            cursoGenerado = "$cursoNombre$letraTurno$ciclo"
+            cursoGenerado = "$cursoNombre${turno.toTurnoLetra()}$ciclo"
         } else if (rolSeleccionado == "PROFESOR") {
             val hasAdmins = userRepository.checkAdminsInCenter(centroId)
             if (!hasAdmins) {

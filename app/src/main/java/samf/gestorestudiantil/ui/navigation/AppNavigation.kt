@@ -144,7 +144,6 @@ fun AppNavigation(
 
                 entry<Routes.GooglePasswordSetup> {
                     GooglePasswordSetupScreen(
-                        authViewModel = authViewModel,
                         onBack = {
                             authViewModel.signOut()
                         },

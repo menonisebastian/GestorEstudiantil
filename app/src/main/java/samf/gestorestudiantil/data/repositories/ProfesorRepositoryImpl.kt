@@ -1,13 +1,11 @@
 package samf.gestorestudiantil.data.repositories
 
-import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.models.Clase
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.models.Horario
 import samf.gestorestudiantil.data.models.Post
@@ -19,28 +17,6 @@ import javax.inject.Inject
 class ProfesorRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore
 ) : ProfesorRepository {
-
-    suspend fun getAlumnosDeMiClase(claseId: String): List<User.Estudiante> {
-        val claseDoc = db.collection("clases").document(claseId).get().await()
-        val clase = claseDoc.toObject(Clase::class.java) ?: return emptyList()
-
-        val ids = clase.estudiantesIds
-        if (ids.isEmpty()) return emptyList()
-
-        // Nota: Firestore permite buscar hasta 10 IDs de golpe con 'in'.
-        // Si la clase tiene más de 10 alumnos, hay que dividir la lista en bloques (chunks).
-        val estudiantes = mutableListOf<User.Estudiante>()
-
-        ids.chunked(10).forEach { bloqueIds ->
-            val query = db.collection("usuarios")
-                .whereIn(FieldPath.documentId(), bloqueIds)
-                .get()
-                .await()
-            estudiantes.addAll(query.toObjects(User.Estudiante::class.java))
-        }
-
-        return estudiantes
-    }
 
     override fun getUnidades(asignaturaId: String): Flow<List<Unidad>> = callbackFlow {
         val subscription = db.collection("unidades")
@@ -119,7 +95,10 @@ class ProfesorRepositoryImpl @Inject constructor(
             .whereEqualTo("profesorId", profesorId)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(Asignatura::class.java))
+                    val asignaturas = snapshot.toObjects(Asignatura::class.java).onEach { 
+                        if (it.id.isEmpty()) it.id = it.idDocumento 
+                    }
+                    trySend(asignaturas)
                 }
             }
         awaitClose { subscription.remove() }
@@ -232,7 +211,7 @@ class ProfesorRepositoryImpl @Inject constructor(
         return try {
             val doc = db.collection("usuarios").document(profesorId).get().await()
             doc.toObject(User.Profesor::class.java)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -241,7 +220,7 @@ class ProfesorRepositoryImpl @Inject constructor(
         return try {
             val doc = db.collection("usuarios").document(estudianteId).get().await()
             doc.toObject(User.Estudiante::class.java)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

@@ -2,6 +2,7 @@ package samf.gestorestudiantil.data.models
 
 import com.google.firebase.firestore.DocumentId
 import kotlinx.serialization.Serializable
+import samf.gestorestudiantil.domain.utils.toTurnoLetra
 
 @Serializable
 data class Asignatura(
@@ -27,4 +28,13 @@ data class Asignatura(
     var colorIconoHex: String = "#6B7280",
     var numEstudiantesCurso: Int = 0,
     var numNotificaciones: Int = 0
-)
+) {
+    val turnoLetra: String
+        get() = turno.toTurnoLetra()
+
+    val cursoAcronimo: String
+        get() = cursoId.substringAfterLast("_").uppercase()
+
+    val codigoFormateado: String
+        get() = "$acronimo $cursoAcronimo$turnoLetra$cicloNum"
+}

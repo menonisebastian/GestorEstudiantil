@@ -130,9 +130,7 @@ fun AsignaturasProfesorPanel(
                     items = asignaturasFiltradas,
                     key = { it.id.ifEmpty { it.idDocumento } }
                 ) { materia ->
-                    val cursoAcron = materia.cursoId.split("_").lastOrNull()?.uppercase() ?: ""
-                    val turnoLetra = if (materia.turno.contains("matutino", ignoreCase = true)) "M" else "V"
-                    val badge = "$cursoAcron$turnoLetra${materia.cicloNum}"
+                    val badge = "${materia.cursoAcronimo}${materia.turnoLetra}${materia.cicloNum}"
 
                     CardItem(
                         modifier = Modifier.animateItem(

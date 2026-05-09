@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import samf.gestorestudiantil.data.models.Asignatura
-import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.ui.components.AccImg
@@ -107,9 +106,8 @@ fun MateriaDetalleProfesorPanel(
                         modifier = Modifier.widthIn(max = 150.dp),
                         horizontalAlignment = Alignment.End
                     ) {
-                        val titulo = "${asignatura.acronimo} ${asignatura.turno.firstOrNull()?.uppercase() ?: ""}${asignatura.ciclo.take(1)}"
                         Text(
-                            text = titulo,
+                            text = asignatura.codigoFormateado,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = textColor,
@@ -169,13 +167,11 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.AddTarea(
                                 asignaturaId = asignatura.id,
                                 unidadId = unidad.id,
+                                centroId = asignatura.centroId,
                                 acronimoAsignatura = asignatura.acronimo,
                                 profesorId = profesor.id,
                                 profesorNombre = profesor.nombre,
-                                tareaExistente = Tarea(
-                                    profesorId = profesor.id,
-                                    centroId = asignatura.centroId
-                                ),
+                                tareaExistente = null,
                                 onSave = { }
                             )
                         )
@@ -253,6 +249,7 @@ fun MateriaDetalleProfesorPanel(
                             DialogState.AddTarea(
                                 asignaturaId = asignatura.id,
                                 unidadId = unidad.id,
+                                centroId = asignatura.centroId,
                                 acronimoAsignatura = asignatura.acronimo,
                                 profesorId = profesor.id,
                                 profesorNombre = profesor.nombre,
