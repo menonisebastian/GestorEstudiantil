@@ -197,7 +197,7 @@ class EstudianteViewModel @Inject constructor(
                     currentState.copy(asignaturas = nuevas)
                 }
             } catch (_: Exception) {
-                _state.update { it.copy(errorMessage = context.getString(R.string.error_mark_as_read)) }
+                snackbarManager.showSnackbar(context.getString(R.string.error_mark_as_read))
             }
         }
     }
@@ -271,7 +271,7 @@ class EstudianteViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 val errorMsg = ErrorMapper.getFriendlyMessage(context, e)
-                _state.update { it.copy(errorMessage = errorMsg) }
+                snackbarManager.showSnackbar(errorMsg)
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -298,13 +298,14 @@ class EstudianteViewModel @Inject constructor(
         }
     }
 
-    fun eliminarEntrega(entrega: Entrega, onUndo: () -> Unit) {
+    fun eliminarEntrega(entrega: Entrega, onUndo: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
                 tareaRepository.eliminarEntrega(entrega)
-                onUndo()
+                onUndo?.invoke()
+                snackbarManager.showSnackbar("Entrega eliminada")
             } catch (_: Exception) {
-                _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_delivery)) }
+                snackbarManager.showSnackbar(context.getString(R.string.error_delete_delivery))
             }
         }
     }
@@ -327,11 +328,12 @@ class EstudianteViewModel @Inject constructor(
                 val bytes = tareaRepository.descargarArchivo(supabasePath)
                 if (isDirectDownload) {
                     FileOpener.downloadFile(context, bytes, nombreArchivo)
+                    snackbarManager.showSnackbar("Archivo descargado")
                 } else {
                     FileOpener.openFile(context, bytes, nombreArchivo)
                 }
             } catch (_: Exception) {
-                _state.update { it.copy(errorMessage = context.getString(R.string.error_open_file)) }
+                snackbarManager.showSnackbar(context.getString(R.string.error_open_file))
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -397,7 +399,8 @@ class EstudianteViewModel @Inject constructor(
                         )
                     }
                 } catch (e: Exception) {
-                    _state.update { it.copy(isLoading = false, errorMessage = "Error al cargar archivo: ${e.localizedMessage}") }
+                    _state.update { it.copy(isLoading = false) }
+                    snackbarManager.showSnackbar("Error al cargar archivo: ${e.localizedMessage}")
                 }
             }
         }

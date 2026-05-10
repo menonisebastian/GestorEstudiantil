@@ -147,6 +147,7 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 assignSubjectToProfessorUseCase(asignaturaId, profesorId)
+                snackbarManager.showSnackbar("Asignatura asignada correctamente")
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
@@ -167,6 +168,7 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 adminRepository.desasignarAsignatura(asignaturaId, profesorId)
+                snackbarManager.showSnackbar("Asignatura desasignada")
             } catch (e: Exception) {
                 _adminState.value = _adminState.value.copy(errorMessage = ErrorMapper.getFriendlyMessage(context, e))
             }
