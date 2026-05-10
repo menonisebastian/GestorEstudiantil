@@ -13,7 +13,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberTimePickerState
@@ -27,11 +26,9 @@ import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.secondaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
-import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -46,7 +43,7 @@ fun CustomTimePickerDialog(
             try {
                 val parts = state.initialTime.split(":")
                 parts[0].toInt() to parts[1].toInt()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val cal = Calendar.getInstance()
                 cal.get(Calendar.HOUR_OF_DAY) to cal.get(Calendar.MINUTE)
             }
@@ -102,7 +99,6 @@ fun CustomTimePickerDialog(
                 TimePicker(
                     state = timePickerState,
                     colors = TimePickerDefaults.colors(
-                        // Este es el atributo para el fondo del recuadro (hora/minuto) seleccionado
                         timeSelectorSelectedContainerColor = tertiaryColor.copy(alpha = 0.1f),
                         timeSelectorUnselectedContainerColor = surfaceColor,
                         clockDialColor = surfaceColor,

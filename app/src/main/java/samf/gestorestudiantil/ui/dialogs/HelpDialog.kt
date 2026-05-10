@@ -19,6 +19,7 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import androidx.core.net.toUri
+import samf.gestorestudiantil.ui.theme.surfaceColor
 
 @Composable
 fun HelpDialog(
@@ -113,6 +114,6 @@ fun HelpDialog(
                 Text(stringResource(R.string.label_close), color = primaryColor)
             }
         },
-        containerColor = samf.gestorestudiantil.ui.theme.surfaceColor
+        containerColor = surfaceColor
     )
 }

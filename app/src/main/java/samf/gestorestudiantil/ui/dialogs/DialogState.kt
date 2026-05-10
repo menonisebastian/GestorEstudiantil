@@ -13,26 +13,26 @@ import samf.gestorestudiantil.domain.utils.UiText
 sealed class DialogState {
     data object None : DialogState()
 
-    // 1. Diálogo de Confirmación (Usado en AdminPanel)
+    // 1. Diálogo de Confirmación
     data class Confirmation(
         val title: UiText,
         val content: UiText,
         val onConfirm: () -> Unit
     ) : DialogState()
 
-    // 2. Diálogos de Recordatorios (Usado en HomeScreen y RecordatoriosPanel)
+    // 2. Diálogo de Recordatorios
     data class Recordatorio(
         val initialDate: String = "",
         val recordatorioExistente: samf.gestorestudiantil.data.models.Recordatorio? = null,
         val onSave: (samf.gestorestudiantil.data.models.Recordatorio) -> Unit
     ) : DialogState()
 
-    // 3. Diálogo de Filtros (Usado en Recordatorios y Admin)
+    // 3. Diálogo de Filtros
     data class Filter(
-        val tipo: String, // "Usuario", "Asignatura", "Recordatorio", etc.
+        val tipo: String,
         val currentFilters: Map<String, String> = emptyMap(),
-        val opcionesPersonalizadas: Map<String, List<String>> = emptyMap(), // Opciones dinámicas
-        val onApply: (Map<String, String>) -> Unit // Retorna el mapa de filtros actualizados
+        val opcionesPersonalizadas: Map<String, List<String>> = emptyMap(),
+        val onApply: (Map<String, String>) -> Unit
     ) : DialogState()
 
     // 4. Diálogo de Perfil de Usuario
@@ -42,7 +42,7 @@ sealed class DialogState {
 
     data class EditSelfProfile(
         val user: User,
-        val onSave: (String) -> Unit // Solo nombre por ahora, se puede expandir
+        val onSave: (String) -> Unit
     ) : DialogState()
 
     // 5. Diálogos de Edición/Creación para Admin
@@ -75,8 +75,8 @@ sealed class DialogState {
 
     data class AsignarAsignaturas(
         val profesor: User,
-        val onAssign: (String) -> Unit, // id de la asignatura
-        val onUnassign: (String) -> Unit // id de la asignatura
+        val onAssign: (String) -> Unit,
+        val onUnassign: (String) -> Unit
     ) : DialogState()
 
     data class AsignarProfesor(
@@ -88,25 +88,25 @@ sealed class DialogState {
         val centroId: String
     ) : DialogState()
 
-    // 6. Diálogos para Asignaturas (Profesores)
+    // 6. Diálogos para Asignaturas
     data class AddUnidad(
         val asignaturaId: String,
-        val unidadId: String? = null, // null si es nueva, id si es editar
+        val unidadId: String? = null,
         val nombreInicial: String = "",
         val descripcionInicial: String = "",
         val visibleInicial: Boolean = false,
         val ordenInicial: Int = 1,
-        val onSave: (String, String, Boolean, Int) -> Unit // nombre, descripcion, visible, orden
+        val onSave: (String, String, Boolean, Int) -> Unit
     ) : DialogState()
 
     data class AddPost(
         val asignaturaId: String,
         val unidadId: String,
-        val postId: String? = null, // null si es nuevo
+        val postId: String? = null,
         val tituloInicial: String = "",
         val contenidoInicial: String = "",
         val visibleInicial: Boolean = false,
-        val onSave: (String, String, Boolean) -> Unit // titulo, contenido, visible
+        val onSave: (String, String, Boolean) -> Unit
     ) : DialogState()
 
     data class EditHorario(
@@ -128,7 +128,7 @@ sealed class DialogState {
         val onTimeSelected: (String) -> Unit
     ) : DialogState()
 
-    // 8. Diálogos para Tareas (Hybrid)
+    // 8. Diálogos para Tareas
     data class AddTarea(
         val asignaturaId: String,
         val unidadId: String,

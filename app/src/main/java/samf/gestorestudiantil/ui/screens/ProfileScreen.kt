@@ -83,7 +83,7 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // === AVATAR ===
+            // AVATAR
             ProfileImagePicker(
                 userName = usuario?.nombre ?: "",
                 currentPhotoUrl = currentPhotoUrl,
@@ -104,7 +104,7 @@ fun ProfileScreen(
                 }
             )
 
-            // === DATOS DEL USUARIO ===
+            // DATOS DEL USUARIO
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = surfaceColor)
@@ -171,7 +171,7 @@ fun ProfileScreen(
                 }
             }
 
-            // === CONFIGURACIÓN ===
+            // CONFIGURACIÓN
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = surfaceColor)

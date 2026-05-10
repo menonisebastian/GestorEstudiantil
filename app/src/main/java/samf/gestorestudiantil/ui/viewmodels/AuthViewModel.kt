@@ -191,8 +191,6 @@ class AuthViewModel @Inject constructor(
                 val msg = e.message ?: ""
                 when {
                     msg.startsWith("COLLISION_GOOGLE:") -> {
-                        // El email está registrado con Google
-                        // se loguea Google y luego se vincula al GitHub.
                         handleGithubGoogleCollision(activity, msg.removePrefix("COLLISION_GOOGLE:"))
                     }
                     msg.startsWith("COLLISION_EMAIL:") -> {

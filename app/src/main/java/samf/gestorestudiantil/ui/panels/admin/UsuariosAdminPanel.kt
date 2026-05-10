@@ -105,7 +105,7 @@ fun UsuariosAdminPanel(
     var filtroCurso by rememberSaveable { mutableStateOf("") }
     var filtroCiclo by rememberSaveable { mutableStateOf("") }
     var filtroTurno by rememberSaveable { mutableStateOf("") }
-    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) } // 0: Activos, 1: Pendientes
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf(stringResource(R.string.admin_tab_active), stringResource(R.string.admin_tab_pending))
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
@@ -270,7 +270,7 @@ fun UsuariosAdminPanel(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(backgroundColor) // Fondo para el área del TabRow
+                .background(backgroundColor)
         ) {
             Card(
                 modifier = Modifier
@@ -342,7 +342,7 @@ fun UsuariosAdminPanel(
 
             SecondaryTabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = Color.Transparent, // Transparent para usar el fondo de la columna
+                containerColor = Color.Transparent,
                 contentColor = textColor,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -579,9 +579,9 @@ fun UsuarioCardAdmin(
 @Composable
 fun RoleChip(rol: String) {
     val (bgColor, txtColor) = when (rol) {
-        "PROFESOR" -> Pair(Color(0xFFFFF3E0), Color(0xFFE65100)) // Naranja
-        "ADMIN" -> Pair(Color(0xFFF3E5F5), Color(0xFF4A148C)) // Morado
-        else -> Pair(Color(0xFFE3F2FD), Color(0xFF1565C0)) // Azul (Estudiante)
+        "PROFESOR" -> Pair(Color(0xFFFFF3E0), Color(0xFFE65100))
+        "ADMIN" -> Pair(Color(0xFFF3E5F5), Color(0xFF4A148C))
+        else -> Pair(Color(0xFFE3F2FD), Color(0xFF1565C0))
     }
 
     Box(

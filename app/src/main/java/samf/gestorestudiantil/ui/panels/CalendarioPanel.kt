@@ -69,7 +69,7 @@ data class EventoCalendario(
     val id: String,
     val titulo: String,
     val descripcion: String,
-    val fechaIso: String, // Formato "yyyy-MM-dd"
+    val fechaIso: String,
     val hora: String?,
     val tipo: TipoEventoVisual,
     val subtipoRecordatorio: TipoRecordatorio? = null,
@@ -271,7 +271,7 @@ fun CalendarioPanel(
                 }
 
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // El título se queda fijo arriba de la sección de eventos
+                    // Título de eventos
                     Text(
                         text = targetDate?.let { "Eventos para el ${formatearFechaParaMostrar(it.toString(), prettyDate = true)}" } ?: "Selecciona un día",
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -301,8 +301,7 @@ fun CalendarioPanel(
                                 }
                             }
                         } else {
-                            // Espaciador dinámico que solo aparece cuando el calendario se oculta
-                            // para evitar que el primer item se sienta "saltado" o pegado arriba
+                            // Espaciador dinámico
                             item {
                                 AnimatedVisibility(
                                     visible = !showCalendar,

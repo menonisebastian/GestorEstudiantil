@@ -79,9 +79,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 0. GESTIÓN DE UNIDADES, POSTS Y TAREAS (PROFESORES)
-    // ====================================================================
+    // GESTIÓN DE UNIDADES, POSTS Y TAREAS
     private var contenidoJob: Job? = null
 
     fun cargarContenidoAsignatura(asignaturaId: String) {
@@ -248,9 +246,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 0.1 GESTIÓN DE TAREAS (Hybrid Firebase + Supabase)
-    // ====================================================================
+    // GESTIÓN DE TAREAS
     fun crearTarea(tarea: Tarea, fileData: ByteArray?, fileName: String?, mimeType: String? = null) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -343,9 +339,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 1. ASIGNATURAS QUE IMPARTE EL PROFESOR (tiempo real)
-    // ====================================================================
+    // ASIGNATURAS DEL PROFESOR
     private var entregasJob: Job? = null
     private var recalcularJob: Job? = null
     private var usuarioJob: Job? = null
@@ -466,9 +460,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 2. TODOS LOS ESTUDIANTES DE LOS CURSOS DONDE IMPARTE (tiempo real)
-    // ====================================================================
+    // TODOS LOS ESTUDIANTES DE LOS CURSOS DONDE IMPARTE
     private var misEstudiantesJob: Job? = null
 
     fun cargarTodosMisEstudiantes(asignaturas: List<Asignatura>) {
@@ -494,9 +486,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 3. ESTUDIANTES DE UNA ASIGNATURA CONCRETA (Ciclo y Turno específicos)
-    // ====================================================================
+    // ESTUDIANTES DE UNA ASIGNATURA CONCRETA
     private var estudiantesAsigJob: Job? = null
 
     fun cargarEstudiantesPorAsignatura(asignatura: Asignatura) {
@@ -513,9 +503,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 4. EVALUACIONES DE UN ALUMNO EN UNA ASIGNATURA (tiempo real)
-    // ====================================================================
+    // EVALUACIONES DE UN ALUMNO EN UNA ASIGNATURA
     private var evaluacionesEstJob: Job? = null
 
     fun cargarEvaluacionesEstudiante(estudianteId: String, asignaturaId: String) {
@@ -527,9 +515,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 5. GESTIÓN DE EVALUACIONES (Persistencia)
-    // ====================================================================
+    // GESTIÓN DE EVALUACIONES
     fun guardarEvaluacion(evaluacion: Evaluacion) {
         viewModelScope.launch {
             try {
@@ -592,9 +578,7 @@ class ProfesorViewModel @Inject constructor(
         }
     }
 
-    // ====================================================================
-    // 6. HORARIOS DEL PROFESOR (tiempo real)
-    // ====================================================================
+    // HORARIOS DEL PROFESOR
     fun cargarHorariosProfesor(profesorId: String) {
         if (profesorId == lastHorariosParams) return
         lastHorariosParams = profesorId

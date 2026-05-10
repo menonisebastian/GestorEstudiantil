@@ -84,7 +84,6 @@ class AppViewModel @Inject constructor(
     fun agregarRecordatorio(recordatorio: Recordatorio) {
         viewModelScope.launch {
             try {
-                // Si el ID empieza por "temp_", significa que es un recordatorio nuevo
                 val isNew = recordatorio.id.isEmpty() || recordatorio.id.startsWith("temp_")
 
                 val finalRecordatorio = if (isNew) {
