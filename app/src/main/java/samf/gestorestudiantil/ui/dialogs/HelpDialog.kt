@@ -28,7 +28,7 @@ fun HelpDialog(
     val context = LocalContext.current
     val githubLink = stringResource(R.string.github_link)
     val versionName = try {
-        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.7.9"
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.8.0"
     } catch (_: Exception) {
         "0.7.6"
     }
