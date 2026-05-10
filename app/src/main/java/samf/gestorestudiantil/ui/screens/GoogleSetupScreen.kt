@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,6 +47,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.domain.utils.capitalize
 import samf.gestorestudiantil.ui.components.CustomOptionsTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
@@ -57,14 +56,16 @@ import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GooglePasswordSetupScreen(
     onBack: () -> Unit,
     onNext: (String) -> Unit,
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
+
     val passwordState = rememberTextFieldState()
     val confirmPasswordState = rememberTextFieldState()
 
@@ -131,9 +132,9 @@ fun GooglePasswordSetupScreen(
                         val password = passwordState.text.toString()
                         val confirm = confirmPasswordState.text.toString()
                         if (password.length < 6) {
-                            Toast.makeText(context, R.string.error_password_too_short, Toast.LENGTH_SHORT).show()
+                            appViewModel.showSnackbar(UiText.StringResource(R.string.error_password_too_short))
                         } else if (password != confirm) {
-                            Toast.makeText(context, R.string.error_passwords_mismatch, Toast.LENGTH_SHORT).show()
+                            appViewModel.showSnackbar(UiText.StringResource(R.string.error_passwords_mismatch))
                         } else {
                             onNext(password)
                         }
@@ -158,9 +159,9 @@ fun GoogleAcademicSetupScreen(
     passwordValue: String,
     onBack: () -> Unit,
     onSetupComplete: (User) -> Unit,
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
 
     val selectRoleLabel = stringResource(R.string.placeholder_select_role)
@@ -198,7 +199,7 @@ fun GoogleAcademicSetupScreen(
             onSetupComplete(authState.user!!)
         }
         if (authState.errorMessage != null) {
-            Toast.makeText(context, authState.errorMessage, Toast.LENGTH_LONG).show()
+            appViewModel.showSnackbar(authState.errorMessage!!)
             authViewModel.clearError()
         }
     }
@@ -354,12 +355,13 @@ fun GoogleAcademicSetupScreen(
                     Button(
                         onClick = {
                             if (rolSeleccionado == selectRoleLabel || centroId.isEmpty()) {
-                                Toast.makeText(context, R.string.error_selection_role_center, Toast.LENGTH_SHORT).show()
+
+                                appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_role_center))
                             } else if (rolSeleccionado == "ESTUDIANTE") {
                                 if (cursoId.isEmpty()) {
-                                    Toast.makeText(context, R.string.error_selection_course, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_course))
                                 } else if (turnosDisponibles.isNotEmpty() && turno == selectShiftLabel) {
-                                    Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_shift))
                                 } else {
                                     val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
                                     authViewModel.completeGoogleSetup(
@@ -378,9 +380,9 @@ fun GoogleAcademicSetupScreen(
                                 }
                             } else if (rolSeleccionado == "PROFESOR") {
                                 if (turno == selectShiftLabel) {
-                                    Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_shift))
                                 } else if (departamento.isEmpty()) {
-                                    Toast.makeText(context, R.string.error_selection_department, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_department))
                                 } else {
                                     authViewModel.completeGoogleSetup(
                                         password = passwordValue,

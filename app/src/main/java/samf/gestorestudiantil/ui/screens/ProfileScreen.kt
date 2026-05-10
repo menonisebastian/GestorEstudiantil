@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +51,7 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.SettingsViewModel
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,10 +60,10 @@ fun ProfileScreen(
     onLogout: () -> Unit = {},
     onProfileUpdated: (User) -> Unit = {},
     isLoading: Boolean = false,
-    settingsViewModel: SettingsViewModel = hiltViewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = hiltViewModel()
 )
 {
-    val context = LocalContext.current
     val themePreference by settingsViewModel.themePreference.collectAsState()
 
     var currentPhotoUrl by remember { mutableStateOf(usuario?.imgUrl ?: "") }
@@ -92,7 +91,7 @@ fun ProfileScreen(
                     currentPhotoUrl = secureUrl
                     usuario?.id?.let { uid ->
                         settingsViewModel.updateProfileImage(uid, secureUrl) {
-                            Toast.makeText(context, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
+                            appViewModel.showSnackbar("Foto de perfil actualizada")
                             val updatedUser = when (usuario) {
                                 is User.Estudiante -> usuario.copy(imgUrl = secureUrl)
                                 is User.Profesor -> usuario.copy(imgUrl = secureUrl)
@@ -130,7 +129,7 @@ fun ProfileScreen(
                                         user = usuario,
                                         onSave = { nuevoNombre ->
                                             settingsViewModel.updateName(usuario.id, nuevoNombre) {
-                                                Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+                                                appViewModel.showSnackbar("Perfil actualizado")
                                                 val updatedUser = when (usuario) {
                                                     is User.Estudiante -> usuario.copy(nombre = nuevoNombre)
                                                     is User.Profesor -> usuario.copy(nombre = nuevoNombre)

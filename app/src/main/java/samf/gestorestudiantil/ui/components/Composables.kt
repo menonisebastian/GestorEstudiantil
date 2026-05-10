@@ -6,6 +6,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,29 +60,9 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecureTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,6 +73,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -118,11 +102,81 @@ import samf.gestorestudiantil.domain.utils.uploadToCloudinary
 import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.errorColor
 import samf.gestorestudiantil.ui.theme.primaryColor
-import samf.gestorestudiantil.ui.theme.searchBarColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
-import samf.gestorestudiantil.ui.theme.tertiaryColor
 import samf.gestorestudiantil.ui.theme.whiteColor
+import samf.gestorestudiantil.ui.theme.searchBarColor
+import samf.gestorestudiantil.ui.theme.tertiaryColor
+
+@Composable
+fun CustomSnackbarHost(hostState: SnackbarHostState) {
+    SnackbarHost(hostState = hostState) { data ->
+        val durationMillis = 4000L
+        val progress = remember { Animatable(1f) }
+
+        LaunchedEffect(data) {
+            progress.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis.toInt(), easing = LinearEasing)
+            )
+            data.dismiss()
+        }
+
+        Surface(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = surfaceColor,
+            shadowElevation = 6.dp
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 44.dp, top = 12.dp, bottom = 12.dp)
+                    ) {
+                        Text(
+                            text = data.visuals.message,
+                            modifier = Modifier.weight(1f),
+                            color = textColor
+                        )
+                        if (data.visuals.actionLabel != null) {
+                            TextButton(onClick = { data.performAction() }) {
+                                Text(data.visuals.actionLabel!!, color = primaryColor)
+                            }
+                        }
+                    }
+                    LinearProgressIndicator(
+                        progress = { progress.value },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp),
+                        color = primaryColor,
+                        trackColor = primaryColor.copy(alpha = 0.1f),
+                        strokeCap = StrokeCap.Butt
+                    )
+                }
+                IconButton(
+                    onClick = { data.dismiss() },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = surfaceDimColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun BottomNavBar(
@@ -805,7 +859,7 @@ fun CustomSearchBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(end = 8.dp)
             ) {
-                androidx.compose.foundation.lazy.LazyRow(
+                LazyRow(
                     modifier = Modifier.weight(1f, fill = false),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -813,7 +867,7 @@ fun CustomSearchBar(
                     filters.forEach { (key, value) ->
                         val chips = value.split(",").filter { it.isNotEmpty() }
                         items(chips) { chipValue ->
-                            androidx.compose.material3.InputChip(
+                            InputChip(
                                 selected = true,
                                 onClick = { },
                                 label = { Text(chipValue, fontSize = 11.sp, maxLines = 1) },
@@ -834,7 +888,7 @@ fun CustomSearchBar(
                                     )
                                 },
                                 shape = RoundedCornerShape(8.dp),
-                                colors = androidx.compose.material3.InputChipDefaults.inputChipColors(
+                                colors = InputChipDefaults.inputChipColors(
                                     selectedContainerColor = primaryColor.copy(alpha = 0.15f),
                                     selectedLabelColor = primaryColor
                                 ),

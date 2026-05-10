@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,9 +45,11 @@ import samf.gestorestudiantil.ui.theme.backgroundColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.runtime.LaunchedEffect
+import samf.gestorestudiantil.domain.utils.UiText
 import samf.gestorestudiantil.domain.utils.capitalize
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,18 +57,18 @@ import samf.gestorestudiantil.domain.utils.capitalize
 fun RegisterStep2Screen(
     route: Routes.RegisterStep2,
     authViewModel: AuthViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = hiltViewModel(),
     onBack: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
     val authState by authViewModel.authState.collectAsState()
     val isLoading = authState.isLoading
-    val context = LocalContext.current
 
     LaunchedEffect(authState) {
         if (authState.user != null) {
             onNavigateToHome()
         } else if (authState.errorMessage != null) {
-            Toast.makeText(context, authState.errorMessage, Toast.LENGTH_SHORT).show()
+            appViewModel.showSnackbar(authState.errorMessage!!)
             authViewModel.clearError()
         }
     }
@@ -261,12 +261,12 @@ fun RegisterStep2Screen(
                     Button(
                         onClick = {
                             if (rolSeleccionado == selectRoleLabel || centroId.isEmpty()) {
-                                Toast.makeText(context, R.string.error_selection_role_center, Toast.LENGTH_SHORT).show()
+                                appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_role_center))
                             } else if (rolSeleccionado == "ESTUDIANTE") {
                                 if (cursoId.isEmpty()) {
-                                    Toast.makeText(context, R.string.error_selection_course, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_course))
                                 } else if (turnosDisponibles.isNotEmpty() && turno == selectShiftLabel) {
-                                    Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_shift))
                                 } else {
                                     val cicloNum = if (cicloSeleccionado == "Primer Año") 1 else 2
                                     authViewModel.registerWithEmail(
@@ -284,9 +284,9 @@ fun RegisterStep2Screen(
                                 }
                             } else if (rolSeleccionado == "PROFESOR") {
                                 if (turno == selectShiftLabel) {
-                                    Toast.makeText(context, R.string.error_selection_shift, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_shift))
                                 } else if (departamento.isEmpty()) {
-                                    Toast.makeText(context, R.string.error_selection_department, Toast.LENGTH_SHORT).show()
+                                    appViewModel.showSnackbar(UiText.StringResource(R.string.error_selection_department))
                                 } else {
                                     authViewModel.registerWithEmail(
                                         email = route.email,

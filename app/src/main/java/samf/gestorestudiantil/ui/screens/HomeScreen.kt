@@ -1,15 +1,6 @@
 package samf.gestorestudiantil.ui.screens
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.TextButton
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -18,24 +9,19 @@ import androidx.compose.animation.togetherWith
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material3.Surface
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material.icons.filled.AccessTime
@@ -48,9 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -59,6 +43,7 @@ import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.ui.components.BottomNavBar
 import samf.gestorestudiantil.ui.components.CustomFAB
+import samf.gestorestudiantil.ui.components.CustomSnackbarHost
 import samf.gestorestudiantil.ui.components.IconLogo
 import samf.gestorestudiantil.ui.components.TitleLogo
 import samf.gestorestudiantil.ui.dialogs.DialogOrchestrator
@@ -70,10 +55,8 @@ import androidx.compose.material.icons.filled.Checklist
 import samf.gestorestudiantil.ui.viewmodels.AsistenciaViewModel
 import samf.gestorestudiantil.ui.viewmodels.ProfesorViewModel
 import samf.gestorestudiantil.ui.theme.backgroundColor
-import samf.gestorestudiantil.ui.theme.primaryColor
 import samf.gestorestudiantil.ui.theme.surfaceColor
 import samf.gestorestudiantil.ui.theme.surfaceDimColor
-import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.screens.content.*
 import samf.gestorestudiantil.ui.viewmodels.AdminViewModel
 import samf.gestorestudiantil.ui.viewmodels.AppViewModel
@@ -275,73 +258,7 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = backgroundColor,
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                val durationMillis = 4000L
-                val progress = remember { Animatable(1f) }
-
-                LaunchedEffect(data) {
-                    progress.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(durationMillis.toInt(), easing = LinearEasing)
-                    )
-                }
-
-                Surface(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = surfaceColor,
-                    shadowElevation = 6.dp
-                ) {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 44.dp, top = 12.dp, bottom = 12.dp)
-                            ) {
-                                Text(
-                                    text = data.visuals.message,
-                                    modifier = Modifier.weight(1f),
-                                    color = textColor
-                                )
-                                if (data.visuals.actionLabel != null) {
-                                    TextButton(onClick = { data.performAction() }) {
-                                        Text(data.visuals.actionLabel!!, color = primaryColor)
-                                    }
-                                }
-                            }
-                            LinearProgressIndicator(
-                                progress = { progress.value },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(4.dp),
-                                color = primaryColor,
-                                trackColor = primaryColor.copy(alpha = 0.1f),
-                                strokeCap = StrokeCap.Butt
-                            )
-                        }
-                        IconButton(
-                            onClick = { data.dismiss() },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(4.dp)
-                                .size(28.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Cerrar",
-                                tint = surfaceDimColor,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        },
+        snackbarHost = { CustomSnackbarHost(hostState = snackbarHostState) },
         topBar = {
             AnimatedContent(
                 targetState = currentTab == "Perfil",

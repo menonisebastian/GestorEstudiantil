@@ -6,7 +6,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,7 +62,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,7 +93,6 @@ fun UsuariosAdminPanel(
     onOpenDialog: (DialogState) -> Unit,
     appViewModel: AppViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
     var textoBusquedaRaw by rememberSaveable { mutableStateOf("") }
     var textoBusqueda by rememberSaveable { mutableStateOf("") }
 
@@ -131,7 +128,7 @@ fun UsuariosAdminPanel(
 
     LaunchedEffect(adminState.errorMessage) {
         if (adminState.errorMessage != null) {
-            Toast.makeText(context, adminState.errorMessage, Toast.LENGTH_LONG).show()
+            appViewModel.showSnackbar(adminState.errorMessage!!)
             adminViewModel.clearError()
         }
     }

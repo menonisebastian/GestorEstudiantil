@@ -15,8 +15,7 @@ class GestorEstudiantilApp : Application() {
         try {
             val config = mapOf("cloud_name" to "dywawleqm")
             MediaManager.init(this, config)
-        } catch (e: IllegalStateException) {
-            // Ya inicializado
+        } catch (_: IllegalStateException) {
         } catch (e: Exception) {
             e.printStackTrace()
         }

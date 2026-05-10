@@ -2,7 +2,6 @@ package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -111,9 +110,6 @@ class TareaViewModel @Inject constructor(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Error al cargar archivo", Toast.LENGTH_SHORT).show()
-                    }
                 }
             }
         }
@@ -191,9 +187,7 @@ class TareaViewModel @Inject constructor(
                     onComplete()
                 }
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al guardar la tarea", Toast.LENGTH_LONG).show()
-                }
+                // El error se manejará silenciosamente o podrías añadir un campo errorMessage al ViewModel
             } finally {
                 isLoading = false
             }

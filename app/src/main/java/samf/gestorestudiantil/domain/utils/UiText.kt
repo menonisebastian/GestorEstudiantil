@@ -18,4 +18,11 @@ sealed class UiText {
             is StringResource -> stringResource(resId, *args)
         }
     }
+
+    fun asString(context: android.content.Context): String {
+        return when (this) {
+            is DynamicString -> value
+            is StringResource -> context.getString(resId, *args)
+        }
+    }
 }

@@ -1,13 +1,12 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
-import android.widget.Toast
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Entrega
 import samf.gestorestudiantil.data.models.Evaluacion
@@ -28,7 +26,6 @@ import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.Unidad
 import samf.gestorestudiantil.data.models.User
-import android.util.Log
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
@@ -138,13 +135,9 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 profesorRepository.editarUnidad(unidadId, nombre, descripcion, visible, orden)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.success_update, Toast.LENGTH_SHORT).show()
-                }
+                snackbarManager.showSnackbar(context.getString(R.string.success_update))
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -155,9 +148,7 @@ class ProfesorViewModel @Inject constructor(
                 profesorRepository.eliminarUnidad(unidad.id)
                 onUndo()
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_delete_item, Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
             }
         }
     }
@@ -167,9 +158,7 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.restaurarUnidad(unidadId)
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -231,13 +220,9 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 profesorRepository.editarPost(postId, titulo, contenido, visible)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.success_update), Toast.LENGTH_SHORT).show()
-                }
+                snackbarManager.showSnackbar(context.getString(R.string.success_update))
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -248,9 +233,7 @@ class ProfesorViewModel @Inject constructor(
                 profesorRepository.eliminarPost(post.id)
                 onUndo()
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
             }
         }
     }
@@ -260,9 +243,7 @@ class ProfesorViewModel @Inject constructor(
             try {
                 profesorRepository.restaurarPost(postId)
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -305,9 +286,6 @@ class ProfesorViewModel @Inject constructor(
                 onUndo()
             } catch (_: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
-                }
             }
         }
     }
@@ -317,9 +295,7 @@ class ProfesorViewModel @Inject constructor(
             try {
                 tareaRepository.restaurarTarea(tareaId)
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_save_item, Toast.LENGTH_LONG).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -342,9 +318,9 @@ class ProfesorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 tareaRepository.calificarEntrega(entregaId, nota, comentario)
-                Toast.makeText(context, context.getString(R.string.success_save), Toast.LENGTH_SHORT).show()
+                snackbarManager.showSnackbar(context.getString(R.string.success_save))
             } catch (_: Exception) {
-                Toast.makeText(context, context.getString(R.string.error_save_item), Toast.LENGTH_LONG).show()
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_save_item)) }
             }
         }
     }
@@ -360,9 +336,7 @@ class ProfesorViewModel @Inject constructor(
                     FileOpener.openFile(context, bytes, nombreArchivo)
                 }
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_file_read), Toast.LENGTH_SHORT).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_file_read)) }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -614,9 +588,6 @@ class ProfesorViewModel @Inject constructor(
                 onUndo()
             } catch (_: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_item)) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_delete_item), Toast.LENGTH_LONG).show()
-                }
             }
         }
     }

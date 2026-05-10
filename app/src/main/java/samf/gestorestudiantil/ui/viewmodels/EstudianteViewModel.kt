@@ -1,7 +1,6 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Evaluacion
@@ -200,9 +198,6 @@ class EstudianteViewModel @Inject constructor(
                 }
             } catch (_: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_mark_as_read)) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_mark_as_read), Toast.LENGTH_SHORT).show()
-                }
             }
         }
     }
@@ -277,9 +272,6 @@ class EstudianteViewModel @Inject constructor(
             } catch (e: Exception) {
                 val errorMsg = ErrorMapper.getFriendlyMessage(context, e)
                 _state.update { it.copy(errorMessage = errorMsg) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
-                }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -313,9 +305,6 @@ class EstudianteViewModel @Inject constructor(
                 onUndo()
             } catch (_: Exception) {
                 _state.update { it.copy(errorMessage = context.getString(R.string.error_delete_delivery)) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_delete_delivery), Toast.LENGTH_LONG).show()
-                }
             }
         }
     }
@@ -342,9 +331,7 @@ class EstudianteViewModel @Inject constructor(
                     FileOpener.openFile(context, bytes, nombreArchivo)
                 }
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.error_open_file), Toast.LENGTH_SHORT).show()
-                }
+                _state.update { it.copy(errorMessage = context.getString(R.string.error_open_file)) }
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -410,10 +397,7 @@ class EstudianteViewModel @Inject constructor(
                         )
                     }
                 } catch (e: Exception) {
-                    _state.update { it.copy(isLoading = false) }
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Error al cargar archivo: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    }
+                    _state.update { it.copy(isLoading = false, errorMessage = "Error al cargar archivo: ${e.localizedMessage}") }
                 }
             }
         }

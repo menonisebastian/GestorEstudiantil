@@ -17,6 +17,7 @@ import samf.gestorestudiantil.domain.repositories.RecordatorioRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import samf.gestorestudiantil.domain.utils.SnackbarEvent
 import samf.gestorestudiantil.domain.utils.SnackbarManager
+import samf.gestorestudiantil.domain.utils.UiText
 import javax.inject.Inject
 
 data class CurrentUserUiState(
@@ -58,6 +59,12 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    fun showSnackbar(message: UiText, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            snackbarManager.showSnackbar(message.asString(context), actionLabel, onAction)
+        }
+    }
+
     fun setCurrentUser(user: CurrentUserUiState) {
         _state.update { it.copy(currentUser = user) }
         cargarRecordatorios(user.id)
@@ -77,21 +84,29 @@ class AppViewModel @Inject constructor(
     fun agregarRecordatorio(recordatorio: Recordatorio) {
         viewModelScope.launch {
             try {
-                val finalRecordatorio = if (recordatorio.id.isEmpty()) {
+                // Si el ID empieza por "temp_", significa que es un recordatorio nuevo
+                val isNew = recordatorio.id.isEmpty() || recordatorio.id.startsWith("temp_")
+
+                val finalRecordatorio = if (isNew) {
                     recordatorio.copy(id = "rec_${System.currentTimeMillis()}")
                 } else {
                     recordatorio
                 }
                 recordatorioRepository.guardarRecordatorio(finalRecordatorio)
                 NotificationScheduler.scheduleRecordatorioNotification(context, finalRecordatorio)
-                showSnackbar(
-                    message = "Recordatorio guardado",
-                    actionLabel = "Deshacer",
-                ) {
-                    viewModelScope.launch {
-                        recordatorioRepository.eliminarRecordatorio(finalRecordatorio.id)
-                        NotificationScheduler.cancelNotification(context, finalRecordatorio.id)
+                
+                if (isNew) {
+                    showSnackbar(
+                        message = "Recordatorio creado",
+                        actionLabel = "Deshacer",
+                    ) {
+                        viewModelScope.launch {
+                            recordatorioRepository.eliminarRecordatorio(finalRecordatorio.id)
+                            NotificationScheduler.cancelNotification(context, finalRecordatorio.id)
+                        }
                     }
+                } else {
+                    showSnackbar("Recordatorio actualizado")
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al guardar recordatorio: ${e.localizedMessage}") }
@@ -121,6 +136,7 @@ class AppViewModel @Inject constructor(
             try {
                 recordatorioRepository.actualizarRecordatorio(recordatorio)
                 NotificationScheduler.scheduleRecordatorioNotification(context, recordatorio)
+                showSnackbar("Recordatorio actualizado")
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = "Error al actualizar recordatorio: ${e.localizedMessage}") }
             }

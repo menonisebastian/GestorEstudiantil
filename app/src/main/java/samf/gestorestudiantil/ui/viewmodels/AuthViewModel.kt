@@ -25,6 +25,7 @@ import samf.gestorestudiantil.domain.repositories.CourseRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
 import samf.gestorestudiantil.domain.usecases.CompleteGoogleSetupUseCase
 import samf.gestorestudiantil.domain.usecases.RegisterUserUseCase
+import samf.gestorestudiantil.domain.utils.UiText
 import javax.inject.Inject
 
 data class AuthState(
@@ -32,7 +33,7 @@ data class AuthState(
     val isCheckingSession: Boolean = true,
     val isSuccess: Boolean = false,
     val user: User? = null,
-    val errorMessage: String? = null,
+    val errorMessage: UiText? = null,
     val requireGooglePasswordSetup: Boolean = false,
     val isSigningOut: Boolean = false
 )
@@ -130,17 +131,17 @@ class AuthViewModel @Inject constructor(
 
     fun loginWithEmail(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
-            _authState.value = _authState.value.copy(errorMessage = "Por favor, rellena todos los campos")
+            _authState.value = _authState.value.copy(errorMessage = UiText.DynamicString("Por favor, rellena todos los campos"))
             return
         }
         _authState.value = _authState.value.copy(isLoading = true, errorMessage = null)
         viewModelScope.launch {
             try {
                 authRepository.loginWithEmail(email, pass)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _authState.value = _authState.value.copy(
                     isLoading = false, 
-                    errorMessage = "Correo o contraseña incorrectos"
+                    errorMessage = UiText.DynamicString("Correo o contraseña incorrectos")
                 )
             }
         }
@@ -152,7 +153,7 @@ class AuthViewModel @Inject constructor(
         ciclo: Int, imgUrl: String, departamento: String = ""
     ) {
         if (email.isBlank() || pass.isBlank() || name.isBlank() || centroId.isBlank()) {
-            _authState.value = _authState.value.copy(errorMessage = "Faltan datos obligatorios")
+            _authState.value = _authState.value.copy(errorMessage = UiText.DynamicString("Faltan datos obligatorios"))
             return
         }
 
@@ -162,10 +163,10 @@ class AuthViewModel @Inject constructor(
                 registerUserUseCase(
                     email, pass, name, rolSeleccionado, centroId, cursoId, cursoNombre, turno, ciclo, imgUrl, departamento
                 )
-            } catch (e: FirebaseAuthUserCollisionException) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Este correo ya está registrado")
-            } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "No se pudo completar el registro")
+            } catch (_: FirebaseAuthUserCollisionException) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = UiText.DynamicString("Este correo ya está registrado"))
+            } catch (_: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = UiText.DynamicString("No se pudo completar el registro"))
             }
         }
     }
@@ -175,8 +176,8 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 authRepository.signInWithGoogle(idToken)
-            } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al iniciar sesión con Google")
+            } catch (_: Exception) {
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = UiText.DynamicString("Error al iniciar sesión con Google"))
             }
         }
     }
@@ -190,21 +191,21 @@ class AuthViewModel @Inject constructor(
                 val msg = e.message ?: ""
                 when {
                     msg.startsWith("COLLISION_GOOGLE:") -> {
-                        // El email está registrado con Google.
-                        // Hacemos sign-in con Google y luego vinculamos GitHub.
+                        // El email está registrado con Google
+                        // se loguea Google y luego se vincula al GitHub.
                         handleGithubGoogleCollision(activity, msg.removePrefix("COLLISION_GOOGLE:"))
                     }
                     msg.startsWith("COLLISION_EMAIL:") -> {
                         _authState.value = _authState.value.copy(
                             isLoading = false,
-                            errorMessage = "Este email ya está registrado con contraseña. " +
-                                    "Inicia sesión con email y contraseña primero."
+                            errorMessage = UiText.DynamicString("Este email ya está registrado con contraseña. " +
+                                    "Inicia sesión con email y contraseña primero.")
                         )
                     }
                     else -> {
                         _authState.value = _authState.value.copy(
                             isLoading = false,
-                            errorMessage = "Error con GitHub Sign-In"
+                            errorMessage = UiText.DynamicString("Error con GitHub Sign-In")
                         )
                     }
                 }
@@ -225,7 +226,7 @@ class AuthViewModel @Inject constructor(
             if (googleToken == null) {
                 _authState.value = _authState.value.copy(
                     isLoading = false,
-                    errorMessage = "Necesitas confirmar tu cuenta de Google para vincular GitHub."
+                    errorMessage = UiText.DynamicString("Necesitas confirmar tu cuenta de Google para vincular GitHub.")
                 )
                 return
             }
@@ -236,7 +237,7 @@ class AuthViewModel @Inject constructor(
         } catch (e: Exception) {
             _authState.value = _authState.value.copy(
                 isLoading = false,
-                errorMessage = "Error al vincular GitHub con tu cuenta de Google: ${e.localizedMessage}"
+                errorMessage = UiText.DynamicString("Error al vincular GitHub con tu cuenta de Google: ${e.localizedMessage}")
             )
         }
     }
@@ -269,7 +270,7 @@ class AuthViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = "Error al completar registro: ${e.localizedMessage}")
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = UiText.DynamicString("Error al completar registro: ${e.localizedMessage}"))
             }
         }
     }
@@ -282,7 +283,7 @@ class AuthViewModel @Inject constructor(
                 _authState.value = _authState.value.copy(isLoading = false)
                 onSuccess()
             } catch (e: Exception) {
-                _authState.value = _authState.value.copy(isLoading = false, errorMessage = e.message)
+                _authState.value = _authState.value.copy(isLoading = false, errorMessage = UiText.DynamicString(e.message ?: "Error desconocido"))
             }
         }
     }
@@ -312,7 +313,7 @@ class AuthViewModel @Inject constructor(
                 _authState.value = _authState.value.copy(isLoading = false, isSigningOut = false, user = null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _authState.value = _authState.value.copy(isLoading = false, isSigningOut = false, errorMessage = "Error al cerrar sesión")
+                _authState.value = _authState.value.copy(isLoading = false, isSigningOut = false, errorMessage = UiText.DynamicString("Error al cerrar sesión"))
             }
         }
     }

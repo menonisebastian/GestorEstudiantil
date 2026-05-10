@@ -47,7 +47,7 @@ El proyecto implementa los estándares más exigentes del desarrollo Android act
 *   **Control Institucional:** Configuración jerárquica de Centros, Cursos, Ciclos y Asignaturas.
 *   **Gestión de Usuarios:** Aprobación de cuentas, edición de perfiles y asignación de roles.
 *   **Mantenimiento Avanzado:** 
-    *   Semillado masivo de la base de datos mediante archivos JSONL.
+    *   Seeding masivo de la base de datos mediante archivos JSONL.
     *   Generación atómica de horarios y gestión de calendarios escolares.
     *   Limpieza y optimización de datos del sistema.
 
@@ -55,18 +55,27 @@ El proyecto implementa los estándares más exigentes del desarrollo Android act
 
 ```
 app/src/main/java/samf/gestorestudiantil/
-├── data/              # Modelos, Repositorios (Impl) y Servicios (Firebase/Supabase)
-├── domain/            # Casos de Uso, Interfaces de Repositorios y Mappers
-├── ui/
-│   ├── components/    # Librería de componentes UI reutilizables
-│   ├── dialogs/       # Orquestador de diálogos basado en estados
-│   ├── navigation/    # Configuración de Navigation 3 y HomeState
-│   ├── panels/        # Interfaces especializadas por rol (Admin/Profe/Estudiante)
-│   ├── screens/       # Pantallas de flujo principal (Auth, Home, Perfil)
-│   ├── theme/         # Sistema de diseño, colores y tipografía
-│   └── viewmodels/    # Lógica de presentación y gestión de estados (StateFlow)
-├── di/                # Módulos de Hilt (FirebaseModule, RepositoryModule, NetworkModule)
-└── utils/             # Utilidades, ErrorMapper y formateadores
+├── data/              # Implementación de datos y persistencia
+│   ├── enums/         # Enumeraciones globales (Roles, Estados)
+│   ├── interfaces/    # Interfaces de modelos UI
+│   ├── models/        # Modelos de datos (POJOs/Data Classes) para Firebase/Supabase
+│   └── repositories/  # Implementaciones concretas de los repositorios
+├── domain/            # Lógica de negocio pura (independiente de la UI)
+│   ├── notifications/ # Gestión de notificaciones locales y push (FCM)
+│   ├── repositories/  # Definición de interfaces de repositorios
+│   ├── serializers/   # Serializadores personalizados para Firestore
+│   ├── usecases/      # Casos de uso (Lógica de negocio unitaria)
+│   └── utils/         # Utilidades, Mappers y validadores
+├── ui/                # Capa de presentación (Jetpack Compose)
+│   ├── components/    # Componentes atómicos y efectos visuales
+│   ├── dialogs/       # Sistema de diálogos reactivos
+│   ├── navigation/    # Rutas y grafos (Navigation 3)
+│   ├── panels/        # Dashboards por rol (Admin, Profesor, Estudiante)
+│   ├── screens/       # Pantallas principales y contenido de navegación
+│   ├── theme/         # Diseño de sistema (Material 3)
+│   └── viewmodels/    # Gestión de estado (StateFlow) y lógica UI
+├── di/                # Inyección de dependencias (Hilt)
+└── MainActivity.kt    # Punto de entrada y host de navegación
 ```
 
 ## 🛠️ Instalación y Configuración

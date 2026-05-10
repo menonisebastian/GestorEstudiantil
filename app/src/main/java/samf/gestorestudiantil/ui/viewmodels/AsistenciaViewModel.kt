@@ -1,11 +1,8 @@
 package samf.gestorestudiantil.ui.viewmodels
 
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.data.models.Asignatura
@@ -14,6 +11,7 @@ import samf.gestorestudiantil.data.models.AsistenciaEstado
 import samf.gestorestudiantil.data.models.User
 import samf.gestorestudiantil.domain.repositories.AsistenciaRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
+import samf.gestorestudiantil.domain.utils.SnackbarManager
 import java.util.*
 import javax.inject.Inject
 
@@ -29,7 +27,7 @@ data class AsistenciaUiState(
 class AsistenciaViewModel @Inject constructor(
     private val asistenciaRepository: AsistenciaRepository,
     private val profesorRepository: ProfesorRepository,
-    @param:ApplicationContext private val context: Context
+    private val snackbarManager: SnackbarManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AsistenciaUiState())
@@ -98,7 +96,7 @@ class AsistenciaViewModel @Inject constructor(
             try {
                 asistenciaRepository.guardarAsistencias(listOf(asistencia))
             } catch (_: Exception) {
-                Toast.makeText(context, "Error al guardar asistencia automáticamente", Toast.LENGTH_SHORT).show()
+                snackbarManager.showSnackbar("Error al guardar asistencia automáticamente")
             }
         }
     }

@@ -1,19 +1,16 @@
 package samf.gestorestudiantil.ui.viewmodels
 
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.data.models.Centro
@@ -354,9 +351,7 @@ class AdminViewModel @Inject constructor(
                 _adminState.update { it.copy(isLoading = true) }
                 adminRepository.limpiarPapelera()
                 _adminState.update { it.copy(isLoading = false) }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Limpieza completada", Toast.LENGTH_SHORT).show()
-                }
+                snackbarManager.showSnackbar("Limpieza completada")
             } catch (e: Exception) {
                 _adminState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }

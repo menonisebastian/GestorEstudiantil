@@ -1,6 +1,5 @@
 package samf.gestorestudiantil.ui.screens
 
-import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -8,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -62,6 +61,7 @@ import androidx.credentials.CredentialManager
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import samf.gestorestudiantil.R
 import samf.gestorestudiantil.data.models.User
@@ -69,6 +69,7 @@ import samf.gestorestudiantil.domain.utils.authRouteToTab
 import samf.gestorestudiantil.domain.utils.authTabToRoute
 import samf.gestorestudiantil.domain.utils.signInWithGoogle
 import samf.gestorestudiantil.ui.components.BottomNavBar
+import samf.gestorestudiantil.ui.components.CustomSnackbarHost
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomPasswordTextField
 import samf.gestorestudiantil.ui.components.ProfileImagePicker
@@ -82,6 +83,8 @@ import samf.gestorestudiantil.ui.theme.surfaceDimColor
 import samf.gestorestudiantil.ui.theme.textColor
 import samf.gestorestudiantil.ui.theme.whiteColor
 import samf.gestorestudiantil.ui.viewmodels.AuthViewModel
+import samf.gestorestudiantil.ui.viewmodels.AppViewModel
+import samf.gestorestudiantil.domain.utils.UiText
 
 val itemsAuth: Map<String, ImageVector> = mapOf(
     "Ingresar" to Icons.AutoMirrored.Filled.Login,
@@ -92,6 +95,7 @@ val itemsAuth: Map<String, ImageVector> = mapOf(
 @Composable
 fun AuthScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = hiltViewModel(),
     onAuthSuccess: (User) -> Unit,
     onRequireGoogleSetup: () -> Unit,
     onNavigateToRegisterStep2: (name: String, email: String, pass: String, imgUrl: String) -> Unit,
@@ -104,6 +108,17 @@ fun AuthScreen(
     val authState by authViewModel.authState.collectAsState()
     val token = stringResource(R.string.id_token)
     val credentialManager = remember { CredentialManager.create(context) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        appViewModel.snackbarEvents.collectLatest { event ->
+            snackbarHostState.showSnackbar(
+                message = event.message,
+                actionLabel = event.actionLabel,
+                duration = androidx.compose.material3.SnackbarDuration.Short
+            )
+        }
+    }
 
     val authBackStack = remember {
         mutableStateListOf<Any>(Routes.AuthRoutes.Login)
@@ -135,13 +150,14 @@ fun AuthScreen(
             onRequireGoogleSetup()
         }
         if (authState.errorMessage != null) {
-            Toast.makeText(context, authState.errorMessage, Toast.LENGTH_LONG).show()
+            appViewModel.showSnackbar(authState.errorMessage!!)
             authViewModel.clearError()
         }
     }
 
     Scaffold(
         containerColor = backgroundColor,
+        snackbarHost = { CustomSnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -229,7 +245,7 @@ fun AuthScreen(
                                     }
                                 },
                                 onGithubClick = {
-                                    val activity = context as? Activity
+                                    val activity = context as? android.app.Activity
                                     if (activity != null) {
                                         authViewModel.loginWithGithub(activity)
                                     }
@@ -361,10 +377,10 @@ fun ForgotPasswordPanel(
     paddingValues: PaddingValues,
     isLoading: Boolean,
     onResetClick: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
-    val context = LocalContext.current
 
     ConstraintLayout(
         modifier = Modifier
@@ -420,7 +436,7 @@ fun ForgotPasswordPanel(
             Button(
                 onClick = {
                     if (email.isBlank()) {
-                        Toast.makeText(context, R.string.error_enter_email, Toast.LENGTH_SHORT).show()
+                        appViewModel.showSnackbar(UiText.StringResource(R.string.error_enter_email))
                     } else {
                         onResetClick(email)
                     }
@@ -577,15 +593,14 @@ fun LoginPanel(
 fun RegistroPanelStep1(
     paddingValues: PaddingValues,
     isLoading: Boolean,
-    onNextClick: (name: String, email: String, pass: String, imgUrl: String) -> Unit
+    onNextClick: (name: String, email: String, pass: String, imgUrl: String) -> Unit,
+    appViewModel: AppViewModel = hiltViewModel()
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     val passwordState = rememberTextFieldState()
     val confirmPasswordState = rememberTextFieldState()
     var imgUrl by remember { mutableStateOf("") }
-    
-    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -648,11 +663,11 @@ fun RegistroPanelStep1(
                         val confirmPassword = confirmPasswordState.text.toString()
 
                         if (name.isBlank() || email.isBlank() || password.isBlank()) {
-                            Toast.makeText(context, R.string.error_empty_fields, Toast.LENGTH_SHORT).show()
+                            appViewModel.showSnackbar(UiText.StringResource(R.string.error_empty_fields))
                         } else if (password != confirmPassword) {
-                            Toast.makeText(context, R.string.error_passwords_mismatch, Toast.LENGTH_SHORT).show()
+                            appViewModel.showSnackbar(UiText.StringResource(R.string.error_passwords_mismatch))
                         } else if (password.length < 6) {
-                            Toast.makeText(context, R.string.error_password_too_short, Toast.LENGTH_SHORT).show()
+                            appViewModel.showSnackbar(UiText.StringResource(R.string.error_password_too_short))
                         } else {
                             onNextClick(name, email, password, imgUrl)
                         }

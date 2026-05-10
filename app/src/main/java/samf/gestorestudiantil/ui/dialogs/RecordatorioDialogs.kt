@@ -17,32 +17,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import samf.gestorestudiantil.data.enums.TipoRecordatorio
 import samf.gestorestudiantil.data.models.Recordatorio
 import samf.gestorestudiantil.ui.components.CustomDateField
 import samf.gestorestudiantil.ui.components.CustomTextField
 import samf.gestorestudiantil.ui.components.CustomTimeField
 import samf.gestorestudiantil.ui.theme.*
-import java.util.UUID
-
-@Composable
-fun RecordatorioDialog(
-    state: DialogState.Recordatorio,
-    onShowDialog: (DialogState) -> Unit,
-    onDismissRequest: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismissRequest) {
-        RecordatorioContent(
-            state = state,
-            onShowDialog = onShowDialog,
-            onDismissRequest = onDismissRequest,
-            modifier = Modifier
-                .background(backgroundColor, RoundedCornerShape(16.dp))
-                .padding(16.dp)
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -192,7 +172,7 @@ fun RecordatorioContent(
                         hora = hora,
                         tipo = tipo
                     ) ?: Recordatorio(
-                        id = UUID.randomUUID().toString(),
+                        id = "temp_${System.currentTimeMillis()}",
                         usuarioId = "", // Se asigna en el ViewModel
                         titulo = titulo,
                         descripcion = descripcion,

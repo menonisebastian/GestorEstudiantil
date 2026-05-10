@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PlanningModeManager">
+    <option name="approvalStates">
+      <map>
+        <entry key="20260422-000422-1f1dfc50-a5bb-4607-9fea-14cee9160672" value="true" />
+        <entry key="20260425-103026-02e6f63b-8293-4eeb-8554-6475667e3d4b" value="true" />
+        <entry key="20260425-110456-4e2ceaed-d32c-4577-8ce4-15f3bd028bbd" value="true" />
+        <entry key="20260425-113526-321a41db-f4e0-4c58-a01c-b5552af7070b" value="true" />
+        <entry key="20260425-121211-d8beab29-96ae-421e-92c7-d1fc4e0cb67e" value="true" />
+        <entry key="20260425-151608-656a54bf-23b1-458c-837c-75c1ffc17450" value="true" />
+        <entry key="20260425-163414-2af9df6c-9542-4147-ad23-7349814bab68" value="true" />
+        <entry key="20260425-200039-6d521953-bdf3-4e8a-9134-e1fb760c84b8" value="true" />
+        <entry key="20260425-202308-27d0771c-6a6e-4b21-b203-721a1d835159" value="true" />
+        <entry key="20260425-222905-301800cb-a17f-4688-8238-c479f3e6c80a" value="true" />
+        <entry key="20260425-232610-bcc6a716-b1d0-40f7-a063-e3b1649feec6" value="true" />
+        <entry key="20260425-233942-f968e3bf-839f-42ee-9d79-b1583b83078a" value="true" />
+        <entry key="20260426-001950-7c184ab5-4a47-435d-8ce7-1e5cf51a23e2" value="true" />
+        <entry key="20260426-093538-7b3e60a1-89dd-4cb1-9e3c-f96d2dcff612" value="true" />
+        <entry key="20260426-121157-4ba0830e-9a51-4f65-aafa-15271757986b" value="true" />
+        <entry key="20260426-134653-d7540081-9b82-4858-8cc9-6e9d04280485" value="true" />
+        <entry key="20260426-154843-8317ba88-3050-40b4-823c-7479b73cb326" value="true" />
+        <entry key="20260426-222709-d9c2c08e-374a-4c7e-a41f-85f3df53cc81" value="true" />
+        <entry key="20260428-014055-8020cce5-b155-49f6-8973-11ca54fb2e13" value="true" />
+        <entry key="20260428-180236-e819620a-4afa-4e5c-87f3-5eeb24e4a81c" value="true" />
+        <entry key="20260501-141445-737ccc65-3ae5-4357-b9a8-4282fd334022" value="true" />
+        <entry key="20260501-162326-5ce2b3ba-6b95-4166-a2fd-38af99add162" value="true" />
+        <entry key="20260501-164247-39f85b33-6497-4797-aba9-3d9b8b8748de" value="true" />
+        <entry key="20260501-165930-3b4a553a-8e31-49af-85d9-7fc017c9690c" value="true" />
+        <entry key="20260501-170851-4ea38749-2f90-4346-9a8e-1662a8cf6294" value="true" />
+        <entry key="20260501-174907-4683d618-4e8c-4b23-9070-ab3678165a29" value="true" />
+        <entry key="20260501-183714-ee86113e-3a0b-4a51-96ac-0d24500d52e8" value="true" />
+        <entry key="20260501-190606-7ff211bc-2ffa-4dff-b3ce-138cec528db8" value="true" />
+        <entry key="20260501-192313-9472165f-1a87-4e27-8318-21857861f8b5" value="true" />
+        <entry key="20260501-200740-2b465238-d8e3-4afe-b2e5-3e7d9b46dc91" value="true" />
+        <entry key="20260501-210033-95525d79-069a-43b6-b618-796e58f69ded" value="true" />
+        <entry key="20260501-212432-5813c318-a90b-4047-b44f-93ff9fd1caef" value="true" />
+        <entry key="20260501-225010-646af0c2-7352-4e83-9bfe-0d18b1af42fe" value="true" />
+        <entry key="20260502-004036-2cdb8e6f-7ea1-4563-8a1f-4c3e041abdf5" value="true" />
+        <entry key="20260502-133307-909b281d-474e-4a5b-979b-4ea9303dd561" value="true" />
+        <entry key="20260503-202752-5f4bd8e2-f095-4429-a1f4-e231983ebae0" value="true" />
+        <entry key="20260506-205436-0f62bbcc-8d84-486e-8b20-a6f846df5b34" value="true" />
+        <entry key="20260506-213045-93d6505f-48a2-41ce-bc5b-6ee8d1816793" value="true" />
+        <entry key="20260507-222414-ee22f713-db44-493f-a20e-cbc399e9409d" value="true" />
+        <entry key="20260508-182536-422f58f5-17ff-49d0-a18c-a947a60968ec" value="true" />
+        <entry key="20260508-220744-829d1d7c-d749-4ef3-9402-ea8648868d95" value="true" />
+        <entry key="20260509-113554-1053009e-eea1-4f60-849d-00cf54ea00f5" value="true" />
+        <entry key="20260509-123710-ef18521e-4f1d-44d7-917a-ebfe3c9df7ab" value="true" />
+        <entry key="20260509-130323-e53b9a9b-da63-4866-b8b6-4accc74e5f68" value="true" />
+        <entry key="20260509-133832-68dc8ba2-f691-4b10-991a-e041333decef" value="true" />
+        <entry key="20260509-134658-11054974-ebfd-4cdc-8b8d-6750fca96707" value="true" />
+        <entry key="20260509-140427-92831186-c11d-49b3-be40-5de4ee4e6fd2" value="true" />
+        <entry key="20260509-151515-4866cc23-d58c-4059-b5b4-821f6fe12956" value="true" />
+        <entry key="20260509-191004-58eb7ca3-86b7-495d-aedf-b8d638c7690d" value="true" />
+        <entry key="20260509-192549-5d7ba0a9-d747-4259-99fd-bae8fd60098a" value="true" />
+        <entry key="20260509-201301-17612ea0-86b2-457e-8e2a-c6c5cc453cdf" value="true" />
+        <entry key="20260510-110000-7b7bbbd2-e699-4818-b0c0-d6d7e39bc92b" value="true" />
+        <entry key="20260510-112703-deaf0071-de47-4520-ad6d-ed783696b7ae" value="true" />
+        <entry key="20260510-121749-54fb78f6-7a66-4a71-8d7c-d1830eca95f6" value="true" />
+        <entry key="20260510-124118-23bcc77c-5477-472f-b37c-b2a8584a9913" value="true" />
+      </map>
+    </option>
+  </component>
+</project>

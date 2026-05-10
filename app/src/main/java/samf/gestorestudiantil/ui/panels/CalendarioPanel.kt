@@ -29,6 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -134,14 +138,35 @@ fun CalendarioPanel(
     val coroutineScope = rememberCoroutineScope()
 
     val lazyListState = rememberLazyListState()
+    var showCalendarOverride by remember { mutableStateOf(true) }
     val showCalendar by remember {
         derivedStateOf {
-            lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 50
+            (lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 50) && showCalendarOverride
+        }
+    }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (source == NestedScrollSource.UserInput) {
+                    if (available.y < -15f && showCalendarOverride) {
+                        showCalendarOverride = false
+                    } else if (available.y > 15f && !showCalendarOverride) {
+                        showCalendarOverride = true
+                    }
+                }
+                return Offset.Zero
+            }
         }
     }
 
     LaunchedEffect(selectedDate) {
         lazyListState.animateScrollToItem(0)
+        showCalendarOverride = true
     }
 
     val eventosTotales = remember(tareas, recordatorios) {
@@ -153,6 +178,7 @@ fun CalendarioPanel(
             .fillMaxSize()
             .padding(paddingValues)
             .background(MaterialTheme.colorScheme.background)
+            .nestedScroll(nestedScrollConnection)
     ) {
         AnimatedVisibility(
             visible = showCalendar,
@@ -346,6 +372,7 @@ fun CalendarioPanel(
                     ) {
                         SmallFloatingActionButton(
                             onClick = {
+                                showCalendarOverride = true
                                 coroutineScope.launch {
                                     lazyListState.animateScrollToItem(0)
                                 }
