@@ -141,7 +141,7 @@ fun ItemHorarioProfesor(slot: String, horario: Horario?, asignatura: Asignatura?
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = if (asignatura != null || isReceso) colorFondo else surfaceColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
