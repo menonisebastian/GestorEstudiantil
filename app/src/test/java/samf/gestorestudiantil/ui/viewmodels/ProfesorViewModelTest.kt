@@ -9,11 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import samf.gestorestudiantil.MainDispatcherRule
-import samf.gestorestudiantil.data.models.Asignatura
 import samf.gestorestudiantil.domain.repositories.NotificationRepository
 import samf.gestorestudiantil.domain.repositories.ProfesorRepository
 import samf.gestorestudiantil.domain.repositories.TareaRepository
 import samf.gestorestudiantil.domain.repositories.UserRepository
+import samf.gestorestudiantil.domain.utils.SnackbarManager
 
 class ProfesorViewModelTest {
 
@@ -24,6 +24,7 @@ class ProfesorViewModelTest {
     private val tareaRepository = mockk<TareaRepository>()
     private val notificationRepository = mockk<NotificationRepository>()
     private val userRepository = mockk<UserRepository>()
+    private val snackbarManager = mockk<SnackbarManager>(relaxed = true)
     private val context = mockk<Context>(relaxed = true)
 
     @Test
@@ -42,6 +43,7 @@ class ProfesorViewModelTest {
             tareaRepository,
             notificationRepository,
             userRepository,
+            snackbarManager,
             context
         )
 
