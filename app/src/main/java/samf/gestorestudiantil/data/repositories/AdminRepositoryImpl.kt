@@ -1,5 +1,6 @@
 package samf.gestorestudiantil.data.repositories
 
+import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -22,6 +23,7 @@ import samf.gestorestudiantil.data.models.Post
 import samf.gestorestudiantil.data.models.Tarea
 import samf.gestorestudiantil.data.models.Entrega
 import com.google.firebase.Timestamp
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.storage.Storage
 import samf.gestorestudiantil.data.models.Evaluacion
 import samf.gestorestudiantil.data.enums.TipoEvaluacion as TipoEvaluacionEnum
@@ -34,7 +36,7 @@ import javax.inject.Inject
 class AdminRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
     private val storage: Storage,
-    @param:dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
+    @param:ApplicationContext private val context: Context,
 ) : AdminRepository {
 
     private val gson = Gson()
@@ -107,12 +109,10 @@ class AdminRepositoryImpl @Inject constructor(
     override suspend fun eliminarUsuario(usuarioId: String) {
         val userRef = db.collection("usuarios").document(usuarioId)
 
-        // 1. Buscar TODAS las clases que contengan el ID de este usuario
         val clasesQuery = db.collection("clases")
             .whereArrayContains("estudiantesIds", usuarioId)
             .get().await()
 
-        // 2. Eliminar el usuario del array 'estudiantesIds' en los documentos encontrados
         val batch = db.batch()
         for (doc in clasesQuery.documents) {
             batch.update(
@@ -123,7 +123,6 @@ class AdminRepositoryImpl @Inject constructor(
         }
         batch.commit().await()
 
-        // 3. Finalmente, eliminar el documento del usuario
         userRef.delete().await()
     }
 
@@ -508,7 +507,7 @@ class AdminRepositoryImpl @Inject constructor(
     // --- HELPER PARA CREAR USUARIOS EN AUTH SIN DESLOGUEAR AL ADMIN ---
     private suspend fun createAuthUserSinDesloguear(email: String, pass: String): String {
         return try {
-            // Utilizamos una instancia secundaria para no cerrar la sesión principal
+
             var secondaryApp = FirebaseApp.getApps(context).find { it.name == "SecondaryAuthApp" }
             if (secondaryApp == null) {
                 val options = FirebaseApp.getInstance().options
@@ -517,11 +516,11 @@ class AdminRepositoryImpl @Inject constructor(
             val secondaryAuth = FirebaseAuth.getInstance(secondaryApp)
             val result = secondaryAuth.createUserWithEmailAndPassword(email, pass).await()
             val uid = result.user?.uid ?: UUID.randomUUID().toString()
-            secondaryAuth.signOut() // Cerramos la secundaria
+            secondaryAuth.signOut()
             uid
         } catch (e: Exception) {
             e.printStackTrace()
-            UUID.randomUUID().toString() // Fallback si el correo ya existe
+            UUID.randomUUID().toString()
         }
     }
 
@@ -537,12 +536,10 @@ class AdminRepositoryImpl @Inject constructor(
         for (i in 1..40) {
             val nombre = nombres.random()
             val apellido = apellidos.random()
-            
-            // Limpiar acentos para el email
+
             val emailBase = "${nombre.lowercase()}.${apellido.lowercase()}$i@iescomercio.com"
             val email = emailBase.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("ñ", "n")
 
-            // Crear en Authentication (Contraseña: 123456)
             val uid = createAuthUserSinDesloguear(email, "123456")
 
             val cicloNum = if (i <= 20) 1 else 2
@@ -565,26 +562,21 @@ class AdminRepositoryImpl @Inject constructor(
             if (cicloNum == 1) estudiantesDAM1.add(uid) else estudiantesDAM2.add(uid)
         }
 
-        // Ejecutar creación de usuarios
         batch.commit().await()
 
-        // --- Actualizar el modelo Clase ---
         val claseBatch = db.batch()
         val clase1Ref = db.collection("clases").document("DAMV1")
         val clase2Ref = db.collection("clases").document("DAMV2")
 
-        // Asegurarnos de que las clases existen (Merge)
         claseBatch.set(clase1Ref, mapOf("id" to "DAMV1", "centroId" to "ies_comercio", "cursoGlobalId" to "ies_comercio_DAM", "cicloNum" to 1, "turno" to "vespertino"), SetOptions.merge())
         claseBatch.set(clase2Ref, mapOf("id" to "DAMV2", "centroId" to "ies_comercio", "cursoGlobalId" to "ies_comercio_DAM", "cicloNum" to 2, "turno" to "vespertino"), SetOptions.merge())
 
-        // Añadir a estudiantesIds usando arrayUnion para no sobreescribir otros existentes
         if (estudiantesDAM1.isNotEmpty()) {
             claseBatch.update(clase1Ref, "estudiantesIds", FieldValue.arrayUnion(*estudiantesDAM1.toTypedArray()))
         }
         if (estudiantesDAM2.isNotEmpty()) {
             claseBatch.update(clase2Ref, "estudiantesIds", FieldValue.arrayUnion(*estudiantesDAM2.toTypedArray()))
         }
-
         claseBatch.commit().await()
     }
 
@@ -714,7 +706,6 @@ class AdminRepositoryImpl @Inject constructor(
         val arturo = userSnap.documents.firstOrNull()?.toObject(User.Estudiante::class.java) ?: return
         val arturoId = arturo.id
 
-        // Obtenemos todas las asignaturas de DAM (cursoId: ies_comercio_DAM)
         val asignaturasSnap = db.collection("asignaturas")
             .whereEqualTo("cursoId", "ies_comercio_DAM")
             .get().await()
@@ -736,11 +727,10 @@ class AdminRepositoryImpl @Inject constructor(
         var ops = 0
 
         for (asig in asignaturas) {
-            // Generamos de 2 a 4 evaluaciones por asignatura
             val numEvaluaciones = (2..4).random()
             for (i in 1..numEvaluaciones) {
                 val evaluacionId = UUID.randomUUID().toString()
-                val nota = (50..100).random() / 10.0 // Notas entre 5.0 y 10.0
+                val nota = (50..100).random() / 10.0
                 
                 val evaluacion = Evaluacion(
                     id = evaluacionId,

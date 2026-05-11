@@ -16,7 +16,7 @@ fun authRouteToTab(route: Any): String = when (route) {
     else                          -> "Ingresar"
 }
 
-fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
+fun tabToRoute(tab: String): Routes.HomeRoutes = when (tab) {
     "Asignaturas"     -> Routes.HomeRoutes.Materias
     "Horarios"        -> Routes.HomeRoutes.Horarios
     "Calendario"      -> Routes.HomeRoutes.Calendario
@@ -33,7 +33,6 @@ fun tabToRoute(tab: String, rol: String): Routes.HomeRoutes = when (tab) {
     else              -> Routes.HomeRoutes.Materias
 }
 
-// Convierte un NavKey al nombre del tab
 fun routeToTab(route: Any, rol: String): String = when (route) {
     is Routes.HomeRoutes.Materias        -> "Asignaturas"
     is Routes.HomeRoutes.Horarios        -> "Horarios"
@@ -49,7 +48,6 @@ fun routeToTab(route: Any, rol: String): String = when (route) {
     else                                  -> ""
 }
 
-// Devuelve true si es una ruta de detalle (no un tab raíz)
 fun isDetailRoute(route: Any): Boolean =
     route is Routes.HomeRoutes.CalificacionesDetalle ||
     route is Routes.HomeRoutes.MateriaDetalle ||
@@ -65,17 +63,3 @@ fun isDetailRoute(route: Any): Boolean =
     route is Routes.HomeRoutes.AdminCiclos ||
     route is Routes.HomeRoutes.AdminAsignaturas ||
     route is Routes.HomeRoutes.AdminHorarios
-
-
-//## Resumen visual de la arquitectura
-//
-//AppNavigation (NavDisplay raíz)
-//├── Routes.Auth       → AuthScreen (con su propio HorizontalPager)
-//├── Routes.Home       → HomeScreen
-//│   └── HorizontalPager
-//│       ├── Página 0 → NavDisplay(pageBackStack) → Asignaturas
-//│       ├── Página 1 → NavDisplay(pageBackStack) → Horarios
-//│       ├── Página 2 → NavDisplay(pageBackStack) → Calificaciones
-//│       │                                        ↘ CalificacionesDetalle ✅
-//│       └── Página 3 → NavDisplay(pageBackStack) → Recordatorios
-//├── Routes.Profile    → ProfileScreen

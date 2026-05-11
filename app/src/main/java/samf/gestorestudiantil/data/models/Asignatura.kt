@@ -8,21 +8,20 @@ import samf.gestorestudiantil.domain.utils.toTurnoLetra
 data class Asignatura(
     @DocumentId
     var idDocumento: String = "",
-    var id: String = "",                // Campo "id" en el documento Firestore
-    var acronimo: String = "",          // "PMM", "PSP", "AD", "DWEC" ...
-    var nombre: String = "",            // Nombre completo de la asignatura
-    var departamento: String = "",      // Departamento al que pertenece (ej: Informática)
+    var id: String = "",
+    var acronimo: String = "",
+    var nombre: String = "",
+    var departamento: String = "",
     var descripcion: String = "",
     var profesorId: String = "",
     var profesorNombre: String = "",
     var cursoId: String = "",
     var centroId: String = "",
-    var ciclo: String = "",             // "1", "2", "único", "2 (DAW)", "2 (DAM)"
-    var cicloNum: Int = 1,              // Int para ordenar/filtrar: 1 o 2
-    var turno: String = "",             // "matutino", "vespertino"
+    var ciclo: String = "",
+    var cicloNum: Int = 1,
+    var turno: String = "",
     var horasTotales: Int = 0,
     var horasSemanales: Int = 0,
-    // Estilos visuales almacenados como String en Firestore
     var iconoName: String = "Class",
     var colorFondoHex: String = "#E8E8E8",
     var colorIconoHex: String = "#6B7280",

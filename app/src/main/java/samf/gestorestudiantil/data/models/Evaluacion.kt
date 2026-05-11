@@ -11,7 +11,6 @@ data class Evaluacion(
     var visible: Boolean = true,
     var comentario: String? = null,
     var adjunto: AdjuntoInfo? = null,
-    // Usamos el alias para declarar el tipo y acceder a sus valores
     var tipoEvaluacion: TipoEvaluacionEnum = TipoEvaluacionEnum.Examen,
     var modulosEvaluados: List<String> = emptyList()
 )

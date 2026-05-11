@@ -71,7 +71,7 @@ class TareaRepositoryImpl @Inject constructor(
                 upsert = true
                 try {
                     mimeType?.let { contentType = ContentType.parse(it) }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     contentType = ContentType.Application.OctetStream
                 }
             }
@@ -115,7 +115,7 @@ class TareaRepositoryImpl @Inject constructor(
                 upsert = true
                 try {
                     mimeType?.let { contentType = ContentType.parse(it) }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     contentType = ContentType.Application.OctetStream
                 }
             }
@@ -197,7 +197,7 @@ class TareaRepositoryImpl @Inject constructor(
             upsert = true
             try {
                 mimeType?.let { contentType = ContentType.parse(it) }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 contentType = ContentType.Application.OctetStream
             }
         }

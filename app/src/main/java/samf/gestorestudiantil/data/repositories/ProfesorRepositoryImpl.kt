@@ -147,14 +147,10 @@ class ProfesorRepositoryImpl @Inject constructor(
             close()
             return@callbackFlow
         }
-        
-        // Chunking the cursoIds to handle more than 30 courses if necessary
-        // Note: Snapshot listeners on multiple chunks need to be combined.
-        // For simplicity and assuming most professors don't exceed 30 courses,
-        // we'll at least handle the query safely. If there are > 30, we'd need to combine multiple flows.
+
         val subscription = db.collection("usuarios")
             .whereEqualTo("rol", "ESTUDIANTE")
-            .whereIn("cursoId", cursoIds.take(30)) // Firebase limit is 30
+            .whereIn("cursoId", cursoIds.take(30))
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(User.Estudiante::class.java))

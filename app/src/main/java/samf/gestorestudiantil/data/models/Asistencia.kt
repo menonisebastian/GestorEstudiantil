@@ -11,7 +11,7 @@ data class Asistencia(
     var asignaturaId: String = "",
     var estudianteId: String = "",
     var estudianteNombre: String = "",
-    var fecha: Long = 0L, // Medianoche del día en milisegundos
+    var fecha: Long = 0L,
     var estado: AsistenciaEstado = AsistenciaEstado.PRESENTE,
     var comentario: String = ""
 )

@@ -9,12 +9,12 @@ data class Horario(
     var cursoId: String = "",
     var claseId: String = "",
     var cicloNum: Int = 1,
-    var turno: String = "",          // "matutino", "vespertino"
-    var dia: String = "",            // "Lunes", "Martes", "Miércoles", "Jueves", "Viernes"
+    var turno: String = "",
+    var dia: String = "",
     var horaInicio: String = "",
     var horaFin: String = "",
-    var asignaturaId: String = "",   // ID de la asignatura asignada
-    var asignaturaAcronimo: String = "", // Para mostrar rápido
+    var asignaturaId: String = "",
+    var asignaturaAcronimo: String = "",
     var profesorId: String = "",
     var profesorNombre: String = "",
     var aula: String = ""

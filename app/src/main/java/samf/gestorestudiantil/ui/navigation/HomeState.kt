@@ -24,7 +24,7 @@ class HomeState(
 ) {
     // Backstacks por pestaña
     val tabBackStacks = tabs.associateWith { tab ->
-        val initial = initialBackStacks?.get(tab) ?: listOf(tabToRoute(tab, rol))
+        val initial = initialBackStacks?.get(tab) ?: listOf(tabToRoute(tab))
         mutableStateListOf<Routes.HomeRoutes>().apply { addAll(initial) }
     }
 
